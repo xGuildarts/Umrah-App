@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#1a3a2a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="نظامي الغذائي">
+<title>نظامي الغذائي</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+
+  :root {
+    --bg: #0f1f17;
+    --card: #1a2f22;
+    --card2: #213829;
+    --accent: #4ade80;
+    --accent2: #86efac;
+    --accent-dim: rgba(74,222,128,0.15);
+    --text: #e8f5e9;
+    --muted: #7aab8a;
+    --border: rgba(74,222,128,0.2);
+    --danger: #f87171;
+    --warn: #fbbf24;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    max-width: 430px;
+    margin: 0 auto;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #1a3a2a 0%, #0f2018 100%);
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-top { display:flex; justify-content:space-between; align-items:center; }
+  .app-title { font-size: 20px; font-weight: 900; color: var(--accent); }
+  .app-subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .date-badge {
+    background: var(--accent-dim);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--accent2);
+  }
+
+  /* PROGRESS */
+  .progress-bar-wrap {
+    margin-top: 14px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    height: 8px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4ade80, #86efac);
+    border-radius: 10px;
+    transition: width 0.6s ease;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* MAIN */
+  .main { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+  /* MEAL CARD */
+  .meal-card {
+    background: var(--card);
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  .meal-card.done {
+    border-color: rgba(74,222,128,0.5);
+    background: var(--card2);
+    opacity: 0.75;
+  }
+  .meal-card.active-alarm {
+    border-color: var(--warn);
+    box-shadow: 0 0 0 2px rgba(251,191,36,0.3);
+    animation: pulse-border 1.5s infinite;
+  }
+  @keyframes pulse-border {
+    0%,100% { box-shadow: 0 0 0 2px rgba(251,191,36,0.3); }
+    50%      { box-shadow: 0 0 0 5px rgba(251,191,36,0.1); }
+  }
+
+  .meal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+  }
+  .meal-icon {
+    width: 44px; height: 44px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    background: var(--accent-dim);
+    flex-shrink: 0;
+  }
+  .meal-card.done .meal-icon { filter: grayscale(0.5); }
+  .meal-info { flex:1; }
+  .meal-name { font-size: 15px; font-weight: 700; }
+  .meal-time { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .meal-status {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    flex-shrink: 0;
+  }
+  .status-pending { background: rgba(251,191,36,0.15); color: var(--warn); }
+  .status-done    { background: rgba(74,222,128,0.15); color: var(--accent); }
+  .status-missed  { background: rgba(248,113,113,0.15); color: var(--danger); }
+  .status-upcoming{ background: rgba(255,255,255,0.07); color: var(--muted); }
+
+  .meal-body {
+    padding: 0 16px 16px;
+    display: none;
+  }
+  .meal-body.open { display: block; }
+
+  .meal-divider {
+    height: 1px;
+    background: var(--border);
+    margin-bottom: 14px;
+  }
+
+  .options-label { font-size: 11px; color: var(--muted); margin-bottom: 8px; font-weight: 600; letter-spacing: 0.5px; }
+
+  .option-group { margin-bottom: 10px; }
+  .option-title { font-size: 12px; color: var(--accent2); font-weight: 700; margin-bottom: 4px; }
+  .option-item {
+    font-size: 13px;
+    color: var(--text);
+    padding: 7px 12px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    margin-bottom: 4px;
+    border: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .option-item::before { content: '•'; color: var(--accent); font-size: 16px; }
+
+  .note-box {
+    background: rgba(74,222,128,0.07);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    border: 1px solid rgba(74,222,128,0.15);
+  }
+
+  .btn-done {
+    width: 100%;
+    padding: 13px;
+    border-radius: 14px;
+    border: none;
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    color: #0a1a10;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-done:active { transform: scale(0.97); }
+  .btn-done.done-state {
+    background: rgba(255,255,255,0.07);
+    color: var(--muted);
+    cursor: default;
+  }
+
+  /* TIPS SECTION */
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 0;
+  }
+
+  .tip-card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--muted);
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .tip-icon { font-size: 18px; flex-shrink:0; }
+
+  /* NOTIF BANNER */
+  .notif-banner {
+    margin: 0 16px;
+    background: rgba(251,191,36,0.1);
+    border: 1px solid rgba(251,191,36,0.3);
+    border-radius: 14px;
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 12px;
+    font-size: 13px;
+    color: var(--warn);
+    cursor: pointer;
+    display: none;
+  }
+  .notif-banner.show { display: flex; }
+
+  /* ALARM MODAL */
+  .alarm-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .alarm-overlay.show { display: flex; }
+  .alarm-modal {
+    background: var(--card);
+    border-radius: 28px;
+    border: 2px solid var(--warn);
+    padding: 32px 24px;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+    animation: pop-in 0.3s ease;
+  }
+  @keyframes pop-in {
+    from { transform: scale(0.8); opacity:0; }
+    to   { transform: scale(1);   opacity:1; }
+  }
+  .alarm-emoji { font-size: 56px; margin-bottom: 12px; }
+  .alarm-title { font-size: 22px; font-weight: 900; color: var(--text); margin-bottom: 6px; }
+  .alarm-time  { font-size: 14px; color: var(--warn); margin-bottom: 20px; }
+  .alarm-meal  { font-size: 15px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; }
+  .alarm-btn-done {
+    width: 100%;
+    padding: 16px;
+    border-radius: 16px;
+    border: none;
+    font-family: 'Cairo', sans-serif;
+    font-size: 17px;
+    font-weight: 900;
+    cursor: pointer;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    color: #0a1a10;
+    margin-bottom: 10px;
+    transition: transform 0.2s;
+  }
+  .alarm-btn-done:active { transform: scale(0.97); }
+  .alarm-btn-snooze {
+    width: 100%;
+    padding: 12px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+  .alarm-btn-snooze:active { background: var(--accent-dim); }
+
+  /* WATER TRACKER */
+  .water-card {
+    background: var(--card);
+    border-radius: 18px;
+    border: 1px solid rgba(96,165,250,0.25);
+    padding: 14px 16px;
+  }
+  .water-header { display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; }
+  .water-title { font-size: 14px; font-weight: 700; color: #93c5fd; }
+  .water-count  { font-size: 13px; color: var(--muted); }
+  .water-cups { display: flex; gap: 6px; flex-wrap: wrap; }
+  .cup {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    border: 2px solid rgba(96,165,250,0.3);
+    background: transparent;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items:center; justify-content:center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .cup.filled { background: rgba(96,165,250,0.2); border-color: #60a5fa; }
+  .cup:active { transform: scale(0.9); }
+
+  /* RESET BTN */
+  .reset-btn {
+    width: 100%;
+    padding: 13px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.2s;
+    display: flex; align-items:center; justify-content:center; gap: 8px;
+  }
+  .reset-btn:active { background: var(--accent-dim); color: var(--accent); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 0; }
+
+  .bottom-spacer { height: 30px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="app-title">🥗 نظامي الغذائي</div>
+      <div class="app-subtitle">ابدأ اليوم — جسمك يستاهل</div>
+    </div>
+    <div class="date-badge" id="dateBadge">الجمعة</div>
+  </div>
+  <div class="progress-bar-wrap" style="margin-top:14px">
+    <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+  </div>
+  <div class="progress-label">
+    <span id="progressText">0 من 6 وجبات ✓</span>
+    <span id="progressPct">0%</span>
+  </div>
+</div>
+
+<!-- NOTIF PERMISSION BANNER -->
+<div class="notif-banner" id="notifBanner" onclick="requestNotifPermission()">
+  <span style="font-size:20px">🔔</span>
+  <div>
+    <div style="font-weight:700; margin-bottom:2px">فعّل التنبيهات</div>
+    <div style="font-size:11px; opacity:0.8">عشان نصحيك بموعد كل وجبة</div>
+  </div>
+  <span style="margin-right:auto; font-size:18px">←</span>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="mainContainer">
+
+  <!-- WATER TRACKER -->
+  <div class="water-card">
+    <div class="water-header">
+      <div class="water-title">💧 المياه اليومية</div>
+      <div class="water-count" id="waterCount">0 / 8 أكواب</div>
+    </div>
+    <div class="water-cups" id="waterCups"></div>
+  </div>
+
+  <!-- meals injected by JS -->
+
+  <div class="section-title">نصايح مهمة</div>
+
+  <div class="tip-card">
+    <div class="tip-icon">⏱️</div>
+    <div>اكل ببطء وامضغ كويس — بيساعد الشبع يوصلك بكميات أقل</div>
+  </div>
+  <div class="tip-card">
+    <div class="tip-icon">🚶</div>
+    <div>امشي 30 دقيقة يومياً، حتى على دفعتين — ده بيفرق جداً مع النظام</div>
+  </div>
+  <div class="tip-card">
+    <div class="tip-icon">📏</div>
+    <div>الميزان مش كل شيء — قيس خصرك كل أسبوع، هتلاقي الفرق</div>
+  </div>
+
+  <button class="reset-btn" onclick="resetDay()">🔄 إعادة تعيين اليوم</button>
+  <div class="bottom-spacer"></div>
+</div>
+
+<!-- ALARM MODAL -->
+<div class="alarm-overlay" id="alarmOverlay">
+  <div class="alarm-modal">
+    <div class="alarm-emoji" id="alarmEmoji">🍳</div>
+    <div class="alarm-title" id="alarmTitle">وقت الإفطار!</div>
+    <div class="alarm-time" id="alarmTimeText">7:00 صباحاً</div>
+    <div class="alarm-meal" id="alarmMealDesc">حان وقت وجبتك</div>
+    <button class="alarm-btn-done" onclick="confirmMeal()">✅ نفذت الوجبة</button>
+    <button class="alarm-btn-snooze" onclick="snoozeMeal()">⏰ تأجيل 15 دقيقة</button>
+  </div>
+</div>
+
+<script>
+// =================== DATA ===================
+const MEALS = [
+  {
+    id: 'breakfast',
+    name: 'الإفطار',
+    icon: '🍳',
+    time: '07:30',
+    timeLabel: '7:30 صباحاً',
+    options: [
+      { title: 'خيار 1', items: ['3 بيض مسلوق أو مقلي بزيت قليل', 'خبز أسمر رغيف واحد', 'طماطم وخيار'] },
+      { title: 'خيار 2', items: ['4 ملاعق شوفان بلبن قليل الدسم', 'موزة أو تفاحة'] },
+      { title: 'خيار 3', items: ['طبق صغير فول بزيت زيتون', 'خبز أسمر رغيف'] },
+    ],
+    note: '☕ قهوة أو شاي بدون سكر — أو سكر واحد بس'
+  },
+  {
+    id: 'snack1',
+    name: 'وجبة خفيفة',
+    icon: '🍎',
+    time: '11:00',
+    timeLabel: '11:00 صباحاً',
+    options: [
+      { title: 'خيار 1', items: ['فاكهة واحدة (تفاح / برتقال / جوافة)'] },
+      { title: 'خيار 2', items: ['حفنة مكسرات غير مملحة (مش أكتر من قبضة إيد)'] },
+    ],
+    note: null
+  },
+  {
+    id: 'lunch',
+    name: 'الغداء ⭐',
+    icon: '🍗',
+    time: '14:30',
+    timeLabel: '2:30 ظهراً',
+    options: [
+      { title: 'بروتين (اختار واحد)', items: ['صدر فراخ مشوي / مسلوق (200جم)', 'سمك مشوي (250جم)', 'لحمة قليلة الدهن (150جم)', 'بيض + فاصوليا أو عدس'] },
+      { title: 'كارب (اختار واحد)', items: ['أرز بني (نص طبق)', 'معكرونة سمراء (نص طبق)', 'خبز أسمر رغيف'] },
+      { title: 'لازم', items: ['سلطة كبيرة بليمون وزيت زيتون (بدون ماجونيز)'] },
+    ],
+    note: '🏆 أهم وجبة في اليوم — متتجاوزهاش'
+  },
+  {
+    id: 'snack2',
+    name: 'وجبة خفيفة مساء',
+    icon: '🥜',
+    time: '17:00',
+    timeLabel: '5:00 مساءً',
+    options: [
+      { title: 'خيار 1', items: ['فاكهة واحدة'] },
+      { title: 'خيار 2', items: ['شوية مكسرات'] },
+      { title: 'خيار 3', items: ['كوباية لبن قليل الدسم'] },
+    ],
+    note: null
+  },
+  {
+    id: 'dinner',
+    name: 'العشاء',
+    icon: '🥗',
+    time: '19:30',
+    timeLabel: '7:30 مساءً',
+    options: [
+      { title: 'خيار 1', items: ['شوربة خضار أو عدس (بدون دهن)'] },
+      { title: 'خيار 2', items: ['سلطة كبيرة + علبة تونة صغيرة بدون زيت'] },
+      { title: 'خيار 3', items: ['2 بيضة مع خضار مسلوقة'] },
+    ],
+    note: '🌙 وجبة خفيفة — متاكلش كتير بالليل'
+  },
+  {
+    id: 'water_reminder',
+    name: 'تذكير المياه',
+    icon: '💧',
+    time: '22:00',
+    timeLabel: '10:00 مساءً',
+    options: [
+      { title: 'تأكد', items: ['شربت 8 أكواب مياه النهارده؟', 'لو لأ، اشرب 1-2 كوباية دلوقتي'] },
+    ],
+    note: '💤 بعد كده استعد للنوم — بكرة يوم جديد!'
+  },
+];
+
+// =================== STATE ===================
+let state = JSON.parse(localStorage.getItem('dietState') || '{}');
+let alarmTimers = {};
+let currentAlarmId = null;
+let audioCtx = null;
+let alarmSoundInterval = null;
+
+function getToday() {
+  return new Date().toDateString();
+}
+
+function ensureTodayState() {
+  const today = getToday();
+  if (state.date !== today) {
+    state = { date: today, done: {}, water: 0 };
+    saveState();
+  }
+}
+
+function saveState() {
+  localStorage.setItem('dietState', JSON.stringify(state));
+}
+
+// =================== AUDIO ===================
+function beep(freq, dur, vol) {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.connect(g); g.connect(audioCtx.destination);
+  o.frequency.value = freq;
+  g.gain.setValueAtTime(vol || 0.4, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  o.start(); o.stop(audioCtx.currentTime + dur);
+}
+
+function playAlarmSound() {
+  beep(880, 0.15, 0.5);
+  setTimeout(() => beep(1100, 0.15, 0.5), 200);
+  setTimeout(() => beep(880, 0.15, 0.5), 400);
+}
+
+function startAlarmLoop() {
+  playAlarmSound();
+  alarmSoundInterval = setInterval(playAlarmSound, 3000);
+}
+
+function stopAlarmLoop() {
+  if (alarmSoundInterval) { clearInterval(alarmSoundInterval); alarmSoundInterval = null; }
+}
+
+// =================== NOTIFICATIONS ===================
+async function requestNotifPermission() {
+  if (!('Notification' in window)) return;
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    document.getElementById('notifBanner').classList.remove('show');
+    scheduleAllAlarms();
+    new Notification('تم تفعيل التنبيهات ✅', { body: 'هنصحيك بموعد كل وجبة إن شاء الله!', icon: '' });
+  }
+}
+
+function sendNotif(meal) {
+  if (Notification.permission !== 'granted') return;
+  new Notification(`🍽️ ${meal.name}`, {
+    body: `وقت ${meal.name} — ${meal.timeLabel}`,
+    tag: meal.id,
+    renotify: true,
+  });
+}
+
+// =================== ALARM SCHEDULING ===================
+function scheduleAllAlarms() {
+  MEALS.forEach(meal => scheduleMeal(meal));
+}
+
+function scheduleMeal(meal) {
+  if (state.done && state.done[meal.id]) return;
+  if (alarmTimers[meal.id]) clearTimeout(alarmTimers[meal.id]);
+
+  const now = new Date();
+  const [h, m] = meal.time.split(':').map(Number);
+  const target = new Date();
+  target.setHours(h, m, 0, 0);
+
+  if (target <= now) return; // already passed
+
+  const delay = target - now;
+  alarmTimers[meal.id] = setTimeout(() => {
+    triggerAlarm(meal);
+  }, delay);
+}
+
+function triggerAlarm(meal) {
+  currentAlarmId = meal.id;
+  sendNotif(meal);
+
+  document.getElementById('alarmEmoji').textContent = meal.icon;
+  document.getElementById('alarmTitle').textContent = `وقت ${meal.name}!`;
+  document.getElementById('alarmTimeText').textContent = meal.timeLabel;
+
+  const desc = meal.options.map(o => o.items.slice(0,2).join(' / ')).join('\n');
+  document.getElementById('alarmMealDesc').textContent = desc;
+
+  document.getElementById('alarmOverlay').classList.add('show');
+  startAlarmLoop();
+
+  // highlight card
+  const card = document.getElementById('card_' + meal.id);
+  if (card) card.classList.add('active-alarm');
+}
+
+function confirmMeal() {
+  stopAlarmLoop();
+  document.getElementById('alarmOverlay').classList.remove('show');
+  if (currentAlarmId) {
+    markDone(currentAlarmId);
+    currentAlarmId = null;
+  }
+}
+
+function snoozeMeal() {
+  stopAlarmLoop();
+  document.getElementById('alarmOverlay').classList.remove('show');
+  const meal = MEALS.find(m => m.id === currentAlarmId);
+  if (meal) {
+    const card = document.getElementById('card_' + meal.id);
+    if (card) card.classList.remove('active-alarm');
+    setTimeout(() => triggerAlarm(meal), 15 * 60 * 1000);
+  }
+}
+
+// =================== MARK DONE ===================
+function markDone(id) {
+  state.done[id] = true;
+  saveState();
+  renderAll();
+}
+
+function toggleDone(id) {
+  if (state.done[id]) return;
+  markDone(id);
+  beep(660, 0.1, 0.3);
+  setTimeout(() => beep(880, 0.15, 0.3), 120);
+}
+
+// =================== WATER ===================
+function buildWaterCups() {
+  const wrap = document.getElementById('waterCups');
+  wrap.innerHTML = '';
+  for (let i = 0; i < 8; i++) {
+    const cup = document.createElement('button');
+    cup.className = 'cup' + (i < state.water ? ' filled' : '');
+    cup.textContent = i < state.water ? '💧' : '○';
+    cup.onclick = () => { state.water = (i < state.water) ? i : i + 1; saveState(); buildWaterCups(); updateWaterCount(); };
+    wrap.appendChild(cup);
+  }
+}
+
+function updateWaterCount() {
+  document.getElementById('waterCount').textContent = state.water + ' / 8 أكواب';
+}
+
+// =================== RENDER ===================
+function getMealStatus(meal) {
+  if (state.done && state.done[meal.id]) return 'done';
+  const now = new Date();
+  const [h, m] = meal.time.split(':').map(Number);
+  const target = new Date(); target.setHours(h, m, 0, 0);
+  const diff = (target - now) / 60000; // minutes
+  if (diff < -60) return 'missed';
+  if (diff <= 0) return 'pending';
+  return 'upcoming';
+}
+
+function statusLabel(s) {
+  return { done: '✅ تم', pending: '⏰ الآن!', missed: '⚠️ فات', upcoming: '⏳ قادم' }[s];
+}
+function statusClass(s) {
+  return { done: 'status-done', pending: 'status-pending', missed: 'status-missed', upcoming: 'status-upcoming' }[s];
+}
+
+function renderAll() {
+  // remove existing meal cards
+  document.querySelectorAll('.meal-card').forEach(c => c.remove());
+
+  const container = document.getElementById('mainContainer');
+  const waterCard = container.querySelector('.water-card');
+  const sectionTitle = container.querySelector('.section-title');
+
+  MEALS.forEach(meal => {
+    const status = getMealStatus(meal);
+    const isDone = status === 'done';
+
+    const card = document.createElement('div');
+    card.className = 'meal-card' + (isDone ? ' done' : '');
+    card.id = 'card_' + meal.id;
+
+    // options HTML
+    let optionsHTML = meal.options.map(o => `
+      <div class="option-group">
+        <div class="option-title">${o.title}</div>
+        ${o.items.map(i => `<div class="option-item">${i}</div>`).join('')}
+      </div>
+    `).join('');
+
+    const noteHTML = meal.note ? `<div class="note-box">${meal.note}</div>` : '';
+    const btnHTML = isDone
+      ? `<button class="btn-done done-state" disabled>✅ تم تنفيذ الوجبة</button>`
+      : `<button class="btn-done" onclick="toggleDone('${meal.id}')">✅ نفذت الوجبة</button>`;
+
+    card.innerHTML = `
+      <div class="meal-header" onclick="toggleCard('${meal.id}')">
+        <div class="meal-icon">${meal.icon}</div>
+        <div class="meal-info">
+          <div class="meal-name">${meal.name}</div>
+          <div class="meal-time">${meal.timeLabel}</div>
+        </div>
+        <div class="meal-status ${statusClass(status)}">${statusLabel(status)}</div>
+      </div>
+      <div class="meal-body" id="body_${meal.id}">
+        <div class="meal-divider"></div>
+        <div class="options-label">اختار منهم:</div>
+        ${optionsHTML}
+        ${noteHTML}
+        ${btnHTML}
+      </div>
+    `;
+
+    container.insertBefore(card, sectionTitle);
+  });
+
+  updateProgress();
+  buildWaterCups();
+  updateWaterCount();
+  updateDate();
+}
+
+function toggleCard(id) {
+  const body = document.getElementById('body_' + id);
+  body.classList.toggle('open');
+}
+
+function updateProgress() {
+  const total = MEALS.length;
+  const done = MEALS.filter(m => state.done && state.done[m.id]).length;
+  const pct = Math.round((done / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${done} من ${total} وجبات ✓`;
+  document.getElementById('progressPct').textContent = pct + '%';
+}
+
+function updateDate() {
+  const days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  const d = new Date();
+  document.getElementById('dateBadge').textContent = days[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth()+1);
+}
+
+function resetDay() {
+  if (!confirm('تأكد إعادة تعيين اليوم؟')) return;
+  state = { date: getToday(), done: {}, water: 0 };
+  saveState();
+  renderAll();
+  scheduleAllAlarms();
+}
+
+// =================== NOTIF BANNER ===================
+function checkNotifBanner() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    document.getElementById('notifBanner').classList.add('show');
+  }
+}
+
+// =================== INIT ===================
+ensureTodayState();
+renderAll();
+checkNotifBanner();
+scheduleAllAlarms();
+
+// refresh every minute
+setInterval(() => {
+  renderAll();
+  scheduleAllAlarms();
+}, 60000);
+
+// open nearest upcoming or pending meal on load
+setTimeout(() => {
+  for (const meal of MEALS) {
+    const status = getMealStatus(meal);
+    if (status === 'pending' || status === 'upcoming') {
+      const body = document.getElementById('body_' + meal.id);
+      if (body) { body.classList.add('open'); break; }
+    }
+  }
+}, 300);
+</script>
+</body>
+</html>
