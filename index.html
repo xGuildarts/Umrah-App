@@ -177,13 +177,11 @@ input[type="checkbox"]{width:auto;accent-color:var(--green-light);transform:scal
   box-shadow:0 -4px 20px rgba(0,0,0,.4);
 }
 #bottom-nav-scroll{
-  display:flex;overflow-x:auto;gap:0;
-  scrollbar-width:none;-ms-overflow-style:none;
+  display:flex;gap:0;
 }
-#bottom-nav-scroll::-webkit-scrollbar{display:none}
 .bn-btn{
   display:flex;flex-direction:column;align-items:center;gap:3px;
-  min-width:64px;flex-shrink:0;padding:6px 8px;
+  flex:1;min-width:0;padding:6px 4px;
   background:none;border:none;cursor:pointer;
   color:var(--side-text);font-size:10px;font-weight:600;
   border-radius:10px;margin:0 2px;transition:all .15s;
@@ -197,6 +195,14 @@ input[type="checkbox"]{width:auto;accent-color:var(--green-light);transform:scal
   width:32px;height:2.5px;background:var(--gold);border-radius:0 0 3px 3px;
 }
 .bn-btn:hover{background:var(--side-hover)}
+.more-menu-item{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  background:var(--bg3);border:1px solid var(--border);border-radius:12px;
+  padding:14px 6px;cursor:pointer;color:var(--text);font-size:12px;font-weight:600;
+  transition:all .15s;
+}
+.more-menu-item .mm-icon{font-size:24px;line-height:1}
+.more-menu-item:hover{background:var(--side-hover);border-color:var(--gold-dark)}
 @media(max-width:768px){
   #bottom-nav{display:block}
 }
@@ -527,27 +533,35 @@ body.light-mode input,body.light-mode select,body.light-mode textarea{background
     <button class="bn-btn" onclick="showTab('trips')" id="bn-trips">
       <span class="bn-icon">🗓️</span><span class="bn-label">الرحلات</span>
     </button>
-    <button class="bn-btn" onclick="showTab('clients')" id="bn-clients">
-      <span class="bn-icon">👤</span><span class="bn-label">العملاء</span>
-    </button>
     <button class="bn-btn" onclick="showTab('bookings')" id="bn-bookings">
       <span class="bn-icon">📋</span><span class="bn-label">الحجوزات</span>
     </button>
-    <button class="bn-btn" onclick="showTab('payments')" id="bn-payments">
-      <span class="bn-icon">💰</span><span class="bn-label">المدفوعات</span>
+    <button class="bn-btn" onclick="showTab('clients')" id="bn-clients">
+      <span class="bn-icon">👤</span><span class="bn-label">العملاء</span>
     </button>
-    <button class="bn-btn" onclick="showTab('rooms')" id="bn-rooms">
-      <span class="bn-icon">🛏️</span><span class="bn-label">التسكين</span>
+    <button class="bn-btn" onclick="openMoreMenu()" id="bn-more">
+      <span class="bn-icon">⋯</span><span class="bn-label">المزيد</span>
     </button>
-    <button class="bn-btn" onclick="showTab('reports')" id="bn-reports">
-      <span class="bn-icon">🖨️</span><span class="bn-label">التقارير</span>
-    </button>
-    <button class="bn-btn" onclick="showTab('accounts')" id="bn-accounts">
-      <span class="bn-icon">📒</span><span class="bn-label">الحسابات</span>
-    </button>
-    <button class="bn-btn" onclick="showTab('settings')" id="bn-settings">
-      <span class="bn-icon">⚙️</span><span class="bn-label">الإعدادات</span>
-    </button>
+  </div>
+</div>
+
+<!-- MORE MENU (باقي الأقسام على الموبايل) -->
+<div id="more-menu-modal" class="modal-overlay">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><div class="modal-title">⋯ باقي الأقسام</div><button class="close-btn" onclick="closeM('more-menu-modal')">✕</button></div>
+    <div class="modal-body">
+      <div id="more-menu-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+        <button class="more-menu-item" onclick="goFromMore('payments')" id="mm-payments"><span class="mm-icon">💰</span><span>المدفوعات</span></button>
+        <button class="more-menu-item" onclick="goFromMore('suppliers')" id="mm-suppliers"><span class="mm-icon">🏢</span><span>الموردين</span></button>
+        <button class="more-menu-item" onclick="goFromMore('rooms')" id="mm-rooms"><span class="mm-icon">🛏️</span><span>التسكين</span></button>
+        <button class="more-menu-item" onclick="goFromMore('installments')" id="mm-installments"><span class="mm-icon">📅</span><span>الأقساط</span></button>
+        <button class="more-menu-item" onclick="goFromMore('settlement')" id="mm-settlement"><span class="mm-icon">📈</span><span>التقفيلة</span></button>
+        <button class="more-menu-item" onclick="goFromMore('reports')" id="mm-reports"><span class="mm-icon">🖨️</span><span>التقارير</span></button>
+        <button class="more-menu-item" onclick="goFromMore('accounts')" id="mm-accounts"><span class="mm-icon">📒</span><span>الحسابات</span></button>
+        <button class="more-menu-item" onclick="goFromMore('accounts','journal')" id="mm-journal"><span class="mm-icon">📒</span><span>القيود اليومية</span></button>
+        <button class="more-menu-item" onclick="goFromMore('settings')" id="mm-settings"><span class="mm-icon">⚙️</span><span>الإعدادات</span></button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -3389,13 +3403,18 @@ function applyRoleUI(){
   if(usersCard) usersCard.style.display = (isAdmin()||hasPerm('manage_users')) ? 'block' : 'none';
 }
 
-// إظهار/إخفاء أزرار القائمة الجانبية حسب صلاحيات المستخدم الفعلية (مش بس مدير/موظف)
+// إظهار/إخفاء أزرار القائمة الجانبية وقائمة "المزيد" بالموبايل حسب صلاحيات المستخدم الفعلية
 function applyNavVisibility(){
   if(!currentUser) return;
   PERMISSIONS_DEF.forEach(p=>{
+    const allowed = isAdmin()||hasPerm(p.key);
     const nb=document.getElementById('nav-'+p.key);
-    if(nb) nb.style.display = (isAdmin()||hasPerm(p.key)) ? '' : 'none';
+    if(nb) nb.style.display = allowed ? '' : 'none';
+    const mm=document.getElementById('mm-'+p.key);
+    if(mm) mm.style.display = allowed ? '' : 'none';
   });
+  const journalItem = document.getElementById('mm-journal');
+  if(journalItem) journalItem.style.display = (isAdmin()||hasPerm('accounts')) ? '' : 'none';
   const headerGold=document.querySelector('#header .btn-gold');
   if(headerGold) headerGold.style.display = (isAdmin()||hasPerm('settings')) ? '' : 'none';
 }
@@ -5596,6 +5615,18 @@ async function deleteJrnEntry(){
   }catch(e){toast('خطأ: '+e.message,'error');}
 }
 
+// حذف مباشر من صفوف الجدول من غير فتح مودال
+async function deleteJrnEntryFromList(id){
+  if(!id)return;
+  if(!await sConfirm('حذف هذا القيد؟','لا يمكن التراجع عن هذا الإجراء','📒',true)) return;
+  try{
+    await sb(`haj_journal_lines?journal_id=eq.${id}`,'DELETE');
+    await sb(`haj_journal?id=eq.${id}`,'DELETE');
+    toast('تم حذف القيد');
+    loadJournal();
+  }catch(e){toast('خطأ: '+e.message,'error');}
+}
+
 function showJrnSqlSetup(){
   const sql = `-- إنشاء جدول القيود اليومية
 CREATE TABLE IF NOT EXISTS haj_journal (
@@ -5752,6 +5783,7 @@ async function loadJournal() {
           ${isManual?`<div style="display:flex;gap:4px">
             <button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();viewJrnEntry(${item.id})" title="عرض">👁️</button>
             <button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();openJournalModal(${item.id})" title="تعديل">✏️</button>
+            <button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();deleteJrnEntryFromList(${item.id})" title="حذف">🗑️</button>
           </div>`:'<span style="font-size:11px;color:var(--text3)">تلقائي</span>'}
         </td>
       </tr>`;
@@ -6643,16 +6675,25 @@ function openCamera(prefix){
 // ============================================================
 // BOTTOM NAV SYNC - يتزامن مع showTab
 // ============================================================
+const _BN_PRIMARY = ['dashboard','trips','bookings','clients'];
 (function patchShowTab(){
   const _orig = showTab;
   window.showTab = function(name){
     _orig(name);
     // تحديث الـ bottom nav
     document.querySelectorAll('.bn-btn').forEach(b => b.classList.remove('active'));
-    const bn = document.getElementById('bn-' + name);
+    const targetId = _BN_PRIMARY.includes(name) ? 'bn-' + name : 'bn-more';
+    const bn = document.getElementById(targetId);
     if(bn) bn.classList.add('active');
   };
 })();
+
+function openMoreMenu(){ openM('more-menu-modal'); }
+function goFromMore(tab, subTab){
+  closeM('more-menu-modal');
+  showTab(tab);
+  if(subTab) setTimeout(()=>accTab(subTab), 100);
+}
 
 // ============================================================
 // PWA - SERVICE WORKER REGISTRATION (real sw.js file - required alongside it)
