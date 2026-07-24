@@ -811,40 +811,54 @@ body.light-mode input,body.light-mode select,body.light-mode textarea{background
       <div class="card-title"><span class="lang-ar">🔔 لوحة التنبيهات التلقائية</span><span class="lang-en">🔔 Automatic Alerts</span></div>
       <button class="btn btn-primary btn-sm" onclick="saveAlertSettings()"><span class="lang-ar">💾 حفظ الإعدادات</span><span class="lang-en">💾 Save Settings</span></button>
     </div>
+    <div class="info-box info" style="margin-bottom:10px;font-size:11px"><span>ℹ️</span><div><span class="lang-ar">لكل تنبيه اختر القناة: تيليجرام / واتساب / الاثنين / إيقاف. الفحص التلقائي (حتى لو التطبيق مقفول) بيشتغل عن طريق سكربت خارجي مجدول - شوف تعليمات الإعداد أسفل الصفحة.</span><span class="lang-en">Pick a channel per alert: Telegram / WhatsApp / Both / Off. Fully automatic sending (app closed) runs via an external scheduled script - see setup instructions below.</span></div></div>
     <div id="alerts-rules-list">
       <div class="alert-rule-row">
         <label class="alert-toggle"><input type="checkbox" id="alrt-passport-exp" checked><span class="alert-slider"></span></label>
         <div style="flex:1"><div style="font-weight:600;font-size:13px">⚠️ جوازات منتهية الصلاحية</div><div style="font-size:11px;color:var(--text3)">تنبيه فوري عند وجود جوازات منتهية</div></div>
+        <select id="ch-passport-exp" class="alert-ch-select" style="width:120px;padding:4px 8px;font-size:12px"><option value="both" selected>📲 الاثنين</option><option value="tg">✈️ تيليجرام فقط</option><option value="wa">💬 واتساب فقط</option><option value="off">🔕 بدون إرسال</option></select>
       </div>
       <div class="alert-rule-row">
         <label class="alert-toggle"><input type="checkbox" id="alrt-passport-soon" checked><span class="alert-slider"></span></label>
         <div style="flex:1"><div style="font-weight:600;font-size:13px">⏰ جوازات تنتهي قريباً</div><div style="font-size:11px;color:var(--text3)">تنبيه قبل</div></div>
-        <select id="alrt-passport-days" style="width:100px;padding:4px 8px;font-size:12px"><option value="30">30 يوم</option><option value="60">60 يوم</option><option value="90" selected>90 يوم</option><option value="180">6 أشهر</option></select>
+        <select id="alrt-passport-days" style="width:90px;padding:4px 8px;font-size:12px"><option value="30">30 يوم</option><option value="60">60 يوم</option><option value="90" selected>90 يوم</option><option value="180">6 أشهر</option></select>
+        <select id="ch-passport-soon" class="alert-ch-select" style="width:120px;padding:4px 8px;font-size:12px"><option value="both" selected>📲 الاثنين</option><option value="tg">✈️ تيليجرام فقط</option><option value="wa">💬 واتساب فقط</option><option value="off">🔕 بدون إرسال</option></select>
       </div>
       <div class="alert-rule-row">
         <label class="alert-toggle"><input type="checkbox" id="alrt-unpaid" checked><span class="alert-slider"></span></label>
         <div style="flex:1"><div style="font-weight:600;font-size:13px">💰 حجوزات بدون دفع</div><div style="font-size:11px;color:var(--text3)">تنبيه بالحجوزات التي لم يُسدَّد عليها شيء</div></div>
+        <select id="ch-unpaid" class="alert-ch-select" style="width:120px;padding:4px 8px;font-size:12px"><option value="both" selected>📲 الاثنين</option><option value="tg">✈️ تيليجرام فقط</option><option value="wa">💬 واتساب فقط</option><option value="off">🔕 بدون إرسال</option></select>
       </div>
       <div class="alert-rule-row">
         <label class="alert-toggle"><input type="checkbox" id="alrt-no-visa"><span class="alert-slider"></span></label>
         <div style="flex:1"><div style="font-weight:600;font-size:13px">🪪 تأشيرات لم تُقدَّم</div><div style="font-size:11px;color:var(--text3)">تنبيه بعملاء لم تُقدَّم تأشيرتهم</div></div>
+        <select id="ch-no-visa" class="alert-ch-select" style="width:120px;padding:4px 8px;font-size:12px"><option value="both" selected>📲 الاثنين</option><option value="tg">✈️ تيليجرام فقط</option><option value="wa">💬 واتساب فقط</option><option value="off">🔕 بدون إرسال</option></select>
       </div>
       <div class="alert-rule-row">
         <label class="alert-toggle"><input type="checkbox" id="alrt-no-room"><span class="alert-slider"></span></label>
         <div style="flex:1"><div style="font-weight:600;font-size:13px">🛏️ عملاء بدون تسكين</div><div style="font-size:11px;color:var(--text3)">تنبيه بالبالغين الذين لم يُسكَّنوا بعد</div></div>
+        <select id="ch-no-room" class="alert-ch-select" style="width:120px;padding:4px 8px;font-size:12px"><option value="both" selected>📲 الاثنين</option><option value="tg">✈️ تيليجرام فقط</option><option value="wa">💬 واتساب فقط</option><option value="off">🔕 بدون إرسال</option></select>
       </div>
       <div class="alert-rule-row">
         <label class="alert-toggle"><input type="checkbox" id="alrt-family-split"><span class="alert-slider"></span></label>
         <div style="flex:1"><div style="font-weight:600;font-size:13px">👨‍👩‍👧 أسرة في غرف مختلفة</div><div style="font-size:11px;color:var(--text3)">تنبيه عند وجود أفراد من نفس الأسرة في غرف مختلفة</div></div>
+        <select id="ch-family-split" class="alert-ch-select" style="width:120px;padding:4px 8px;font-size:12px"><option value="both" selected>📲 الاثنين</option><option value="tg">✈️ تيليجرام فقط</option><option value="wa">💬 واتساب فقط</option><option value="off">🔕 بدون إرسال</option></select>
       </div>
       <div class="alert-rule-row">
         <label class="alert-toggle"><input type="checkbox" id="alrt-gender-mix"><span class="alert-slider"></span></label>
         <div style="flex:1"><div style="font-weight:600;font-size:13px">🚫 اختلاط غير مسموح في الغرف</div><div style="font-size:11px;color:var(--text3)">تنبيه عند وجود رجل وامرأة (غير محارم) في نفس الغرفة</div></div>
+        <select id="ch-gender-mix" class="alert-ch-select" style="width:120px;padding:4px 8px;font-size:12px"><option value="both" selected>📲 الاثنين</option><option value="tg">✈️ تيليجرام فقط</option><option value="wa">💬 واتساب فقط</option><option value="off">🔕 بدون إرسال</option></select>
       </div>
       <div class="alert-rule-row">
         <label class="alert-toggle"><input type="checkbox" id="alrt-trip-soon"><span class="alert-slider"></span></label>
         <div style="flex:1"><div style="font-weight:600;font-size:13px">✈️ رحلة قادمة قريباً</div><div style="font-size:11px;color:var(--text3)">تنبيه قبل</div></div>
-        <select id="alrt-trip-days" style="width:100px;padding:4px 8px;font-size:12px"><option value="7" selected>7 أيام</option><option value="14">14 يوم</option><option value="30">30 يوم</option></select>
+        <select id="alrt-trip-days" style="width:90px;padding:4px 8px;font-size:12px"><option value="7" selected>7 أيام</option><option value="14">14 يوم</option><option value="30">30 يوم</option></select>
+        <select id="ch-trip-soon" class="alert-ch-select" style="width:120px;padding:4px 8px;font-size:12px"><option value="both" selected>📲 الاثنين</option><option value="tg">✈️ تيليجرام فقط</option><option value="wa">💬 واتساب فقط</option><option value="off">🔕 بدون إرسال</option></select>
+      </div>
+      <div class="alert-rule-row">
+        <label class="alert-toggle"><input type="checkbox" id="alrt-inst-due"><span class="alert-slider"></span></label>
+        <div style="flex:1"><div style="font-weight:600;font-size:13px">📅 أقساط مستحقة</div><div style="font-size:11px;color:var(--text3)">تنبيه بالأقساط المستحقة خلال 3 أيام أو المتأخرة</div></div>
+        <select id="ch-inst-due" class="alert-ch-select" style="width:120px;padding:4px 8px;font-size:12px"><option value="both" selected>📲 الاثنين</option><option value="tg">✈️ تيليجرام فقط</option><option value="wa">💬 واتساب فقط</option><option value="off">🔕 بدون إرسال</option></select>
       </div>
     </div>
     <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
@@ -852,7 +866,13 @@ body.light-mode input,body.light-mode select,body.light-mode textarea{background
       <div id="live-alerts-output"><div style="color:var(--text3);font-size:12px;padding:8px">اضغط "فحص التنبيهات" لعرض النتائج</div></div>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <button class="btn btn-outline btn-sm" onclick="runLiveAlerts(false)"><span class="lang-ar">🔍 فحص التنبيهات الآن</span><span class="lang-en">🔍 Check Now</span></button>
-        <button class="btn btn-primary btn-sm" onclick="runLiveAlerts(true)"><span class="lang-ar">📲 فحص وإرسال (تيليجرام + واتس)</span><span class="lang-en">📲 Check & Send</span></button>
+        <button class="btn btn-primary btn-sm" onclick="runLiveAlerts(true)"><span class="lang-ar">📲 فحص وإرسال حسب القنوات المختارة</span><span class="lang-en">📲 Check & Send per channel</span></button>
+      </div>
+    </div>
+    <div style="margin-top:14px;padding:12px;border-radius:8px;background:rgba(255,193,7,.08);border:1px solid rgba(255,193,7,.25)">
+      <div style="font-weight:700;font-size:12px;margin-bottom:6px">⚙️ التشغيل التلقائي والتطبيق مقفول</div>
+      <div style="font-size:11.5px;color:var(--text3);line-height:1.7">
+        الأزرار فوق بتفحص وتبعت وقت ما التاب مفتوح بس. عشان الإرسال يحصل تلقائي حتى والموقع/الابليكيشن مقفولين، لازم "محرك خارجي" (Google Apps Script) يشتغل كل شوية من سيرفرات جوجل مش من جهازك. اطلب من كلود ملف الإعداد (Automation Setup Guide) وهيجهزلك كود جاهز تلصقه في script.google.com + خطوات الجدولة.
       </div>
     </div>
   </div>
@@ -6272,6 +6292,8 @@ async function generateCompRep(){
 // ============================================================
 // ALERTS SETTINGS - SAVE / LOAD (Supabase)
 // ============================================================
+const ALERT_RULE_IDS=['passport-exp','passport-soon','unpaid','no-visa','no-room','family-split','gender-mix','trip-soon','inst-due'];
+
 async function saveAlertSettings(){
   const cfg={
     'passport_exp': document.getElementById('alrt-passport-exp')?.checked||false,
@@ -6283,8 +6305,14 @@ async function saveAlertSettings(){
     'family_split': document.getElementById('alrt-family-split')?.checked||false,
     'gender_mix': document.getElementById('alrt-gender-mix')?.checked||false,
     'trip_soon': document.getElementById('alrt-trip-soon')?.checked||false,
-    'trip_days': document.getElementById('alrt-trip-days')?.value||'7'
+    'trip_days': document.getElementById('alrt-trip-days')?.value||'7',
+    'inst_due': document.getElementById('alrt-inst-due')?.checked||false,
+    'channels': {}
   };
+  ALERT_RULE_IDS.forEach(id=>{
+    const key=id.replace(/-/g,'_');
+    cfg.channels[key]=document.getElementById('ch-'+id)?.value||'both';
+  });
   try{
     await upsertSetting('alerts_config', JSON.stringify(cfg));
     toast('✅ تم حفظ إعدادات التنبيهات');
@@ -6307,12 +6335,23 @@ async function loadAlertSettings(){
     set('alrt-gender-mix', cfg.gender_mix);
     set('alrt-trip-soon', cfg.trip_soon);
     set('alrt-trip-days', cfg.trip_days||'7');
+    set('alrt-inst-due', cfg.inst_due);
+    const ch=cfg.channels||{};
+    ALERT_RULE_IDS.forEach(id=>{
+      const key=id.replace(/-/g,'_');
+      set('ch-'+id, ch[key]||'both');
+    });
   }catch(e){console.warn('loadAlertSettings:',e);}
 }
 
 // ============================================================
 // RUN LIVE ALERTS - فحص + إرسال تيليجرام وواتس
 // ============================================================
+function getAlertChannel(id){
+  const el=document.getElementById('ch-'+id);
+  return el?el.value:'both';
+}
+
 async function runLiveAlerts(sendToChannels){
   const out=document.getElementById('live-alerts-output');
   if(out) out.innerHTML='<div class="loading"><div class="spinner"></div><p>جاري الفحص...</p></div>';
@@ -6337,6 +6376,7 @@ async function runLiveAlerts(sendToChannels){
         results.push({
           type:'danger',
           icon:'⚠️',
+          ch: getAlertChannel('passport-exp'),
           title:`${exp.length} جواز منتهي الصلاحية`,
           body: exp.slice(0,5).map(c=>`${c.full_name_ar} (${c.passport_no||'—'})`).join(' | ')+(exp.length>5?` و${exp.length-5} آخرين`:''),
           msgTg:`⚠️ *جوازات منتهية الصلاحية* (${exp.length})\n`+exp.slice(0,10).map(c=>`• ${c.full_name_ar} - ${c.passport_no||'—'}`).join('\n')
@@ -6352,6 +6392,7 @@ async function runLiveAlerts(sendToChannels){
         results.push({
           type:'warning',
           icon:'⏰',
+          ch: getAlertChannel('passport-soon'),
           title:`${soon.length} جواز ينتهي خلال ${passportDays} يوم`,
           body: soon.slice(0,5).map(c=>{const d=Math.ceil((new Date(c.passport_expiry_date)-now)/86400000);return`${c.full_name_ar} (${d} يوم)`;}).join(' | ')+(soon.length>5?` و${soon.length-5} آخرين`:''),
           msgTg:`⏰ *جوازات تنتهي خلال ${passportDays} يوم* (${soon.length})\n`+soon.slice(0,10).map(c=>{const d=Math.ceil((new Date(c.passport_expiry_date)-now)/86400000);return`• ${c.full_name_ar} - ${d} يوم`;}).join('\n')
@@ -6368,6 +6409,7 @@ async function runLiveAlerts(sendToChannels){
         results.push({
           type:'info',
           icon:'💰',
+          ch: getAlertChannel('unpaid'),
           title:`${unpaid.length} حجز لم يُسدَّد بعد`,
           body:`إجمالي متبقي: ${Number(total).toLocaleString('ar-EG')} ج.م`,
           msgTg:`💰 *حجوزات بدون دفع* (${unpaid.length})\nإجمالي: ${Number(total).toLocaleString('ar-EG')} ج.م`
@@ -6382,6 +6424,7 @@ async function runLiveAlerts(sendToChannels){
         results.push({
           type:'warning',
           icon:'🪪',
+          ch: getAlertChannel('no-visa'),
           title:`${noVisa.length} عميل لم تُقدَّم تأشيرتهم`,
           body:'',
           msgTg:`🪪 *تأشيرات لم تُقدَّم* (${noVisa.length})`
@@ -6396,6 +6439,7 @@ async function runLiveAlerts(sendToChannels){
         results.push({
           type:'warning',
           icon:'🛏️',
+          ch: getAlertChannel('no-room'),
           title:`${noRoom.length} بالغ بدون تسكين`,
           body:'',
           msgTg:`🛏️ *بالغون بدون تسكين* (${noRoom.length})`
@@ -6411,9 +6455,26 @@ async function runLiveAlerts(sendToChannels){
         results.push({
           type:'info',
           icon:'✈️',
+          ch: getAlertChannel('trip-soon'),
           title:`${soonTrips.length} رحلة خلال ${tripDays} أيام`,
           body:soonTrips.map(t=>{const d=Math.ceil((new Date(t.depart_date)-now)/86400000);return`${t.name} (${d} يوم)`;}).join(' | '),
           msgTg:`✈️ *رحلات قادمة خلال ${tripDays} أيام* (${soonTrips.length})\n`+soonTrips.map(t=>{const d=Math.ceil((new Date(t.depart_date)-now)/86400000);return`• ${t.name} - ${d} يوم`;}).join('\n')
+        });
+      }
+    }
+
+    // 📅 أقساط مستحقة
+    if(document.getElementById('alrt-inst-due')?.checked){
+      const due=getUpcomingInstallments(3);
+      if(due.length){
+        const overdueCnt=due.filter(r=>r.overdue).length;
+        results.push({
+          type: overdueCnt?'danger':'warning',
+          icon:'📅',
+          ch: getAlertChannel('inst-due'),
+          title:`${due.length} قسط مستحق${overdueCnt?` (${overdueCnt} متأخر)`:' خلال 3 أيام'}`,
+          body:'',
+          msgTg:`📅 *أقساط مستحقة* (${due.length})${overdueCnt?` - متأخر: ${overdueCnt}`:''}`
         });
       }
     }
@@ -6434,11 +6495,12 @@ async function runLiveAlerts(sendToChannels){
       }
     }
 
-    // إرسال للقنوات إذا طُلب
-    if(sendToChannels&&results.length){
-      await sendAlertsToChannels(results);
-    }else if(sendToChannels&&!results.length){
-      toast('لا توجد تنبيهات لإرسالها','info');
+    // إرسال للقنوات إذا طُلب - كل تنبيه بيتبعت بالقناة المختارة له بس
+    const sendable=results.filter(r=>r.ch!=='off');
+    if(sendToChannels&&sendable.length){
+      await sendAlertsToChannels(sendable);
+    }else if(sendToChannels&&!sendable.length){
+      toast('لا توجد تنبيهات لإرسالها (أو كلها موقوفة القناة)','info');
     }
 
   }catch(e){
@@ -6448,7 +6510,7 @@ async function runLiveAlerts(sendToChannels){
 }
 
 // ============================================================
-// SEND ALERTS TO TELEGRAM + WHATSAPP
+// SEND ALERTS TO TELEGRAM + WHATSAPP - كل تنبيه للقناة المختارة له
 // ============================================================
 async function sendAlertsToChannels(results){
   // جلب إعدادات الإشعارات
@@ -6459,15 +6521,20 @@ async function sendAlertsToChannels(results){
   const waBotKey=getS('callmebot_key');
   const myPhone=getS('alerts_whatsapp_phone');
 
-  const msgLines=['🔔 *تقرير التنبيهات - Adriaska Tours*','━━━━━━━━━━━━━━━━━━',...results.map(r=>r.msgTg),'━━━━━━━━━━━━━━━━━━',`🕐 ${new Date().toLocaleString('ar-EG')}`];
-  const msgText=msgLines.join('\n');
-  const msgPlain=msgText.replace(/\*/g,'');
+  const forTg=results.filter(r=>r.ch==='both'||r.ch==='tg');
+  const forWa=results.filter(r=>r.ch==='both'||r.ch==='wa');
+
+  const buildMsg=list=>{
+    const lines=['🔔 *تقرير التنبيهات - Adriaska Tours*','━━━━━━━━━━━━━━━━━━',...list.map(r=>r.msgTg),'━━━━━━━━━━━━━━━━━━',`🕐 ${new Date().toLocaleString('ar-EG')}`];
+    return lines.join('\n');
+  };
 
   let tgOk=false,waOk=false;
 
   // Telegram
-  if(tgToken&&tgChatId){
+  if(forTg.length&&tgToken&&tgChatId){
     try{
+      const msgText=buildMsg(forTg);
       const res=await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`,{
         method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({chat_id:tgChatId,text:msgText,parse_mode:'Markdown'})
@@ -6481,8 +6548,9 @@ async function sendAlertsToChannels(results){
   // ملحوظة: سيرفر CallMeBot مفيهوش CORS headers، فـ fetch العادي كان بيتعمله رفض
   // من المتصفح قبل ما يوصل (عشان كده تيليجرام كان شغال والواتس لأ). استخدام
   // mode:'no-cors' بيخلي الطلب يتبعت فعلياً حتى لو مش هنقدر نقرأ الرد.
-  if(waBotKey&&myPhone){
+  if(forWa.length&&waBotKey&&myPhone){
     try{
+      const msgPlain=buildMsg(forWa).replace(/\*/g,'');
       const phone=myPhone.replace(/\D/g,'');
       await fetch(`https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodeURIComponent(msgPlain)}&apikey=${waBotKey}`,{mode:'no-cors'});
       waOk=true;
@@ -6490,17 +6558,17 @@ async function sendAlertsToChannels(results){
   }
 
   // Toast نتيجة الإرسال
-  const waConfigured=waBotKey&&myPhone;
-  if(tgToken&&tgChatId&&waConfigured){
-    toast(tgOk?`✅ تم الإرسال: تيليجرام ${waOk?'+ واتساب':''}`:'⚠️ تم الإرسال جزئياً - تحقق من الإعدادات',tgOk?'success':'info');
-  }else if(tgToken&&tgChatId){
-    let msg=tgOk?'✅ تم الإرسال على تيليجرام':'❌ فشل الإرسال على تيليجرام';
-    if(!waBotKey) msg+=' (واتساب: أدخل CallMeBot API Key في الإعدادات)';
-    else if(!myPhone) msg+=' (واتساب: أدخل رقم استقبال التنبيهات في الإعدادات)';
-    toast(msg,tgOk?'success':'error');
-  }else if(waConfigured){
+  const wantsTg=forTg.length>0, wantsWa=forWa.length>0;
+  const tgConfigured=tgToken&&tgChatId, waConfigured=waBotKey&&myPhone;
+  if(wantsTg&&!tgConfigured) toast('⚠️ إعدادات تيليجرام ناقصة لبعض التنبيهات','error');
+  if(wantsWa&&!waConfigured) toast('⚠️ إعدادات واتساب ناقصة لبعض التنبيهات','error');
+  if(wantsTg&&tgConfigured&&wantsWa&&waConfigured){
+    toast(tgOk||waOk?`✅ تم الإرسال: ${tgOk?'تيليجرام ':''}${waOk?'+ واتساب':''}`:'❌ فشل الإرسال - تحقق من الإعدادات',(tgOk||waOk)?'success':'error');
+  }else if(wantsTg&&tgConfigured){
+    toast(tgOk?'✅ تم الإرسال على تيليجرام':'❌ فشل الإرسال على تيليجرام',tgOk?'success':'error');
+  }else if(wantsWa&&waConfigured){
     toast(waOk?'📱 تم الإرسال على واتساب (تحقق من الهاتف)':'❌ فشل الإرسال على واتساب','info');
-  }else{
+  }else if(!tgConfigured&&!waConfigured){
     toast('⚠️ يرجى إعداد تيليجرام أو واتساب في الإعدادات','error');
   }
 }
