@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="32" fill="#0b1912"/>
+  <rect x="8" y="8" width="176" height="176" rx="24" fill="#111f17"/>
+  <rect x="0" y="0" width="192" height="4" rx="2" fill="#d4a843"/>
+  <text x="96" y="110" font-family="Arial" font-size="80" text-anchor="middle" fill="#d4a843">🕋</text>
+  <text x="96" y="155" font-family="Arial" font-size="18" font-weight="bold" text-anchor="middle" fill="#d4a843">Adriaska</text>
+</svg>
