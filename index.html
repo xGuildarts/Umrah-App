@@ -1,33 +1,98 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Adriaska Tours - إدارة السياحة الدينية</title>
-<!-- PWA -->
-<link rel="manifest" href="manifest.json">
+<!-- PWA - Inline Manifest via JS (no external manifest.json needed) -->
 <meta name="theme-color" content="#d4a843">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Adriaska">
-<link rel="apple-touch-icon" href="icon-192.svg">
-<link rel="icon" href="icon-192.svg">
+<link rel="apple-touch-icon" id="pwa-icon-link">
+<link rel="icon" id="pwa-favicon-link">
+<!-- Google Fonts - Noto Sans Arabic for crisp Arabic typography -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script>
+// ============================================================
+// PWA INLINE SETUP - manifest + icons + service worker (all inline)
+// ============================================================
+(function(){
+  // 1. Generate SVG icon inline
+  const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="38" fill="#0b1912"/><rect x="8" y="8" width="176" height="176" rx="30" fill="#162419"/><text x="96" y="125" text-anchor="middle" font-size="100" font-family="Arial">🕌</text><rect x="0" y="170" width="192" height="8" rx="0" fill="#d4a843" opacity=".7"/></svg>`;
+  const iconUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(iconSvg);
+  document.getElementById('pwa-icon-link').href = iconUrl;
+  document.getElementById('pwa-favicon-link').href = iconUrl;
+
+  // 2. Inline manifest via blob URL
+  const manifest = {
+    name: "Adriaska Tours - إدارة السياحة الدينية",
+    short_name: "Adriaska",
+    description: "نظام متكامل لإدارة رحلات الحج والعمرة",
+    start_url: "./",
+    display: "standalone",
+    background_color: "#0b1912",
+    theme_color: "#d4a843",
+    orientation: "any",
+    lang: "ar",
+    dir: "rtl",
+    icons: [
+      { src: iconUrl, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
+      { src: iconUrl, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+    ],
+    categories: ["business", "productivity"],
+    shortcuts: [
+      { name: "لوحة التحكم", url: "./#dashboard", description: "الرئيسية" },
+      { name: "القيود اليومية", url: "./#journal", description: "أضف قيد جديد" }
+    ]
+  };
+  const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'});
+  const manifestUrl = URL.createObjectURL(manifestBlob);
+  const link = document.createElement('link');
+  link.rel = 'manifest';
+  link.href = manifestUrl;
+  document.head.appendChild(link);
+
+  // 3. Inline Service Worker via blob URL (for offline + PWA installability)
+  const swCode = `
+const CACHE = 'adriaska-v2';
+const OFFLINE_URL = self.location.href;
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll([OFFLINE_URL])).catch(()=>{}));
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
+  self.clients.claim();
+});
+self.addEventListener('fetch', e => {
+  if(e.request.mode === 'navigate'){
+    e.respondWith(fetch(e.request).catch(() => caches.match(OFFLINE_URL)));
+  }
+});
+`;
+  const swBlob = new Blob([swCode], {type: 'application/javascript'});
+  const swUrl = URL.createObjectURL(swBlob);
+  window.__swUrl = swUrl;
+})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
-  --gold:#d4a843;--gold-light:#f0c96a;--gold-dark:#a07820;--gold-glow:rgba(212,168,67,.18);
+  --gold:#d4a843;--gold-light:#f2ca65;--gold-dark:#a07820;--gold-glow:rgba(212,168,67,.18);
   --green:#1a7a52;--green-light:#22a06b;--green-dark:#0e4830;--green-glow:rgba(34,160,107,.15);
-  --bg:#0b1912;--bg2:#111f17;--bg3:#192b1f;--card:#162419;--border:#243d2a;
-  --text:#eee8d8;--text2:#aabba0;--text3:#62806a;
+  --bg:#0b1912;--bg2:#111f17;--bg3:#192b1f;--card:#162419;--border:#2d4a33;
+  --text:#f0ead8;--text2:#c2d4b8;--text3:#82a08a;
   --red:#c0392b;--red-light:#e74c3c;--blue:#2471a3;--purple:#7d3c98;
   --teal:#1abc9c;--orange:#e67e22;
   --radius:11px;--radius-sm:7px;--shadow:0 4px 24px rgba(0,0,0,.45);--shadow-lg:0 8px 40px rgba(0,0,0,.6);
   --transition:.18s ease;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+body{font-family:'Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 :root{
   --side-1:#1e1e22;--side-2:#18181b;--side-3:#131315;
   --side-border:rgba(255,255,255,.07);
@@ -307,6 +372,34 @@ body.light-mode input,body.light-mode select,body.light-mode textarea{background
 .alert-toggle input:checked+.alert-slider{background:linear-gradient(135deg,var(--green),var(--green-light));box-shadow:0 0 8px rgba(34,160,107,.4)}
 .alert-toggle input:checked+.alert-slider:before{transform:translateX(18px)}
 
+/* ====== JOURNAL ENTRY STYLES ====== */
+.jrn-entry-row{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:var(--bg3);transition:all var(--transition);cursor:pointer}
+.jrn-entry-row:hover{border-color:rgba(212,168,67,.35);background:rgba(25,43,31,.9)}
+.jrn-entry-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.jrn-entry-icon.client{background:rgba(34,160,107,.15);border:1px solid rgba(34,160,107,.3)}
+.jrn-entry-icon.supplier{background:rgba(36,113,163,.15);border:1px solid rgba(36,113,163,.3)}
+.jrn-entry-icon.transfer{background:rgba(212,168,67,.12);border:1px solid rgba(212,168,67,.3)}
+.jrn-entry-icon.expense{background:rgba(192,57,43,.12);border:1px solid rgba(192,57,43,.3)}
+.jrn-entry-icon.manual{background:rgba(125,60,152,.12);border:1px solid rgba(125,60,152,.3)}
+.jrn-entry-info{flex:1;min-width:0}
+.jrn-entry-desc{font-size:13.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jrn-entry-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.jrn-entry-amounts{display:flex;gap:10px;flex-shrink:0;align-items:center}
+.jrn-debit-amt{font-size:14px;font-weight:800;color:var(--red-light)}
+.jrn-credit-amt{font-size:14px;font-weight:800;color:#3ed898}
+.jrn-lines-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.jrn-lines-table thead th{background:rgba(25,43,31,.9);color:var(--gold-light);padding:9px 12px;text-align:right;font-weight:700;border-bottom:2px solid rgba(212,168,67,.25);font-size:12px}
+.jrn-lines-table tbody tr{border-bottom:1px solid rgba(36,61,42,.5)}
+.jrn-lines-table tbody tr:hover{background:rgba(34,160,107,.04)}
+.jrn-lines-table tbody td{padding:8px 12px;font-size:13px}
+.jrn-line-debit{color:var(--red-light);font-weight:700}
+.jrn-line-credit{color:#3ed898;font-weight:700}
+.jrn-view-section{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:10px}
+.jrn-view-title{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.jrn-balance-check{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:700;margin-top:12px}
+.jrn-balance-check.ok{background:rgba(34,160,107,.12);border:1px solid rgba(34,160,107,.3);color:#3ed898}
+.jrn-balance-check.err{background:rgba(192,57,43,.12);border:1px solid rgba(192,57,43,.3);color:var(--red-light)}
+
 /* ====== REPORT CARDS ====== */
 .report-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px}
 .report-card-btn{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:8px}
@@ -480,6 +573,7 @@ body.light-mode input,body.light-mode select,body.light-mode textarea{background
   <button class="nav-btn" onclick="showTab('settlement')" id="nav-settlement"><span class="lang-ar">&#x1F4C8; &#x627;&#x644;&#x62A;&#x642;&#x641;&#x64A;&#x644;&#x629;</span><span class="lang-en">📈 Settlement</span></button>
   <button class="nav-btn" onclick="showTab('reports')" id="nav-reports"><span class="lang-ar">&#x1F5A8;&#xFE0F; &#x627;&#x644;&#x62A;&#x642;&#x627;&#x631;&#x64A;&#x631;</span><span class="lang-en">🖨️ Reports</span></button>
   <button class="nav-btn" onclick="showTab('accounts')" id="nav-accounts"><span class="lang-ar">&#x1F4D2; &#x643;&#x634;&#x641; &#x627;&#x644;&#x62D;&#x633;&#x627;&#x628;&#x627;&#x62A;</span><span class="lang-en">📒 Accounts</span></button>
+  <button class="nav-btn" onclick="showTab('accounts');setTimeout(()=>showAcctTab('journal'),100)" id="nav-journal"><span class="lang-ar">📒 القيود اليومية</span><span class="lang-en">📒 Journal</span></button>
   <button class="nav-btn" onclick="showTab('installments')" id="nav-installments"><span class="lang-ar">📅 الأقساط</span><span class="lang-en">📅 Installments</span></button>
   <div class="nav-label"><span class="lang-ar">&#x627;&#x644;&#x646;&#x638;&#x627;&#x645;</span><span class="lang-en">System</span></div>
   <button class="nav-btn" onclick="showTab('settings')" id="nav-settings"><span class="lang-ar">⚙️ الإعدادات</span><span class="lang-en">⚙️ Settings</span></button>
@@ -872,20 +966,35 @@ body.light-mode input,body.light-mode select,body.light-mode textarea{background
     </div>
   </div>
 
-  <!-- JOURNAL -->
+  <!-- JOURNAL - يدوي + تلقائي -->
   <div id="acct-journal" style="display:none">
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">📋 القيود اليومية</div>
-        <div style="display:flex;gap:8px">
-          <input type="date" id="acc-jrn-from" style="width:140px">
-          <input type="date" id="acc-jrn-to" style="width:140px">
-          <button class="btn btn-primary btn-sm" onclick="loadJournal()"><span class="lang-ar">عرض</span><span class="lang-en">View</span></button>
-          <button class="btn btn-outline btn-sm" onclick="exportJournalExcel()">📊 Excel</button>
-        </div>
-      </div>
-      <div id="acc-jrn-result"><div class="empty-state"><div class="empty-icon">📋</div><h3>اختر فترة زمنية</h3></div></div>
+    <!-- زر إضافة قيد + فلتر -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div class="section-title" style="margin-bottom:0;font-size:17px"><span>📒</span> القيود اليومية</div>
+      <button class="btn btn-gold" onclick="openJournalModal()">➕ قيد يدوي جديد</button>
     </div>
+
+    <!-- فلاتر -->
+    <div class="card" style="padding:14px;margin-bottom:14px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <select id="jrn-type-f" style="width:160px" onchange="loadJournal()">
+          <option value="">كل القيود</option>
+          <option value="manual">يدوية فقط</option>
+          <option value="client">مدفوعات عملاء</option>
+          <option value="supplier">مدفوعات موردين</option>
+        </select>
+        <input type="date" id="acc-jrn-from" style="width:140px" onchange="loadJournal()">
+        <input type="date" id="acc-jrn-to" style="width:140px" onchange="loadJournal()">
+        <button class="btn btn-primary btn-sm" onclick="loadJournal()">🔍 عرض</button>
+        <button class="btn btn-outline btn-sm" onclick="exportJournalExcel()">📊 Excel</button>
+      </div>
+    </div>
+
+    <!-- الإحصائيات -->
+    <div id="jrn-stats" style="display:none;margin-bottom:14px"></div>
+
+    <!-- النتائج -->
+    <div id="acc-jrn-result"><div class="empty-state"><div class="empty-icon">📒</div><h3>اختر فترة زمنية وانقر عرض</h3></div></div>
   </div>
 
   <!-- BALANCE -->
@@ -991,6 +1100,129 @@ body.light-mode input,body.light-mode select,body.light-mode textarea{background
 </div>
 
 </div><!-- /main -->
+
+<!-- ===== JOURNAL MODALS ===== -->
+
+<!-- Modal: إضافة/تعديل قيد يدوي -->
+<div id="jrn-modal" class="modal-overlay">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title">📒 <span id="jrn-modal-title">قيد يومي جديد</span></div>
+      <button class="close-btn" onclick="closeM('jrn-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px">
+      <input type="hidden" id="jrn-edit-id">
+
+      <!-- بيانات رأس القيد -->
+      <div class="sbox">
+        <div class="sbox-title">📄 رأس القيد</div>
+        <div class="form-grid">
+          <div class="form-group"><label>التاريخ *</label><input id="jrn-date" type="date"></div>
+          <div class="form-group"><label>نوع القيد *</label>
+            <select id="jrn-type" onchange="onJrnTypeChange()">
+              <option value="manual">✏️ يدوي حر</option>
+              <option value="client">👤 أداء لعميل</option>
+              <option value="supplier">🏢 دفعة لمورد</option>
+              <option value="transfer">🔄 تحويل بين حسابات</option>
+              <option value="expense">💸 مصروف</option>
+            </select>
+          </div>
+          <div class="form-group col2"><label>البيان / الوصف *</label><input id="jrn-desc" type="text" placeholder="وصف القيد..."></div>
+          <div class="form-group"><label>رقم المرجع</label><input id="jrn-ref" type="text" placeholder="رقم إيصال أو تحويل..."></div>
+          <div class="form-group"><label>العملة</label>
+            <select id="jrn-currency">
+              <option value="EGP">جنيه مصري (EGP)</option>
+              <option value="SAR">ريال سعودي (SAR)</option>
+              <option value="USD">دولار (USD)</option>
+              <option value="EUR">يورو (EUR)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- حقول ديناميكية حسب النوع -->
+        <div id="jrn-client-row" style="display:none;margin-top:10px">
+          <div class="form-grid">
+            <div class="form-group"><label>العميل</label><select id="jrn-client-sel"><option value="">-- اختر العميل --</option></select></div>
+            <div class="form-group"><label>الحجز</label><select id="jrn-bk-sel"><option value="">-- اختر الحجز --</option></select></div>
+          </div>
+        </div>
+        <div id="jrn-supplier-row" style="display:none;margin-top:10px">
+          <div class="form-grid">
+            <div class="form-group"><label>المورد</label><select id="jrn-sup-sel"><option value="">-- اختر المورد --</option></select></div>
+            <div class="form-group"><label>الرحلة</label><select id="jrn-trip-sel"><option value="">-- اختر الرحلة --</option></select></div>
+          </div>
+        </div>
+        <div id="jrn-transfer-row" style="display:none;margin-top:10px">
+          <div class="form-grid">
+            <div class="form-group"><label>من حساب</label>
+              <select id="jrn-from-acc">
+                <option value="كاش">🪙 الخزنة (كاش)</option>
+                <option value="تحويل">🏦 البنك (تحويل)</option>
+                <option value="فيزا">💳 فيزا</option>
+                <option value="شيك">📄 شيكات</option>
+              </select>
+            </div>
+            <div class="form-group"><label>إلى حساب</label>
+              <select id="jrn-to-acc">
+                <option value="تحويل">🏦 البنك (تحويل)</option>
+                <option value="كاش">🪙 الخزنة (كاش)</option>
+                <option value="فيزا">💳 فيزا</option>
+                <option value="شيك">📄 شيكات</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- سطور القيد (مدين / دائن) -->
+      <div class="sbox">
+        <div class="sbox-title">
+          <span>📊 أطراف القيد (المدين والدائن)</span>
+          <button class="btn btn-outline btn-sm" onclick="addJrnLine()">➕ سطر</button>
+        </div>
+        <div id="jrn-lines-cnt"></div>
+
+        <!-- ميزان القيد -->
+        <div id="jrn-balance-check" class="jrn-balance-check ok" style="display:none">
+          ✅ القيد متوازن
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>ملاحظات إضافية</label>
+        <textarea id="jrn-notes" rows="2" placeholder="ملاحظات اختيارية..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between">
+      <div id="jrn-modal-del-wrap" style="display:none">
+        <button class="btn btn-danger" onclick="deleteJrnEntry()">🗑️ حذف القيد</button>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" onclick="closeM('jrn-modal')">إلغاء</button>
+        <button class="btn btn-gold" onclick="saveJrnEntry()">💾 حفظ القيد</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: عرض تفاصيل قيد -->
+<div id="jrn-view-modal" class="modal-overlay">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <div class="modal-title">📄 <span id="jrn-view-title">تفاصيل القيد</span></div>
+      <button class="close-btn" onclick="closeM('jrn-view-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px">
+      <div id="jrn-view-content"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="printJrnEntry()">🖨️ طباعة</button>
+      <button class="btn btn-gold btn-sm" id="jrn-view-edit-btn">✏️ تعديل</button>
+      <button class="btn btn-outline" onclick="closeM('jrn-view-modal')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== MODALS ===== -->
 
 <!-- TRIP MODAL -->
@@ -5174,47 +5406,525 @@ async function loadTripStatement() {
   } catch(e){res.innerHTML='<div class="info-box danger">❌ خطأ: '+e.message+'</div>';}
 }
 
+// ============================================================
+// MANUAL JOURNAL ENTRY SYSTEM - القيود اليومية اليدوية
+// ============================================================
+let _jrnLineIdx = 0;
+let _jrnCurrentEntry = null;
+
+// فتح modal لقيد جديد
+function openJournalModal(entryId=null){
+  _jrnCurrentEntry = entryId;
+  _jrnLineIdx = 0;
+  document.getElementById('jrn-edit-id').value = entryId || '';
+  document.getElementById('jrn-modal-title').textContent = entryId ? 'تعديل القيد' : 'قيد يومي جديد';
+  document.getElementById('jrn-modal-del-wrap').style.display = entryId ? 'block' : 'none';
+  document.getElementById('jrn-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('jrn-desc').value = '';
+  document.getElementById('jrn-ref').value = '';
+  document.getElementById('jrn-notes').value = '';
+  document.getElementById('jrn-type').value = 'manual';
+  document.getElementById('jrn-currency').value = 'EGP';
+  document.getElementById('jrn-lines-cnt').innerHTML = '';
+  document.getElementById('jrn-balance-check').style.display = 'none';
+  onJrnTypeChange();
+
+  // ملء قوائم العملاء والموردين والرحلات
+  const cSel = document.getElementById('jrn-client-sel');
+  cSel.innerHTML = '<option value="">-- اختر العميل --</option>' +
+    aClients.map(c=>`<option value="${c.id}">${c.full_name_ar}</option>`).join('');
+
+  const supSel = document.getElementById('jrn-sup-sel');
+  supSel.innerHTML = '<option value="">-- اختر المورد --</option>' +
+    aSups.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+
+  const tripSel = document.getElementById('jrn-trip-sel');
+  tripSel.innerHTML = '<option value="">-- اختر الرحلة --</option>' +
+    aTrips.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+
+  // لو تعديل: جلب البيانات الحالية
+  if(entryId){
+    loadJrnEntryForEdit(entryId);
+  } else {
+    // إضافة سطرين افتراضيين (مدين + دائن)
+    addJrnLine({side:'debit', account:'', amount:0});
+    addJrnLine({side:'credit', account:'', amount:0});
+  }
+
+  openM('jrn-modal');
+}
+
+async function loadJrnEntryForEdit(id){
+  try{
+    const entries = await sb(`haj_journal?id=eq.${id}&limit=1`);
+    if(!entries.length) return;
+    const e = entries[0];
+    document.getElementById('jrn-date').value = e.entry_date || '';
+    document.getElementById('jrn-desc').value = e.description || '';
+    document.getElementById('jrn-ref').value = e.reference_no || '';
+    document.getElementById('jrn-notes').value = e.notes || '';
+    document.getElementById('jrn-type').value = e.entry_type || 'manual';
+    document.getElementById('jrn-currency').value = e.currency || 'EGP';
+    onJrnTypeChange();
+    if(e.client_id) document.getElementById('jrn-client-sel').value = e.client_id;
+    if(e.supplier_id) document.getElementById('jrn-sup-sel').value = e.supplier_id;
+    if(e.trip_id){ document.getElementById('jrn-trip-sel').value = e.trip_id; }
+    if(e.from_account) document.getElementById('jrn-from-acc').value = e.from_account;
+    if(e.to_account) document.getElementById('jrn-to-acc').value = e.to_account;
+    // جلب السطور
+    const lines = await sb(`haj_journal_lines?journal_id=eq.${id}&order=id.asc&limit=50`);
+    document.getElementById('jrn-lines-cnt').innerHTML = '';
+    _jrnLineIdx = 0;
+    lines.forEach(l => addJrnLine({side:l.side, account:l.account_name, amount:l.amount, lineId:l.id}));
+    updateJrnBalance();
+  }catch(e){ toast('خطأ في جلب القيد: '+e.message,'error'); }
+}
+
+function onJrnTypeChange(){
+  const t = document.getElementById('jrn-type').value;
+  document.getElementById('jrn-client-row').style.display   = (t==='client') ? 'block' : 'none';
+  document.getElementById('jrn-supplier-row').style.display = (t==='supplier') ? 'block' : 'none';
+  document.getElementById('jrn-transfer-row').style.display = (t==='transfer') ? 'block' : 'none';
+
+  // عند اختيار نوع، تعبئة تلقائية للأطراف الشائعة
+  if(t==='client' && document.getElementById('jrn-lines-cnt').innerHTML===''){
+    addJrnLine({side:'debit', account:'ذمم العملاء', amount:0});
+    addJrnLine({side:'credit', account:'إيرادات الرحلات', amount:0});
+  } else if(t==='supplier' && document.getElementById('jrn-lines-cnt').innerHTML===''){
+    addJrnLine({side:'debit', account:'المورد', amount:0});
+    addJrnLine({side:'credit', account:'الخزنة (كاش)', amount:0});
+  } else if(t==='transfer' && document.getElementById('jrn-lines-cnt').innerHTML===''){
+    addJrnLine({side:'debit', account:'البنك', amount:0});
+    addJrnLine({side:'credit', account:'الخزنة (كاش)', amount:0});
+  } else if(t==='expense' && document.getElementById('jrn-lines-cnt').innerHTML===''){
+    addJrnLine({side:'debit', account:'مصروفات', amount:0});
+    addJrnLine({side:'credit', account:'الخزنة (كاش)', amount:0});
+  } else if(t==='manual' && document.getElementById('jrn-lines-cnt').innerHTML===''){
+    addJrnLine({side:'debit', account:'', amount:0});
+    addJrnLine({side:'credit', account:'', amount:0});
+  }
+}
+
+function addJrnLine(data={}){
+  _jrnLineIdx++;
+  const idx = _jrnLineIdx;
+  const COMMON_ACCOUNTS = ['الخزنة (كاش)','البنك (تحويل)','فيزا','شيكات','ذمم العملاء','ذمم الموردين','إيرادات الرحلات','مصروفات عامة','مصروفات فنادق','مصروفات تذاكر','مصروفات تأشيرات','مصروفات نقل','أرباح رحلات'];
+  const div = document.createElement('div');
+  div.id = 'jrn-line-' + idx;
+  div.style.cssText = 'display:grid;grid-template-columns:120px 1fr 160px auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;background:var(--bg2)';
+  div.innerHTML = `
+    <select id="jl-side-${idx}" onchange="updateJrnBalance()" style="border-radius:6px;padding:7px 10px;font-size:12px;font-weight:700">
+      <option value="debit" ${data.side==='debit'?'selected':''} style="color:var(--red-light)">مدين (ح)</option>
+      <option value="credit" ${data.side==='credit'?'selected':''} style="color:#3ed898">دائن (د)</option>
+    </select>
+    <input id="jl-acc-${idx}" type="text" list="jrn-accounts-list" value="${data.account||''}" placeholder="اسم الحساب..." style="border-radius:6px;padding:7px 10px;font-size:13px">
+    <input id="jl-amt-${idx}" type="number" value="${data.amount||0}" min="0" step="0.01" placeholder="0.00" oninput="updateJrnBalance()" style="border-radius:6px;padding:7px 10px;font-size:13px;font-weight:700">
+    <button onclick="removeJrnLine(${idx})" style="background:rgba(192,57,43,.15);border:1px solid rgba(192,57,43,.3);color:var(--red-light);border-radius:6px;padding:7px 9px;cursor:pointer;font-size:13px">🗑️</button>
+    ${data.lineId?`<input type="hidden" id="jl-id-${idx}" value="${data.lineId}">`:''}
+  `;
+  document.getElementById('jrn-lines-cnt').appendChild(div);
+
+  // قائمة الاقتراحات المشتركة
+  if(!document.getElementById('jrn-accounts-list')){
+    const dl = document.createElement('datalist');
+    dl.id = 'jrn-accounts-list';
+    dl.innerHTML = COMMON_ACCOUNTS.map(a=>`<option value="${a}">`).join('');
+    document.body.appendChild(dl);
+  }
+  updateJrnBalance();
+}
+
+function removeJrnLine(idx){
+  const el = document.getElementById('jrn-line-'+idx);
+  if(el) el.remove();
+  updateJrnBalance();
+}
+
+function updateJrnBalance(){
+  const lines = [...document.querySelectorAll('[id^="jrn-line-"]')];
+  let totalDebit=0, totalCredit=0;
+  lines.forEach(l=>{
+    const idx = l.id.replace('jrn-line-','');
+    const side = document.getElementById('jl-side-'+idx)?.value;
+    const amt = +document.getElementById('jl-amt-'+idx)?.value||0;
+    if(side==='debit') totalDebit+=amt;
+    else totalCredit+=amt;
+
+    // تلوين الخلفية حسب الجانب
+    const sideEl = document.getElementById('jl-side-'+idx);
+    if(sideEl){
+      l.style.borderColor = side==='debit' ? 'rgba(192,57,43,.35)' : 'rgba(34,160,107,.35)';
+      l.style.background = side==='debit' ? 'rgba(192,57,43,.05)' : 'rgba(34,160,107,.05)';
+    }
+  });
+
+  const bal = document.getElementById('jrn-balance-check');
+  if(lines.length > 0){
+    bal.style.display = 'flex';
+    const diff = Math.abs(totalDebit - totalCredit);
+    if(diff < 0.01){
+      bal.className = 'jrn-balance-check ok';
+      bal.innerHTML = `✅ القيد متوازن — مجموع مدين: ${fn(totalDebit)} | مجموع دائن: ${fn(totalCredit)}`;
+    } else {
+      bal.className = 'jrn-balance-check err';
+      bal.innerHTML = `⚠️ غير متوازن — مدين: ${fn(totalDebit)} | دائن: ${fn(totalCredit)} | الفرق: ${fn(diff)}`;
+    }
+  } else {
+    bal.style.display = 'none';
+  }
+}
+
+async function saveJrnEntry(){
+  const entryId = document.getElementById('jrn-edit-id').value;
+  const date = document.getElementById('jrn-date').value;
+  const desc = document.getElementById('jrn-desc').value.trim();
+  const type = document.getElementById('jrn-type').value;
+  if(!date||!desc){toast('التاريخ والبيان إلزاميان','error');return;}
+
+  // التحقق من توازن القيد
+  const lines = [...document.querySelectorAll('[id^="jrn-line-"]')];
+  let totalDebit=0, totalCredit=0;
+  const lineData = [];
+  lines.forEach(l=>{
+    const idx = l.id.replace('jrn-line-','');
+    const side = document.getElementById('jl-side-'+idx)?.value;
+    const acc = document.getElementById('jl-acc-'+idx)?.value.trim();
+    const amt = +document.getElementById('jl-amt-'+idx)?.value||0;
+    const lid = document.getElementById('jl-id-'+idx)?.value;
+    if(!acc||!amt) return;
+    if(side==='debit') totalDebit+=amt; else totalCredit+=amt;
+    lineData.push({side,account_name:acc,amount:amt,_id:lid});
+  });
+  if(Math.abs(totalDebit-totalCredit)>0.01){toast('القيد غير متوازن — يجب أن يتساوى المدين والدائن','error');return;}
+  if(!lineData.length){toast('أضف سطور القيد أولاً','error');return;}
+
+  const entry = {
+    entry_date: date,
+    description: desc,
+    reference_no: document.getElementById('jrn-ref').value.trim()||null,
+    entry_type: type,
+    currency: document.getElementById('jrn-currency').value,
+    notes: document.getElementById('jrn-notes').value.trim()||null,
+    total_debit: totalDebit,
+    total_credit: totalCredit,
+    client_id: document.getElementById('jrn-client-sel').value||null,
+    supplier_id: document.getElementById('jrn-sup-sel').value||null,
+    trip_id: document.getElementById('jrn-trip-sel').value||null,
+    from_account: document.getElementById('jrn-from-acc').value||null,
+    to_account: document.getElementById('jrn-to-acc').value||null,
+    is_manual: true
+  };
+
+  try{
+    let savedId;
+    if(entryId){
+      await sb(`haj_journal?id=eq.${entryId}`,'PATCH',entry);
+      savedId = +entryId;
+      // حذف السطور القديمة وإعادة إضافتها
+      await sb(`haj_journal_lines?journal_id=eq.${entryId}`,'DELETE');
+    } else {
+      const res = await sb('haj_journal','POST',entry);
+      savedId = res[0]?.id;
+    }
+    // حفظ السطور
+    for(const l of lineData){
+      await sb('haj_journal_lines','POST',{journal_id:savedId, side:l.side, account_name:l.account_name, amount:l.amount});
+    }
+    toast(`✅ تم حفظ القيد رقم ${savedId}`,'success');
+    closeM('jrn-modal');
+    loadJournal();
+  }catch(e){
+    if(e.message.includes('relation "haj_journal" does not exist')||e.message.includes('does not exist')){
+      toast('❗ جدول القيود غير موجود — شغّل الـ SQL التالي في Supabase','error');
+      setTimeout(()=>showJrnSqlSetup(),600);
+    } else {
+      toast('خطأ: '+e.message,'error');
+    }
+  }
+}
+
+async function deleteJrnEntry(){
+  const entryId = document.getElementById('jrn-edit-id').value;
+  if(!entryId)return;
+  if(!await sConfirm('حذف هذا القيد؟','لا يمكن التراجع عن هذا الإجراء','📒',true)) return;
+  try{
+    await sb(`haj_journal_lines?journal_id=eq.${entryId}`,'DELETE');
+    await sb(`haj_journal?id=eq.${entryId}`,'DELETE');
+    toast('تم حذف القيد');
+    closeM('jrn-modal');
+    closeM('jrn-view-modal');
+    loadJournal();
+  }catch(e){toast('خطأ: '+e.message,'error');}
+}
+
+function showJrnSqlSetup(){
+  const sql = `-- إنشاء جدول القيود اليومية
+CREATE TABLE IF NOT EXISTS haj_journal (
+  id BIGSERIAL PRIMARY KEY,
+  entry_date DATE NOT NULL,
+  description TEXT NOT NULL,
+  reference_no TEXT,
+  entry_type TEXT DEFAULT 'manual',
+  currency TEXT DEFAULT 'EGP',
+  notes TEXT,
+  total_debit NUMERIC DEFAULT 0,
+  total_credit NUMERIC DEFAULT 0,
+  client_id BIGINT,
+  supplier_id BIGINT,
+  trip_id BIGINT,
+  from_account TEXT,
+  to_account TEXT,
+  is_manual BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+-- إنشاء جدول سطور القيود
+CREATE TABLE IF NOT EXISTS haj_journal_lines (
+  id BIGSERIAL PRIMARY KEY,
+  journal_id BIGINT REFERENCES haj_journal(id) ON DELETE CASCADE,
+  side TEXT NOT NULL CHECK (side IN ('debit','credit')),
+  account_name TEXT NOT NULL,
+  amount NUMERIC DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);`;
+  const w = window.open('','_blank');
+  w.document.write(`<html dir="rtl"><head><meta charset="UTF-8"><title>SQL Setup</title>
+  <style>body{font-family:monospace;padding:30px;background:#111;color:#e0e0e0}pre{background:#1e1e1e;border:1px solid #333;padding:20px;border-radius:8px;white-space:pre-wrap;font-size:13px;line-height:1.7}h2{color:#d4a843}button{background:#1a7a52;color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-size:14px;margin-top:14px}</style></head>
+  <body><h2>🗄️ SQL لإنشاء جداول القيود اليومية</h2>
+  <p>انسخ الـ SQL التالي وشغّله في <b>Supabase > SQL Editor:</b></p>
+  <pre>${sql}</pre>
+  <button onclick="navigator.clipboard.writeText(document.querySelector('pre').textContent).then(()=>alert('تم النسخ!'))">📋 نسخ SQL</button>
+  </body></html>`);
+}
+
 async function loadJournal() {
   const from=document.getElementById('acc-jrn-from').value;
   const to=document.getElementById('acc-jrn-to').value;
+  const typeF=document.getElementById('jrn-type-f')?.value||'';
   const res=document.getElementById('acc-jrn-result');
-  if(!from||!to){toast('يرجى اختيار الفترة','error');return;}
-  try {
-    const pays=await sb(`haj_payments?payment_date=gte.${from}&payment_date=lte.${to}&order=payment_date.asc&limit=1000`);
-    if(!aBks.length)aBks=await sb('haj_bookings?limit=500');
-    if(!aClients.length)aClients=await sb('haj_clients?is_cancelled=eq.false&limit=1000');
-    if(!aTrips.length)aTrips=await sb('haj_trips?limit=200');
+  const statsEl=document.getElementById('jrn-stats');
 
-    let runBal=0;
-    let rows=pays.map((p,i)=>{
-      const bk=aBks.find(x=>x.id==p.booking_id);
-      const c=bk?aClients.find(x=>x.id==bk.client_id):null;
-      const t=bk?aTrips.find(x=>x.id==bk.trip_id):null;
-      if(p.currency==='EGP') runBal+=(+p.amount);
-      return`<tr>
+  if(!from&&!to){toast('اختر فترة زمنية','info');return;}
+
+  res.innerHTML='<div class="loading"><div class="spinner"></div><p>جاري التحميل...</p></div>';
+
+  try {
+    // القيود اليدوية
+    let jrnQuery='haj_journal?order=entry_date.desc&limit=500';
+    if(from) jrnQuery+=`&entry_date=gte.${from}`;
+    if(to) jrnQuery+=`&entry_date=lte.${to}`;
+    if(typeF==='manual') jrnQuery+='&is_manual=eq.true';
+    else if(typeF==='client') jrnQuery+='&entry_type=eq.client';
+    else if(typeF==='supplier') jrnQuery+='&entry_type=eq.supplier';
+
+    let manualEntries=[];
+    try{ manualEntries = await sb(jrnQuery); }catch(e){
+      if(e.message.includes('does not exist')){
+        res.innerHTML=`<div class="info-box warning"><span>ℹ️</span><div><b>جدول القيود اليومية غير موجود بعد.</b><br>لإنشاؤه، <a href="#" onclick="showJrnSqlSetup();return false" style="color:var(--gold)">انقر هنا لعرض SQL الإعداد</a> وشغّله في Supabase.</div></div>`;
+        statsEl.style.display='none';
+        return;
+      }
+      throw e;
+    }
+
+    // مدفوعات العملاء (من haj_payments) - إلا لو الفلتر manual فقط
+    let payEntries=[];
+    if(typeF!=='manual' && typeF!=='supplier'){
+      let payQ=`haj_payments?order=payment_date.desc&limit=500`;
+      if(from) payQ+=`&payment_date=gte.${from}`;
+      if(to)   payQ+=`&payment_date=lte.${to}`;
+      payEntries = await sb(payQ);
+      if(!aBks.length)aBks=await sb('haj_bookings?limit=500');
+      if(!aClients.length)aClients=await sb('haj_clients?is_cancelled=eq.false&limit=1000');
+      if(!aTrips.length)aTrips=await sb('haj_trips?limit=200');
+    }
+
+    // دمج وترتيب
+    const allItems = [
+      ...manualEntries.map(e=>({
+        _type:'manual',
+        date:e.entry_date,
+        desc:e.description,
+        ref:e.reference_no||'',
+        entryType:e.entry_type||'manual',
+        totalDebit:+e.total_debit||0,
+        totalCredit:+e.total_credit||0,
+        currency:e.currency||'EGP',
+        id:e.id,
+        raw:e
+      })),
+      ...payEntries.map(p=>{
+        const bk=aBks.find(x=>x.id==p.booking_id);
+        const c=bk?aClients.find(x=>x.id==bk.client_id):null;
+        const t=bk?aTrips.find(x=>x.id==bk.trip_id):null;
+        return {
+          _type:'payment',
+          date:p.payment_date,
+          desc:`دفعة من عميل: ${c?.full_name_ar||'-'} — ${t?.name||'-'}`,
+          ref:p.receipt_no||'',
+          entryType:'client',
+          totalDebit:0,
+          totalCredit:+p.amount,
+          currency:p.currency||'EGP',
+          id:'pay_'+p.id,
+          raw:p
+        };
+      })
+    ].sort((a,b)=>b.date.localeCompare(a.date));
+
+    // إحصائيات
+    const totalDebit=allItems.reduce((s,x)=>s+(x.totalDebit||0),0);
+    const totalCredit=allItems.reduce((s,x)=>s+(x.totalCredit||0),0);
+    const manualCnt=manualEntries.length;
+    const payCnt=payEntries.length;
+
+    statsEl.innerHTML=`<div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-num">${allItems.length}</div><div class="stat-label">إجمالي القيود</div></div>
+      <div class="stat-card"><div class="stat-icon">✏️</div><div class="stat-num">${manualCnt}</div><div class="stat-label">قيود يدوية</div></div>
+      <div class="stat-card red"><div class="stat-icon">💸</div><div class="stat-num" style="font-size:18px">${fn(totalDebit)}</div><div class="stat-label">إجمالي مدين</div></div>
+      <div class="stat-card green"><div class="stat-icon">💰</div><div class="stat-num" style="font-size:18px">${fn(totalCredit)}</div><div class="stat-label">إجمالي دائن</div></div>
+    </div>`;
+    statsEl.style.display='block';
+
+    if(!allItems.length){
+      res.innerHTML='<div class="empty-state"><div class="empty-icon">📒</div><h3>لا توجد قيود في هذه الفترة</h3><button class="btn btn-gold" onclick="openJournalModal()">➕ أضف قيد جديد</button></div>';
+      return;
+    }
+
+    const typeIcon={manual:'✏️',client:'👤',supplier:'🏢',transfer:'🔄',expense:'💸'};
+    const typeLabel={manual:'يدوي',client:'عميل',supplier:'مورد',transfer:'تحويل',expense:'مصروف'};
+
+    const rows = allItems.map((item,i)=>{
+      const isManual = item._type==='manual';
+      const icon = typeIcon[item.entryType]||'📒';
+      return `<tr style="cursor:${isManual?'pointer':'default'}" onclick="${isManual?`viewJrnEntry(${item.id})`:''}">
         <td>${i+1}</td>
-        <td>${fd(p.payment_date)}</td>
-        <td>${c?.full_name_ar||'-'}</td>
-        <td>${t?.name||'-'}</td>
-        <td>${p.payment_method}</td>
-        <td>${p.receipt_no||'-'}</td>
-        <td style="color:#4caf84;font-weight:700">${fn(p.amount)} ${p.currency}</td>
-        <td style="color:#4caf84">${p.currency==='EGP'?fn(runBal)+' ج':'-'}</td>
+        <td>${fd(item.date)}</td>
+        <td>
+          <span style="display:inline-flex;align-items:center;gap:5px">
+            <span style="font-size:15px">${icon}</span>
+            <span class="badge badge-${item.entryType==='client'?'green':item.entryType==='supplier'?'blue':item.entryType==='transfer'?'gold':item.entryType==='expense'?'red':'gray'}" style="font-size:10px">${typeLabel[item.entryType]||item.entryType}</span>
+          </span>
+        </td>
+        <td style="max-width:250px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b>${item.desc}</b></td>
+        <td style="color:var(--text3);font-size:12px">${item.ref||'-'}</td>
+        <td style="color:var(--red-light);font-weight:700">${item.totalDebit>0?fn(item.totalDebit)+' '+item.currency:''}</td>
+        <td style="color:#3ed898;font-weight:700">${item.totalCredit>0?fn(item.totalCredit)+' '+item.currency:''}</td>
+        <td>
+          ${isManual?`<div style="display:flex;gap:4px">
+            <button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();viewJrnEntry(${item.id})" title="عرض">👁️</button>
+            <button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();openJournalModal(${item.id})" title="تعديل">✏️</button>
+          </div>`:'<span style="font-size:11px;color:var(--text3)">تلقائي</span>'}
+        </td>
       </tr>`;
     }).join('');
 
-    const total=pays.filter(p=>p.currency==='EGP').reduce((s,p)=>s+(+p.amount),0);
-    res.innerHTML=`
-    <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-      <div style="font-weight:700">${pays.length} قيد | من ${fd(from)} إلى ${fd(to)}</div>
-      <button class="btn btn-outline btn-sm" onclick="exportJournalExcel()">📊 Excel</button>
-    </div>
-    <div class="table-wrap"><table>
-      <thead><tr><th>#</th><th>التاريخ</th><th>العميل</th><th>الرحلة</th><th>طريقة الدفع</th><th>رقم الإيصال</th><th style="color:#4caf84">المبلغ (دائن)</th><th>الرصيد التراكمي</th></tr></thead>
+    res.innerHTML=`<div class="table-wrap"><table>
+      <thead><tr>
+        <th>#</th><th>التاريخ</th><th>النوع</th><th>البيان</th><th>مرجع</th>
+        <th style="color:var(--red-light)">مدين</th>
+        <th style="color:#3ed898">دائن</th>
+        <th>إجراءات</th>
+      </tr></thead>
       <tbody>${rows}</tbody>
-      <tfoot><tr style="background:var(--bg3);font-weight:700"><td colspan="6">الإجمالي</td><td style="color:#4caf84">${fn(total)} ج</td><td></td></tr></tfoot>
+      <tfoot><tr style="background:var(--bg3);font-weight:700">
+        <td colspan="5">الإجمالي (${allItems.length} قيد)</td>
+        <td style="color:var(--red-light)">${fn(totalDebit)}</td>
+        <td style="color:#3ed898">${fn(totalCredit)}</td>
+        <td></td>
+      </tr></tfoot>
     </table></div>`;
-  } catch(e){res.innerHTML='<div class="info-box danger">❌ خطأ: '+e.message+'</div>';}
+  } catch(e){
+    res.innerHTML='<div class="info-box danger">❌ خطأ: '+e.message+'</div>';
+    console.error(e);
+  }
+}
+
+// عرض تفاصيل قيد
+async function viewJrnEntry(id){
+  try{
+    const entries = await sb(`haj_journal?id=eq.${id}&limit=1`);
+    if(!entries.length) return;
+    const e = entries[0];
+    const lines = await sb(`haj_journal_lines?journal_id=eq.${id}&order=id.asc&limit=50`);
+
+    const typeLabel={manual:'يدوي',client:'أداء عميل',supplier:'دفعة مورد',transfer:'تحويل',expense:'مصروف'};
+    let clientInfo='', supInfo='';
+    if(e.client_id){ const c=aClients.find(x=>x.id==e.client_id); clientInfo=c?c.full_name_ar:''; }
+    if(e.supplier_id){ const s=aSups.find(x=>x.id==e.supplier_id); supInfo=s?s.name:''; }
+
+    const linesHtml = lines.map(l=>`<tr>
+      <td><span class="badge ${l.side==='debit'?'badge-red':'badge-green'}">${l.side==='debit'?'مدين':'دائن'}</span></td>
+      <td style="font-weight:600">${l.account_name}</td>
+      <td style="${l.side==='debit'?'color:var(--red-light)':'color:#3ed898'};font-weight:700;text-align:left">${fn(l.amount)} ${e.currency}</td>
+    </tr>`).join('');
+
+    const totalDebit=lines.filter(l=>l.side==='debit').reduce((s,l)=>s+(+l.amount),0);
+    const totalCredit=lines.filter(l=>l.side==='credit').reduce((s,l)=>s+(+l.amount),0);
+    const balanced=Math.abs(totalDebit-totalCredit)<0.01;
+
+    document.getElementById('jrn-view-title').textContent = `قيد #${e.id} — ${fd(e.entry_date)}`;
+    document.getElementById('jrn-view-edit-btn').onclick = ()=>{closeM('jrn-view-modal');openJournalModal(id);};
+
+    document.getElementById('jrn-view-content').innerHTML=`
+      <div class="jrn-view-section">
+        <div class="jrn-view-title">بيانات القيد</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
+          <div><span style="color:var(--text3)">التاريخ:</span> <b>${fd(e.entry_date)}</b></div>
+          <div><span style="color:var(--text3)">النوع:</span> <b>${typeLabel[e.entry_type]||e.entry_type}</b></div>
+          <div style="grid-column:1/-1"><span style="color:var(--text3)">البيان:</span> <b>${e.description}</b></div>
+          ${e.reference_no?`<div><span style="color:var(--text3)">المرجع:</span> <b>${e.reference_no}</b></div>`:''}
+          ${e.currency?`<div><span style="color:var(--text3)">العملة:</span> <b>${e.currency}</b></div>`:''}
+          ${clientInfo?`<div><span style="color:var(--text3)">العميل:</span> <b>${clientInfo}</b></div>`:''}
+          ${supInfo?`<div><span style="color:var(--text3)">المورد:</span> <b>${supInfo}</b></div>`:''}
+          ${e.from_account?`<div><span style="color:var(--text3)">من حساب:</span> <b>${e.from_account}</b></div>`:''}
+          ${e.to_account?`<div><span style="color:var(--text3)">إلى حساب:</span> <b>${e.to_account}</b></div>`:''}
+          ${e.notes?`<div style="grid-column:1/-1"><span style="color:var(--text3)">ملاحظات:</span> ${e.notes}</div>`:''}
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px">📊 أطراف القيد</div>
+        <table class="jrn-lines-table">
+          <thead><tr><th>الجانب</th><th>الحساب</th><th style="text-align:left">المبلغ</th></tr></thead>
+          <tbody>${linesHtml}</tbody>
+          <tfoot>
+            <tr style="background:var(--bg3);font-weight:700">
+              <td colspan="2">الإجمالي</td>
+              <td style="text-align:left">
+                <span style="color:var(--red-light)">م: ${fn(totalDebit)}</span> &nbsp;|&nbsp;
+                <span style="color:#3ed898">د: ${fn(totalCredit)}</span>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="jrn-balance-check ${balanced?'ok':'err'}" style="margin-top:10px">
+          ${balanced?'✅ القيد متوازن':'⚠️ القيد غير متوازن!'}
+        </div>
+      </div>
+    `;
+    openM('jrn-view-modal');
+  }catch(e){toast('خطأ في عرض القيد: '+e.message,'error');}
+}
+
+function printJrnEntry(){
+  const content = document.getElementById('jrn-view-content').innerHTML;
+  const title = document.getElementById('jrn-view-title').textContent;
+  const coName = getCoName();
+  const win = window.open('','_blank');
+  win.document.write(`<html dir="rtl"><head><meta charset="UTF-8"><title>${title}</title>
+  <style>body{font-family:Arial,sans-serif;padding:24px;direction:rtl}h2{color:#1a6b4a;margin-bottom:16px}
+  table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:7px 10px;text-align:right;font-size:12px}
+  th{background:#1a6b4a;color:white}.badge{padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700}
+  .ok{background:#e8fef2;border:1px solid #4caf84;color:#1a6b4a;padding:8px 14px;border-radius:6px;margin-top:12px;display:block}
+  </style></head>
+  <body>
+  <div style="text-align:center;margin-bottom:12px">${coLogoImgHtml(50)}</div>
+  <h2>📒 ${title}</h2>
+  <p style="color:#666;font-size:12px">${coName} | طباعة: ${fd(new Date().toISOString())}</p>
+  ${content}
+  </body></html>`);
+  win.document.close();
+  setTimeout(()=>win.print(),400);
 }
 
 async function loadBalance() {
@@ -6006,13 +6716,23 @@ function openCamera(prefix){
 })();
 
 // ============================================================
-// PWA - SERVICE WORKER REGISTRATION
+// PWA - SERVICE WORKER REGISTRATION (inline blob - no external file needed)
 // ============================================================
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('./sw.js')
-      .then(r => console.log('SW registered:', r.scope))
-      .catch(e => console.warn('SW registration failed:', e));
+    // استخدام الـ SW blob URL اللي اتعمل في الـ head
+    const swUrl = window.__swUrl;
+    if(swUrl){
+      navigator.serviceWorker.register(swUrl, {scope: './'})
+        .then(r => console.log('SW registered (inline):', r.scope))
+        .catch(e => {
+          // fallback: لو blob SW فشل، حاول الملف الخارجي
+          console.warn('Inline SW failed, trying sw.js:', e);
+          navigator.serviceWorker.register('./sw.js')
+            .then(r2 => console.log('SW registered (file):', r2.scope))
+            .catch(e2 => console.warn('SW registration failed:', e2));
+        });
+    }
   });
 }
 
