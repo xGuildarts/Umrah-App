@@ -207,6 +207,27 @@ input[type="checkbox"]{width:auto;accent-color:var(--green-light);transform:scal
   #bottom-nav{display:block}
 }
 
+/* ====== MOBILE HEADER FIX (منع تكسر الهيدر على الشاشات الصغيرة) ====== */
+@media(max-width:768px){
+  html,body{overflow-x:hidden}
+  #header{padding:0 10px;gap:6px}
+  .logo{gap:8px}
+  .logo-icon{width:32px;height:32px;font-size:15px}
+  .logo-text{font-size:13.5px}
+  .logo-sub{display:none}
+  #conn-ind{display:none}
+  #cur-user-badge{display:none}
+  #header>div:last-child{gap:5px}
+  #header .btn-sm{padding:6px 9px;font-size:11px}
+  #header .btn-gold{display:none} /* الإعدادات - متاحة من "المزيد" تحت */
+  .card{padding:13px}
+  .form-grid{grid-template-columns:1fr!important}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .modal-overlay{padding:8px}
+  .modal-header{padding:14px 16px}
+  .modal-body{padding:14px 16px!important}
+}
+
 /* ====== زر الكاميرا (تصوير مباشر) ====== */
 .camera-capture-btn{
   display:inline-flex;align-items:center;gap:6px;
@@ -285,6 +306,29 @@ body.light-mode input,body.light-mode select,body.light-mode textarea{background
 .inst-date{font-size:12px;color:var(--text3);min-width:90px}
 .inst-amt{font-weight:700;color:var(--gold);min-width:80px}
 .inst-status{flex:1}
+
+/* ====== TASKS (المهام) ====== */
+.task-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.task-filter-btn{padding:6px 14px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all var(--transition)}
+.task-filter-btn:hover{background:rgba(212,168,67,.1);color:var(--gold);border-color:rgba(212,168,67,.3)}
+.task-filter-btn.active{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:#0b1912;border-color:var(--gold)}
+.task-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:var(--bg3);transition:all var(--transition)}
+.task-item:hover{border-color:rgba(212,168,67,.35)}
+.task-item.overdue{border-color:var(--red-light);background:rgba(192,57,43,.07)}
+.task-item.done{opacity:.6}
+.task-item.done .task-title{text-decoration:line-through}
+.task-check{width:22px;height:22px;border-radius:6px;border:2px solid var(--text3);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;margin-top:2px;transition:all .15s}
+.task-check.checked{background:var(--green);border-color:var(--green);color:#fff}
+.task-body{flex:1;min-width:0}
+.task-title{font-weight:700;font-size:14px;color:var(--text)}
+.task-notes{font-size:12px;color:var(--text3);margin-top:3px;white-space:pre-wrap}
+.task-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px;align-items:center}
+.task-due{font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(212,168,67,.12);color:var(--gold-light);border:1px solid rgba(212,168,67,.3);font-weight:700}
+.task-due.overdue-chip{background:rgba(192,57,43,.15);color:var(--red-light);border-color:rgba(192,57,43,.35)}
+.task-chan{font-size:10.5px;padding:2px 7px;border-radius:20px;background:rgba(36,113,163,.15);color:#7fc4e8;border:1px solid rgba(36,113,163,.3)}
+.task-chan.wa{background:rgba(34,160,107,.15);color:#2ecc8f;border-color:rgba(34,160,107,.3)}
+.task-actions{display:flex;gap:4px;flex-shrink:0}
+.task-empty{text-align:center;padding:40px 20px;color:var(--text3)}
 
 /* ====== NO-CONFIG BANNER ====== */
 #no-config-banner{display:none;background:linear-gradient(135deg,#c9a84c,#9a7a2e);color:var(--bg);padding:12px 20px;text-align:center;font-weight:700;font-size:13px;cursor:pointer}
@@ -513,6 +557,8 @@ body.light-mode input,body.light-mode select,body.light-mode textarea{background
   <button class="nav-btn" onclick="showTab('clients')" id="nav-clients"><span class="lang-ar">&#x1F464; &#x627;&#x644;&#x639;&#x645;&#x644;&#x627;&#x621;</span><span class="lang-en">👥 Clients</span></button>
   <button class="nav-btn" onclick="showTab('bookings')" id="nav-bookings"><span class="lang-ar">&#x1F4CB; &#x627;&#x644;&#x62D;&#x62C;&#x648;&#x632;&#x627;&#x62A;</span><span class="lang-en">📋 Bookings</span></button>
   <button class="nav-btn" onclick="showTab('payments')" id="nav-payments"><span class="lang-ar">&#x1F4B0; &#x627;&#x644;&#x645;&#x62F;&#x641;&#x648;&#x639;&#x627;&#x62A;</span><span class="lang-en">💰 Payments</span></button>
+  <div class="nav-label"><span class="lang-ar">المهام</span><span class="lang-en">Tasks</span></div>
+  <button class="nav-btn" onclick="showTab('tasks')" id="nav-tasks"><span class="lang-ar">📝 المهام والتذكيرات</span><span class="lang-en">📝 Tasks & Reminders</span></button>
   <div class="nav-label"><span class="lang-ar">&#x627;&#x644;&#x62A;&#x634;&#x63A;&#x64A;&#x644;</span><span class="lang-en">Operations</span></div>
   <button class="nav-btn" onclick="showTab('rooms')" id="nav-rooms"><span class="lang-ar">&#x1F6CF;&#xFE0F; &#x627;&#x644;&#x62A;&#x633;&#x643;&#x64A;&#x646;</span><span class="lang-en">🛏️ Rooms</span></button>
   <button class="nav-btn" onclick="showTab('settlement')" id="nav-settlement"><span class="lang-ar">&#x1F4C8; &#x627;&#x644;&#x62A;&#x642;&#x641;&#x64A;&#x644;&#x629;</span><span class="lang-en">📈 Settlement</span></button>
@@ -536,8 +582,8 @@ body.light-mode input,body.light-mode select,body.light-mode textarea{background
     <button class="bn-btn" onclick="showTab('bookings')" id="bn-bookings">
       <span class="bn-icon">📋</span><span class="bn-label">الحجوزات</span>
     </button>
-    <button class="bn-btn" onclick="showTab('clients')" id="bn-clients">
-      <span class="bn-icon">👤</span><span class="bn-label">العملاء</span>
+    <button class="bn-btn" onclick="showTab('tasks')" id="bn-tasks">
+      <span class="bn-icon">📝</span><span class="bn-label">المهام</span>
     </button>
     <button class="bn-btn" onclick="openMoreMenu()" id="bn-more">
       <span class="bn-icon">⋯</span><span class="bn-label">المزيد</span>
@@ -551,6 +597,7 @@ body.light-mode input,body.light-mode select,body.light-mode textarea{background
     <div class="modal-header"><div class="modal-title">⋯ باقي الأقسام</div><button class="close-btn" onclick="closeM('more-menu-modal')">✕</button></div>
     <div class="modal-body">
       <div id="more-menu-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+        <button class="more-menu-item" onclick="goFromMore('clients')" id="mm-clients"><span class="mm-icon">👤</span><span>العملاء</span></button>
         <button class="more-menu-item" onclick="goFromMore('payments')" id="mm-payments"><span class="mm-icon">💰</span><span>المدفوعات</span></button>
         <button class="more-menu-item" onclick="goFromMore('suppliers')" id="mm-suppliers"><span class="mm-icon">🏢</span><span>الموردين</span></button>
         <button class="more-menu-item" onclick="goFromMore('rooms')" id="mm-rooms"><span class="mm-icon">🛏️</span><span>التسكين</span></button>
@@ -987,6 +1034,69 @@ body.light-mode input,body.light-mode select,body.light-mode textarea{background
     <div id="inst-auto-alert"></div>
     <div id="inst-stats" class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px"></div>
     <div id="inst-content"><div class="empty-state"><div class="empty-icon">📅</div><h3>اختر رحلة لعرض الأقساط</h3></div></div>
+  </div>
+</div>
+
+<!-- TASKS -->
+<div id="tab-tasks" class="tab-content" style="display:none">
+  <div class="section-title"><span>📝</span> المهام والتذكيرات</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">مهامي</div>
+      <button class="btn btn-primary btn-sm" onclick="openTaskModal()">➕ مهمة جديدة</button>
+    </div>
+    <div id="task-notify-hint"></div>
+    <div class="task-filters">
+      <button class="task-filter-btn active" data-f="all" onclick="setTaskFilter('all')">الكل</button>
+      <button class="task-filter-btn" data-f="today" onclick="setTaskFilter('today')">اليوم</button>
+      <button class="task-filter-btn" data-f="overdue" onclick="setTaskFilter('overdue')">متأخرة</button>
+      <button class="task-filter-btn" data-f="upcoming" onclick="setTaskFilter('upcoming')">قادمة</button>
+      <button class="task-filter-btn" data-f="done" onclick="setTaskFilter('done')">مكتملة</button>
+    </div>
+    <div id="tasks-list"><div class="empty-state"><div class="empty-icon">📝</div><h3>جاري التحميل...</h3></div></div>
+  </div>
+</div>
+
+<!-- TASK MODAL -->
+<div id="task-modal" class="modal-overlay">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header"><div class="modal-title" id="task-modal-title">📝 مهمة جديدة</div><button class="close-btn" onclick="closeM('task-modal')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="task-id">
+      <div class="form-group"><label>عنوان المهمة *</label><input type="text" id="task-title" placeholder="مثال: متابعة تأشيرة العميل أحمد"></div>
+      <div class="form-group"><label>تفاصيل / ملاحظات</label><textarea id="task-notes" rows="3" placeholder="تفاصيل إضافية (اختياري)"></textarea></div>
+      <div class="form-grid">
+        <div class="form-group"><label>التاريخ *</label><input type="date" id="task-date"></div>
+        <div class="form-group"><label>الوقت *</label><input type="time" id="task-time"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>الأولوية</label>
+          <select id="task-priority">
+            <option value="normal">عادية</option>
+            <option value="high">مهمة</option>
+            <option value="urgent">عاجلة</option>
+          </select>
+        </div>
+        <div class="form-group"><label>تذكير قبل الموعد بـ</label>
+          <select id="task-remind-before">
+            <option value="0">وقت الموعد بالظبط</option>
+            <option value="10">10 دقائق</option>
+            <option value="30">30 دقيقة</option>
+            <option value="60">ساعة</option>
+            <option value="1440">يوم كامل</option>
+          </select>
+        </div>
+      </div>
+      <div class="check-row" style="margin-top:4px">
+        <div class="check-item"><input type="checkbox" id="task-notify-tg"><label for="task-notify-tg">🔵 تنبيه على تليجرام</label></div>
+        <div class="check-item"><input type="checkbox" id="task-notify-wa"><label for="task-notify-wa">🟢 تنبيه على واتساب</label></div>
+      </div>
+      <div id="task-notify-warn" style="display:none" class="info-box warning"><span>⚠️</span><div>لازم تعدّي بيانات تليجرام/واتساب في الإعدادات الأول عشان التنبيهات تشتغل.</div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeM('task-modal')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveTask()">💾 حفظ المهمة</button>
+    </div>
   </div>
 </div>
 
@@ -1920,7 +2030,7 @@ function showTab(name){
   document.getElementById('tab-'+name).style.display='block';
   const nb=document.getElementById('nav-'+name);if(nb)nb.classList.add('active');
   try{ localStorage.setItem('hj_last_tab', name); }catch(e){}
-  ({dashboard:loadDash,trips:loadTrips,suppliers:loadSups,clients:loadClients,bookings:loadBookings,payments:loadPayments,rooms:fillTrSels,settlement:fillTrSels,reports:loadReportsTab,settings:loadSettings,accounts:initAccountsTab,installments:initInstallments})[name]?.();
+  ({dashboard:loadDash,trips:loadTrips,suppliers:loadSups,clients:loadClients,bookings:loadBookings,payments:loadPayments,rooms:fillTrSels,settlement:fillTrSels,reports:loadReportsTab,settings:loadSettings,accounts:initAccountsTab,installments:initInstallments,tasks:loadTasksTab})[name]?.();
 }
 
 async function loadReportsTab(){
@@ -3280,6 +3390,7 @@ async function initAuth(){
       applyRoleUI();
       loadCoCache();
       restoreLastState(); testConn();
+      startTaskReminders();
       return;
     }catch(e){ localStorage.removeItem('hj_session'); }
   }
@@ -3327,6 +3438,7 @@ function loginSuccess(user){
   applyRoleUI();
   loadCoCache();
   restoreLastState(); testConn();
+  startTaskReminders();
   logAction('login',{username:user.username});
 }
 
@@ -3370,11 +3482,12 @@ const PERMISSIONS_DEF=[
   {key:'settlement', label:'📈 التقفيلة'},
   {key:'reports', label:'🖨️ التقارير'},
   {key:'accounts', label:'📒 كشف الحسابات'},
+  {key:'tasks', label:'📝 المهام والتذكيرات'},
   {key:'settings', label:'⚙️ الإعدادات'},
   {key:'can_delete', label:'🗑️ صلاحية الحذف'},
   {key:'manage_users', label:'👥 إدارة المستخدمين'},
 ];
-const STAFF_DEFAULT_PERMS={dashboard:true,trips:true,suppliers:true,clients:true,bookings:true,payments:true,rooms:true,installments:true,settlement:false,reports:false,accounts:false,settings:false,can_delete:false,manage_users:false};
+const STAFF_DEFAULT_PERMS={dashboard:true,trips:true,suppliers:true,clients:true,bookings:true,payments:true,rooms:true,installments:true,settlement:false,reports:false,accounts:false,tasks:true,settings:false,can_delete:false,manage_users:false};
 
 function isAdmin(){ return !!currentUser && currentUser.role==='admin'; }
 function hasPerm(key){
@@ -6392,6 +6505,221 @@ async function sendAlertsToChannels(results){
   }
 }
 
+// ============================================================
+// TASKS (المهام والتذكيرات)
+// جدول Supabase مطلوب: haj_tasks
+// أعمدة: id (int8, PK, identity), title (text), notes (text),
+//        due_date (date), due_time (time), priority (text, default 'normal'),
+//        remind_before (int4, default 0), notify_tg (bool, default false),
+//        notify_wa (bool, default false), status (text, default 'pending'),
+//        reminder_sent (bool, default false), created_at (timestamptz, default now())
+// لو الجدول مش موجود، هتظهر رسالة توضح ذلك عند فتح تبويب المهام
+// ============================================================
+let aTasks=[];
+let _taskFilter='all';
+let _taskTimer=null;
+let _taskTableMissing=false;
+
+async function loadTasksTab(){
+  const notifyHint=document.getElementById('task-notify-hint');
+  try{
+    const settings=await sb('haj_settings?limit=50').catch(()=>[]);
+    const getS=k=>(settings.find(s=>s.key===k)||{}).value||'';
+    const tgOk=!!(getS('telegram_token')&&getS('telegram_chat_id'));
+    const waOk=!!(getS('callmebot_key')&&getS('alerts_whatsapp_phone'));
+    if(notifyHint){
+      if(tgOk||waOk){
+        notifyHint.innerHTML='';
+      }else{
+        notifyHint.innerHTML=`<div class="info-box warning" style="margin-bottom:14px"><span>⚠️</span><div>عشان التذكيرات توصلك على تليجرام/واتساب، لازم تعدّي بيانات البوت من الإعدادات ⚙️ &lt; إعدادات الإشعارات أولاً.</div></div>`;
+      }
+    }
+  }catch(e){}
+  await loadTasks();
+}
+
+async function loadTasks(){
+  const list=document.getElementById('tasks-list');
+  try{
+    aTasks=await sb('haj_tasks?order=due_date.asc,due_time.asc&limit=1000');
+    _taskTableMissing=false;
+  }catch(e){
+    _taskTableMissing=true;
+    aTasks=[];
+    if(list){
+      list.innerHTML=`<div class="info-box danger"><span>❌</span><div>جدول المهام (haj_tasks) مش موجود في قاعدة البيانات لسه. لازم تنشئيه مرة واحدة في Supabase SQL Editor - اطلبي كود الـ SQL من اللي جهّزلك التطبيق، أو راجعي دليل الإعداد.</div></div>`;
+    }
+    return;
+  }
+  renderTasks();
+}
+
+function setTaskFilter(f){
+  _taskFilter=f;
+  document.querySelectorAll('.task-filter-btn').forEach(b=>b.classList.toggle('active', b.dataset.f===f));
+  renderTasks();
+}
+
+function renderTasks(){
+  const list=document.getElementById('tasks-list');
+  if(!list || _taskTableMissing) return;
+  const now=new Date();
+  const todayStr=now.toISOString().slice(0,10);
+  const withMeta=aTasks.map(t=>{
+    const due=t.due_date?new Date(t.due_date+'T'+(t.due_time||'00:00')):null;
+    const isOverdue = t.status!=='done' && due && due<now;
+    const isToday = t.due_date===todayStr;
+    return {...t, _due:due, _overdue:isOverdue, _today:isToday};
+  });
+  let filtered=withMeta;
+  if(_taskFilter==='today') filtered=withMeta.filter(t=>t._today && t.status!=='done');
+  else if(_taskFilter==='overdue') filtered=withMeta.filter(t=>t._overdue);
+  else if(_taskFilter==='upcoming') filtered=withMeta.filter(t=>t.status!=='done' && !t._overdue && !t._today);
+  else if(_taskFilter==='done') filtered=withMeta.filter(t=>t.status==='done');
+  else filtered=withMeta.filter(t=>t.status!=='done').concat(withMeta.filter(t=>t.status==='done'));
+
+  if(!filtered.length){
+    list.innerHTML='<div class="task-empty"><div style="font-size:32px;margin-bottom:8px">✅</div>لا توجد مهام في هذا التصنيف</div>';
+    return;
+  }
+  const prioIcon={urgent:'🔴',high:'🟠',normal:''};
+  list.innerHTML=filtered.map(t=>{
+    const dueChip = t.due_date ? `<span class="task-due ${t._overdue?'overdue-chip':''}">${t._overdue?'⏰ متأخرة - ':'📅 '}${fd(t.due_date)}${t.due_time?' '+t.due_time.slice(0,5):''}</span>` : '';
+    const chans = `${t.notify_tg?'<span class="task-chan">🔵 تليجرام</span>':''}${t.notify_wa?'<span class="task-chan wa">🟢 واتساب</span>':''}`;
+    return `<div class="task-item ${t._overdue?'overdue':''} ${t.status==='done'?'done':''}">
+      <div class="task-check ${t.status==='done'?'checked':''}" onclick="toggleTaskDone(${t.id},${t.status!=='done'})">${t.status==='done'?'✓':''}</div>
+      <div class="task-body">
+        <div class="task-title">${prioIcon[t.priority]||''} ${t.title||''}</div>
+        ${t.notes?`<div class="task-notes">${t.notes}</div>`:''}
+        <div class="task-meta">${dueChip}${chans}</div>
+      </div>
+      <div class="task-actions">
+        <button class="btn btn-outline btn-icon btn-sm" onclick="openTaskModal(${t.id})" title="تعديل">✏️</button>
+        <button class="btn btn-danger btn-icon btn-sm" onclick="confirmDelTask(${t.id})" title="حذف">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openTaskModal(id){
+  const t = id ? aTasks.find(x=>x.id==id) : null;
+  document.getElementById('task-modal-title').textContent = t ? '✏️ تعديل المهمة' : '📝 مهمة جديدة';
+  document.getElementById('task-id').value = t ? t.id : '';
+  document.getElementById('task-title').value = t?.title || '';
+  document.getElementById('task-notes').value = t?.notes || '';
+  document.getElementById('task-date').value = t?.due_date || new Date().toISOString().slice(0,10);
+  document.getElementById('task-time').value = t?.due_time ? t.due_time.slice(0,5) : '09:00';
+  document.getElementById('task-priority').value = t?.priority || 'normal';
+  document.getElementById('task-remind-before').value = t?.remind_before ?? 0;
+  document.getElementById('task-notify-tg').checked = t ? !!t.notify_tg : true;
+  document.getElementById('task-notify-wa').checked = t ? !!t.notify_wa : false;
+  openM('task-modal');
+}
+
+async function saveTask(){
+  const title=document.getElementById('task-title').value.trim();
+  const date=document.getElementById('task-date').value;
+  const time=document.getElementById('task-time').value;
+  if(!title){ toast('يرجى إدخال عنوان المهمة','error'); return; }
+  if(!date||!time){ toast('يرجى تحديد التاريخ والوقت','error'); return; }
+  const id=document.getElementById('task-id').value;
+  const data={
+    title,
+    notes: document.getElementById('task-notes').value.trim(),
+    due_date: date,
+    due_time: time,
+    priority: document.getElementById('task-priority').value,
+    remind_before: +document.getElementById('task-remind-before').value||0,
+    notify_tg: document.getElementById('task-notify-tg').checked,
+    notify_wa: document.getElementById('task-notify-wa').checked,
+  };
+  try{
+    if(id){
+      data.reminder_sent=false; // لو اتعدل الموعد، نبعت تذكير تاني
+      await sb(`haj_tasks?id=eq.${id}`,'PATCH',data);
+    }else{
+      data.status='pending'; data.reminder_sent=false;
+      await sb('haj_tasks','POST',data);
+    }
+    _formDirty=false;
+    closeM('task-modal');
+    toast('✅ تم حفظ المهمة');
+    loadTasks();
+  }catch(e){ toast('خطأ في الحفظ: '+e.message,'error'); }
+}
+
+async function toggleTaskDone(id, done){
+  try{
+    await sb(`haj_tasks?id=eq.${id}`,'PATCH',{status: done?'done':'pending'});
+    const t=aTasks.find(x=>x.id==id); if(t) t.status = done?'done':'pending';
+    renderTasks();
+  }catch(e){ toast('خطأ: '+e.message,'error'); }
+}
+
+function confirmDelTask(id){
+  const t=aTasks.find(x=>x.id==id);
+  confirmAction(`حذف مهمة "${t?.title||''}"؟`,'','🗑️',async()=>{
+    try{ await sb(`haj_tasks?id=eq.${id}`,'DELETE'); toast('تم الحذف'); loadTasks(); }
+    catch(e){ toast('خطأ: '+e.message,'error'); }
+  });
+}
+
+// ---- محرك التذكيرات: بيشتغل كل دقيقة طول ما الصفحة مفتوحة، ويبعت تليجرام/واتساب للمهام المستحقة ----
+async function checkTaskReminders(){
+  if(!SURL||!SKEY) return;
+  try{
+    const due = await sb(`haj_tasks?status=eq.pending&reminder_sent=eq.false&limit=200`).catch(()=>[]);
+    if(!due || !due.length) return;
+    const now=new Date();
+    const dueNow = due.filter(t=>{
+      if(!t.due_date) return false;
+      const target=new Date(t.due_date+'T'+(t.due_time||'00:00')).getTime() - (Number(t.remind_before)||0)*60000;
+      return target<=now.getTime();
+    });
+    if(!dueNow.length) return;
+
+    const settings=await sb('haj_settings?limit=50').catch(()=>[]);
+    const getS=k=>(settings.find(s=>s.key===k)||{}).value||'';
+    const tgToken=getS('telegram_token'), tgChatId=getS('telegram_chat_id');
+    const waBotKey=getS('callmebot_key'), myPhone=getS('alerts_whatsapp_phone');
+
+    for(const t of dueNow){
+      const msg=`📝 تذكير مهمة: ${t.title}\n📅 ${fd(t.due_date)} ${t.due_time?t.due_time.slice(0,5):''}${t.notes?`\n📄 ${t.notes}`:''}`;
+      let sentAny=false;
+      if(t.notify_tg && tgToken && tgChatId){
+        try{
+          await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:tgChatId,text:msg})});
+          sentAny=true;
+        }catch(e){console.warn('task TG reminder failed',e);}
+      }
+      if(t.notify_wa && waBotKey && myPhone){
+        try{
+          const phone=myPhone.replace(/\D/g,'');
+          await fetch(`https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodeURIComponent(msg)}&apikey=${waBotKey}`,{mode:'no-cors'});
+          sentAny=true;
+        }catch(e){console.warn('task WA reminder failed',e);}
+      }
+      try{ await sb(`haj_tasks?id=eq.${t.id}`,'PATCH',{reminder_sent:true}); }catch(e){}
+      if(sentAny){
+        toast(`🔔 تم إرسال تذكير: ${t.title}`,'info');
+        if('Notification' in window && Notification.permission==='granted'){
+          try{ new Notification('📝 تذكير مهمة', {body:t.title}); }catch(e){}
+        }
+      }
+    }
+    if(document.getElementById('tab-tasks') && document.getElementById('tab-tasks').style.display!=='none') loadTasks();
+  }catch(e){ console.warn('checkTaskReminders error:', e); }
+}
+
+function startTaskReminders(){
+  if(_taskTimer) clearInterval(_taskTimer);
+  if('Notification' in window && Notification.permission==='default'){
+    try{ Notification.requestPermission(); }catch(e){}
+  }
+  checkTaskReminders();
+  _taskTimer=setInterval(checkTaskReminders, 60000);
+}
+
 // ================================================================
 // SUPPLIER ACCOUNT PER TRIP - حساب المورد لكل رحلة
 // ================================================================
@@ -6675,7 +7003,7 @@ function openCamera(prefix){
 // ============================================================
 // BOTTOM NAV SYNC - يتزامن مع showTab
 // ============================================================
-const _BN_PRIMARY = ['dashboard','trips','bookings','clients'];
+const _BN_PRIMARY = ['dashboard','trips','bookings','tasks'];
 (function patchShowTab(){
   const _orig = showTab;
   window.showTab = function(name){
