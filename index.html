@@ -6499,8 +6499,11 @@ async function runLiveAlerts(sendToChannels){
     const sendable=results.filter(r=>r.ch!=='off');
     if(sendToChannels&&sendable.length){
       await sendAlertsToChannels(sendable);
+    }else if(sendToChannels&&!results.length){
+      // مفيش تنبيهات خالص - ابعت رسالة "كل حاجة تمام" للقنوات المتاحة
+      await sendAllClearMessage();
     }else if(sendToChannels&&!sendable.length){
-      toast('لا توجد تنبيهات لإرسالها (أو كلها موقوفة القناة)','info');
+      toast('التنبيهات كلها موقوفة القناة - مفيش حاجة اتبعتت','info');
     }
 
   }catch(e){
@@ -6570,6 +6573,52 @@ async function sendAlertsToChannels(results){
     toast(waOk?'📱 تم الإرسال على واتساب (تحقق من الهاتف)':'❌ فشل الإرسال على واتساب','info');
   }else if(!tgConfigured&&!waConfigured){
     toast('⚠️ يرجى إعداد تيليجرام أو واتساب في الإعدادات','error');
+  }
+}
+
+// ============================================================
+// ALL CLEAR - لما مفيش أي تنبيهات، ابعت رسالة "كل حاجة تمام"
+// ============================================================
+async function sendAllClearMessage(){
+  const settings=await sb('haj_settings?limit=50').catch(()=>[]);
+  const getS=k=>(settings.find(s=>s.key===k)||{}).value||'';
+  const tgToken=getS('telegram_token');
+  const tgChatId=getS('telegram_chat_id');
+  const waBotKey=getS('callmebot_key');
+  const myPhone=getS('alerts_whatsapp_phone');
+
+  const msg=`✅ *تقرير التنبيهات - Adriaska Tours*\n━━━━━━━━━━━━━━━━━━\nلا توجد تنبيهات في الوقت الحالي - كل شيء على ما يرام! 🎉\n━━━━━━━━━━━━━━━━━━\n🕐 ${new Date().toLocaleString('ar-EG')}`;
+
+  let tgOk=false,waOk=false;
+  const tgConfigured=tgToken&&tgChatId, waConfigured=waBotKey&&myPhone;
+
+  if(tgConfigured){
+    try{
+      const res=await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({chat_id:tgChatId,text:msg,parse_mode:'Markdown'})
+      });
+      const data=await res.json();
+      tgOk=data.ok;
+    }catch(e){console.warn('TG error:',e);}
+  }
+
+  if(waConfigured){
+    try{
+      const phone=myPhone.replace(/\D/g,'');
+      await fetch(`https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodeURIComponent(msg.replace(/\*/g,''))}&apikey=${waBotKey}`,{mode:'no-cors'});
+      waOk=true;
+    }catch(e){console.warn('WA error:',e);}
+  }
+
+  if(tgConfigured&&waConfigured){
+    toast(`✅ لا توجد تنبيهات - تم إرسال التأكيد: ${tgOk?'تيليجرام ':''}${waOk?'+ واتساب':''}`,'success');
+  }else if(tgConfigured){
+    toast(tgOk?'✅ لا توجد تنبيهات - تم إرسال التأكيد على تيليجرام':'❌ فشل إرسال التأكيد على تيليجرام',tgOk?'success':'error');
+  }else if(waConfigured){
+    toast(waOk?'✅ لا توجد تنبيهات - تم إرسال التأكيد على واتساب':'❌ فشل إرسال التأكيد على واتساب','info');
+  }else{
+    toast('لا توجد تنبيهات - يرجى إعداد تيليجرام أو واتساب لإرسال تأكيد كهذا','info');
   }
 }
 
