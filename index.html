@@ -6636,6 +6636,8 @@ let aTasks=[];
 let _taskFilter='all';
 let _taskTimer=null;
 let _taskTableMissing=false;
+let _processingReminders=false;
+let _remindersLog={}; // { taskId: timestamp } لتتبع آخر إرسالية
 
 async function loadTasksTab(){
   const notifyHint=document.getElementById('task-notify-hint');
@@ -6784,16 +6786,20 @@ function confirmDelTask(id){
 // ---- محرك التذكيرات: بيشتغل كل دقيقة طول ما الصفحة مفتوحة، ويبعت تليجرام/واتساب للمهام المستحقة ----
 async function checkTaskReminders(){
   if(!SURL||!SKEY) return;
+  if(_processingReminders) return; // تجنب الفحوصات المتزامنة
+  
+  _processingReminders=true;
   try{
     const due = await sb(`haj_tasks?status=eq.pending&reminder_sent=eq.false&limit=200`).catch(()=>[]);
-    if(!due || !due.length) return;
+    if(!due || !due.length){ _processingReminders=false; return; }
+    
     const now=new Date();
     const dueNow = due.filter(t=>{
       if(!t.due_date) return false;
       const target=new Date(t.due_date+'T'+(t.due_time||'00:00')).getTime() - (Number(t.remind_before)||0)*60000;
       return target<=now.getTime();
     });
-    if(!dueNow.length) return;
+    if(!dueNow.length){ _processingReminders=false; return; }
 
     const settings=await sb('haj_settings?limit=50').catch(()=>[]);
     const getS=k=>(settings.find(s=>s.key===k)||{}).value||'';
@@ -6801,31 +6807,81 @@ async function checkTaskReminders(){
     const waBotKey=getS('callmebot_key'), myPhone=getS('alerts_whatsapp_phone');
 
     for(const t of dueNow){
+      const lastLog=_remindersLog[t.id]||0;
+      const timeSinceLastSend=now.getTime()-lastLog;
+      
+      // تجنب إرسال نفس التنبيه أكثر من مرة في دقيقة واحدة
+      if(lastLog > 0 && timeSinceLastSend < 60000){
+        console.log(`⏭️ تخطي التنبيه لـ "${t.title}" - تم الإرسال منذ ${Math.round(timeSinceLastSend/1000)}s فقط`);
+        continue;
+      }
+      
       const msg=`📝 تذكير مهمة: ${t.title}\n📅 ${fd(t.due_date)} ${t.due_time?t.due_time.slice(0,5):''}${t.notes?`\n📄 ${t.notes}`:''}`;
       let sentAny=false;
+      let sendError=null;
+      
       if(t.notify_tg && tgToken && tgChatId){
         try{
           await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:tgChatId,text:msg})});
           sentAny=true;
-        }catch(e){console.warn('task TG reminder failed',e);}
+        }catch(e){
+          console.warn('❌ فشل إرسال تنبيه Telegram:',e.message);
+          sendError=e;
+        }
       }
+      
       if(t.notify_wa && waBotKey && myPhone){
         try{
           const phone=myPhone.replace(/\D/g,'');
-          await fetch(`https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodeURIComponent(msg)}&apikey=${waBotKey}`,{mode:'no-cors'});
+          const resp=await fetch(`https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodeURIComponent(msg)}&apikey=${waBotKey}`,{mode:'no-cors'});
           sentAny=true;
-        }catch(e){console.warn('task WA reminder failed',e);}
+        }catch(e){
+          console.warn('❌ فشل إرسال تنبيه WhatsApp:',e.message);
+          sendError=e;
+        }
       }
-      try{ await sb(`haj_tasks?id=eq.${t.id}`,'PATCH',{reminder_sent:true}); }catch(e){}
+      
+      // تحديث الـ DB فقط إذا تم الإرسال بنجاح أو إذا لا توجد قنوات متاحة
       if(sentAny){
-        toast(`🔔 تم إرسال تذكير: ${t.title}`,'info');
-        if('Notification' in window && Notification.permission==='granted'){
-          try{ new Notification('📝 تذكير مهمة', {body:t.title}); }catch(e){}
+        let updateOk=false;
+        for(let retry=0;retry<3;retry++){
+          try{
+            await sb(`haj_tasks?id=eq.${t.id}`,'PATCH',{reminder_sent:true});
+            updateOk=true;
+            _remindersLog[t.id]=now.getTime();
+            toast(`✅ تم إرسال تذكير: ${t.title}`,'success');
+            if('Notification' in window && Notification.permission==='granted'){
+              try{ new Notification('📝 تذكير مهمة', {body:t.title}); }catch(e){}
+            }
+            break;
+          }catch(e){
+            if(retry<2){
+              console.warn(`⚠️ محاولة تحديث الـ DB (${retry+1}/3) فشلت، إعادة محاولة...`);
+              await new Promise(resolve=>setTimeout(resolve,1000));
+            }else{
+              console.error(`❌ فشل تحديث الـ DB بعد 3 محاولات للمهمة ${t.id}`);
+              toast(`⚠️ تنبيه تم إرساله لكن فشل التحديث: ${t.title}. قد يتكرر.`,'warning');
+            }
+          }
+        }
+      }else if(!tgToken && !waBotKey){
+        // لا توجد قنوات متاحة، علّم المهمة بأنها تمت (تجنب التكرار)
+        try{
+          await sb(`haj_tasks?id=eq.${t.id}`,'PATCH',{reminder_sent:true});
+          _remindersLog[t.id]=now.getTime();
+        }catch(e){
+          console.warn('فشل تحديث المهمة (لا توجد قنوات):', e.message);
         }
       }
     }
+    
     if(document.getElementById('tab-tasks') && document.getElementById('tab-tasks').style.display!=='none') loadTasks();
-  }catch(e){ console.warn('checkTaskReminders error:', e); }
+  }catch(e){ 
+    console.error('❌ خطأ في checkTaskReminders:', e); 
+    toast('⚠️ خطأ في فحص التنبيهات - تحقق من الاتصال','error');
+  }finally{
+    _processingReminders=false;
+  }
 }
 
 function startTaskReminders(){
@@ -6835,6 +6891,15 @@ function startTaskReminders(){
   }
   checkTaskReminders();
   _taskTimer=setInterval(checkTaskReminders, 60000);
+  console.log('✅ تم بدء نظام التنبيهات - فحص كل دقيقة');
+}
+
+function stopTaskReminders(){
+  if(_taskTimer){
+    clearInterval(_taskTimer);
+    _taskTimer=null;
+    console.log('🛑 تم إيقاف نظام التنبيهات');
+  }
 }
 
 // ================================================================
