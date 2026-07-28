@@ -705,7 +705,7 @@ body.light-mode input,body.light-mode select,body.light-mode textarea{background
 <div id="tab-bookings" class="tab-content" style="display:none">
   <div class="section-title"><span>📋</span> <span class="lang-ar">الحجوزات</span><span class="lang-en">Bookings</span></div>
   <div class="card">
-    <div class="card-header"><div class="card-title"><span class="lang-ar">قائمة الحجوزات</span><span class="lang-en">Bookings List</span></div><div style="display:flex;gap:8px"><button class="btn btn-gold" onclick="openFamModal()">👪 إضافة أسرة</button><button class="btn btn-primary" onclick="openBkModal()"><span class="lang-ar">➕ حجز جديد</span><span class="lang-en">➕ New Booking</span></button></div></div>
+    <div class="card-header"><div class="card-title"><span class="lang-ar">قائمة الحجوزات</span><span class="lang-en">Bookings List</span></div><div style="display:flex;gap:8px"><button class="btn btn-outline" id="bk-recalc-btn" onclick="recalcTripBookingPrices()" title="يحدّث أسعار كل الحجوزات في الرحلة المختارة لتطابق أسعار البرنامج الحالية">🔄 تحديث الأسعار من الرحلة</button><button class="btn btn-gold" onclick="openFamModal()">👪 إضافة أسرة</button><button class="btn btn-primary" onclick="openBkModal()"><span class="lang-ar">➕ حجز جديد</span><span class="lang-en">➕ New Booking</span></button></div></div>
     <div class="search-bar">
       <select id="bk-trip-f" onchange="loadBookings()" style="flex:0 0 200px"><option value="">كل الرحلات</option></select>
       <select id="bk-stat-f" onchange="loadBookings()"><option value="">كل الحالات</option><option value="محجوز">محجوز</option><option value="مدفوع جزئي">مدفوع جزئي</option><option value="مكتمل">مكتمل</option><option value="ملغي">ملغي</option></select>
@@ -940,15 +940,17 @@ body.light-mode input,body.light-mode select,body.light-mode textarea{background
     <!-- Modal إضافة دفعة للمورد -->
     <div id="sup-pay-modal" class="modal-overlay" style="display:none">
       <div class="modal" style="max-width:480px">
-        <div class="modal-header"><div class="modal-title">💸 تسجيل دفعة للمورد</div><button class="close-btn" onclick="closeM('sup-pay-modal')">✕</button></div>
+        <div class="modal-header"><div class="modal-title" id="spm-ttl">💸 تسجيل دفعة للمورد</div><button class="close-btn" onclick="closeM('sup-pay-modal')">✕</button></div>
         <div class="modal-body">
           <input type="hidden" id="spm-trip-id">
           <input type="hidden" id="spm-sup-id">
+          <input type="hidden" id="spm-edit-id">
           <div class="form-grid">
             <div class="form-group"><label>المبلغ *</label><input id="spm-amt" type="number" min="0" step="0.01" placeholder="0"></div>
             <div class="form-group"><label>العملة</label><select id="spm-cur"><option value="EGP">جنيه (EGP)</option><option value="USD">دولار (USD)</option><option value="SAR">ريال (SAR)</option><option value="EUR">يورو (EUR)</option></select></div>
             <div class="form-group"><label>التاريخ *</label><input id="spm-dt" type="date"></div>
             <div class="form-group"><label>طريقة الدفع</label><select id="spm-mth"><option value="كاش">كاش</option><option value="تحويل">تحويل</option><option value="شيك">شيك</option><option value="فيزا">فيزا</option></select></div>
+            <div class="form-group full"><label>🏦 الدفع من حساب *</label><select id="spm-account" required><option value="">-- اختر الحساب --</option><option value="كاش">🪙 الخزنة (كاش)</option><option value="تحويل">🏦 البنك (تحويل بنكي)</option><option value="فيزا">💳 فيزا / بطاقة</option><option value="شيك">📄 شيك</option></select></div>
             <div class="form-group full"><label>رقم المرجع / الإيصال</label><input id="spm-ref" type="text" placeholder="رقم التحويل أو الإيصال"></div>
             <div class="form-group full"><label>ملاحظات</label><input id="spm-nts" type="text" placeholder="ملاحظات اختيارية"></div>
           </div>
@@ -988,13 +990,10 @@ body.light-mode input,body.light-mode select,body.light-mode textarea{background
 
   <!-- JOURNAL - يدوي + تلقائي -->
   <div id="acct-journal" style="display:none">
-    <!-- زر إضافة قيد + فلتر -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
       <div class="section-title" style="margin-bottom:0;font-size:17px"><span>📒</span> القيود اليومية</div>
       <button class="btn btn-gold" onclick="openJournalModal()">➕ قيد يدوي جديد</button>
     </div>
-
-    <!-- فلاتر -->
     <div class="card" style="padding:14px;margin-bottom:14px">
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
         <select id="jrn-type-f" style="width:160px" onchange="loadJournal()">
@@ -1009,11 +1008,7 @@ body.light-mode input,body.light-mode select,body.light-mode textarea{background
         <button class="btn btn-outline btn-sm" onclick="exportJournalExcel()">📊 Excel</button>
       </div>
     </div>
-
-    <!-- الإحصائيات -->
     <div id="jrn-stats" style="display:none;margin-bottom:14px"></div>
-
-    <!-- النتائج -->
     <div id="acc-jrn-result"><div class="empty-state"><div class="empty-icon">📒</div><h3>اختر فترة زمنية وانقر عرض</h3></div></div>
   </div>
 
@@ -1537,6 +1532,23 @@ body.light-mode input,body.light-mode select,body.light-mode textarea{background
           <div class="form-group col2"><label>سبب الخصم (اختياري)</label><input id="bk-exdisc-r" type="text" placeholder="مثال: عرض خاص / عميل قديم"></div>
         </div>
       </div>
+      <!-- بانر قفل السعر (يظهر فقط عند تعديل حجز قديم) -->
+      <div id="px-lock-banner" style="display:none;background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.4);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--gold-light)">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:16px">🔒</span>
+            <div>
+              <div style="font-weight:700;font-size:13px">السعر محفوظ من تاريخ الحجز الأصلي</div>
+              <div style="color:var(--text3);font-size:11px;margin-top:2px">إذا تغيّر سعر الرحلة بعد الحجز، التغيير لن يؤثر على هذا الحجز</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <button class="btn btn-outline btn-sm" onclick="unlockPriceRecalc()" title="أعد حساب السعر من الرحلة الحالية" style="font-size:11px;padding:4px 10px">🔄 تحديث للسعر الجديد</button>
+            <button class="btn btn-outline btn-sm" onclick="keepLockedPrice()" title="احتفظ بالسعر الأصلي" style="font-size:11px;padding:4px 10px;color:var(--green-light);border-color:var(--green)">✅ احتفظ بالسعر القديم</button>
+          </div>
+        </div>
+        <div id="px-lock-diff" style="display:none;margin-top:8px;padding:6px 10px;background:rgba(0,0,0,.2);border-radius:6px;font-size:12px"></div>
+      </div>
       <div class="price-summary">
         <div class="price-row"><span>💺 سعر التسكين الأساسي</span><span id="px-base">0 ج</span></div>
         <div class="price-row deduct" id="px-tkt-r" style="display:none"><span>- ✈️ تذكرة طيران</span><span id="px-tkt">0 ج</span></div>
@@ -2015,7 +2027,7 @@ function notesBlockHtml(notes){
 }
 
 function openM(id){document.getElementById(id).classList.add('open');}
-function closeM(id){document.getElementById(id).classList.remove('open'); _formDirty=false;}
+function closeM(id){const el=document.getElementById(id);el.classList.remove('open');if(el.style.display==='flex')el.style.display='none'; _formDirty=false;}
 document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
 
 // ============ تنبيه فقدان البيانات غير المحفوظة ============
@@ -2390,6 +2402,10 @@ function addProgRow(d=null){
       <div class="form-group"><label>رباعي</label><input id="pc-p4-${idx}" type="number" value="${di.price_quad||0}" min="0" oninput="autoFillSupCost(${idx})"></div>
       <div class="form-group"><label>خماسي</label><input id="pc-p5-${idx}" type="number" value="${di.price_quint||0}" min="0" oninput="autoFillSupCost(${idx})"></div>
     </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:6px">
+      <div class="form-group"><label>🧒 طفل (بدون سرير)</label><input id="pc-p6-${idx}" type="number" value="${di.price_child||0}" min="0" placeholder="0"></div>
+      <div class="form-group"><label>👶 رضيع</label><input id="pc-p7-${idx}" type="number" value="${di.price_infant||0}" min="0" placeholder="0"></div>
+    </div>
     <div class="form-group" style="margin-top:8px"><label>نوع النقل</label><input id="pc-tr-${idx}" type="text" value="${di.transfer_type||'bus'}" placeholder="bus / سيرا بالأقدام"></div>
   </div>
   <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
@@ -2401,6 +2417,10 @@ function addProgRow(d=null){
       <div class="form-group"><label>رباعي</label><input id="pc-sc4-${idx}" type="number" value="${di.sup_cost_quad||0}" min="0" placeholder="0"></div>
       <div class="form-group"><label>خماسي</label><input id="pc-sc5-${idx}" type="number" value="${di.sup_cost_quint||0}" min="0" placeholder="0"></div>
     </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:6px">
+      <div class="form-group"><label>🧒 طفل (بدون سرير)</label><input id="pc-sc6-${idx}" type="number" value="${di.sup_cost_child||0}" min="0" placeholder="0"></div>
+      <div class="form-group"><label>👶 رضيع</label><input id="pc-sc7-${idx}" type="number" value="${di.sup_cost_infant||0}" min="0" placeholder="0"></div>
+    </div>
     <div style="font-size:11px;color:var(--text3);margin-top:4px">💡 هيتحسب تلقائياً في الحجز بناءً على نوع الغرفة المختارة — ممكن تعدّله في الحجز لو احتجت</div>
   </div>
   <input type="hidden" id="pc-id-${idx}" value="${di.id||''}">`;
@@ -2409,7 +2429,7 @@ function addProgRow(d=null){
 function getProgRows(){
   return[...document.querySelectorAll('[id^="pr-"]')].map(row=>{
     const i=row.id.replace('pr-','');
-    return{_id:document.getElementById('pc-id-'+i)?.value,code:+document.getElementById('pc-c-'+i)?.value||1,program_details:document.getElementById('pc-d-'+i)?.value.trim()||null,pax_on_trip:+document.getElementById('pc-p-'+i)?.value||0,mecca_hotel:document.getElementById('pc-mh-'+i)?.value.trim()||null,mecca_nights:+document.getElementById('pc-mn-'+i)?.value||0,mecca_meal_plan:document.getElementById('pc-mm-'+i)?.value.trim()||null,madina_hotel:document.getElementById('pc-dh-'+i)?.value.trim()||null,madina_nights:+document.getElementById('pc-dn-'+i)?.value||0,madina_meal_plan:document.getElementById('pc-dm-'+i)?.value.trim()||null,transfer_type:document.getElementById('pc-tr-'+i)?.value.trim()||null,price_single:+document.getElementById('pc-p1-'+i)?.value||0,price_double:+document.getElementById('pc-p2-'+i)?.value||0,price_triple:+document.getElementById('pc-p3-'+i)?.value||0,price_quad:+document.getElementById('pc-p4-'+i)?.value||0,price_quint:+document.getElementById('pc-p5-'+i)?.value||0,sup_cost_single:+document.getElementById('pc-sc1-'+i)?.value||0,sup_cost_double:+document.getElementById('pc-sc2-'+i)?.value||0,sup_cost_triple:+document.getElementById('pc-sc3-'+i)?.value||0,sup_cost_quad:+document.getElementById('pc-sc4-'+i)?.value||0,sup_cost_quint:+document.getElementById('pc-sc5-'+i)?.value||0};
+    return{_id:document.getElementById('pc-id-'+i)?.value,code:+document.getElementById('pc-c-'+i)?.value||1,program_details:document.getElementById('pc-d-'+i)?.value.trim()||null,pax_on_trip:+document.getElementById('pc-p-'+i)?.value||0,mecca_hotel:document.getElementById('pc-mh-'+i)?.value.trim()||null,mecca_nights:+document.getElementById('pc-mn-'+i)?.value||0,mecca_meal_plan:document.getElementById('pc-mm-'+i)?.value.trim()||null,madina_hotel:document.getElementById('pc-dh-'+i)?.value.trim()||null,madina_nights:+document.getElementById('pc-dn-'+i)?.value||0,madina_meal_plan:document.getElementById('pc-dm-'+i)?.value.trim()||null,transfer_type:document.getElementById('pc-tr-'+i)?.value.trim()||null,price_single:+document.getElementById('pc-p1-'+i)?.value||0,price_double:+document.getElementById('pc-p2-'+i)?.value||0,price_triple:+document.getElementById('pc-p3-'+i)?.value||0,price_quad:+document.getElementById('pc-p4-'+i)?.value||0,price_quint:+document.getElementById('pc-p5-'+i)?.value||0,price_child:+document.getElementById('pc-p6-'+i)?.value||0,price_infant:+document.getElementById('pc-p7-'+i)?.value||0,sup_cost_single:+document.getElementById('pc-sc1-'+i)?.value||0,sup_cost_double:+document.getElementById('pc-sc2-'+i)?.value||0,sup_cost_triple:+document.getElementById('pc-sc3-'+i)?.value||0,sup_cost_quad:+document.getElementById('pc-sc4-'+i)?.value||0,sup_cost_quint:+document.getElementById('pc-sc5-'+i)?.value||0,sup_cost_child:+document.getElementById('pc-sc6-'+i)?.value||0,sup_cost_infant:+document.getElementById('pc-sc7-'+i)?.value||0};
   });
 }
 // بيجيب كل أسماء الفنادق اللي اتكتبت قبل كده في أي رحلة (مكة أو المدينة) ويحطها في قايمة اقتراحات
@@ -2525,52 +2545,259 @@ function runOCR(e,prefix){prefix=prefix||'cl';const f=e.target.files[0];if(f)doO
 // خريطة أكواد الجنسيات الشائعة (من MRZ) لأسمائها بالعربي
 const MRZ_NAT_MAP={EGY:'مصرية',SAU:'سعودية',ARE:'إماراتية',KWT:'كويتية',QAT:'قطرية',BHR:'بحرينية',OMN:'عمانية',JOR:'أردنية',LBN:'لبنانية',SYR:'سورية',IRQ:'عراقية',PSE:'فلسطينية',YEM:'يمنية',LBY:'ليبية',TUN:'تونسية',DZA:'جزائرية',MAR:'مغربية',SDN:'سودانية',SOM:'صومالية'};
 
+function mrzCharValue(c){
+  if(c>='0'&&c<='9')return c.charCodeAt(0)-48;
+  if(c>='A'&&c<='Z')return c.charCodeAt(0)-55; // A=10 ... Z=35
+  return 0; // '<' أو أي رمز غريب = صفر
+}
+function mrzCheckDigit(str){
+  const weights=[7,3,1];
+  let sum=0;
+  for(let i=0;i<str.length;i++) sum+=mrzCharValue(str[i])*weights[i%3];
+  return sum%10;
+}
+// خريطة الحروف/الأرقام اللي بتتشابه شكلها وبيلخبط فيها الـ OCR غالباً
+const MRZ_CONFUSION={
+  '0':['O','D','Q','U'],'O':['0'],'D':['0'],'Q':['0'],'U':['0'],
+  '1':['I','L'],'I':['1'],'L':['1'],
+  '5':['S'],'S':['5'],
+  '8':['B'],'B':['8'],
+  '6':['G'],'G':['6'],
+  '2':['Z'],'Z':['2'],
+  '7':['T'],'T':['7'],
+  '4':['A'],'A':['4'],
+};
+// بتحاول تصحح حقل (رقم جواز/تاريخ) عشان رقم التحقق بتاعه يبقى مظبوط
+// أولاً بتجرب استبدال حرف واحد، ولو مانفعش تجرب حرفين مع بعض
+function mrzChecksumFix(field, checkChar){
+  const expected=parseInt(checkChar,10);
+  if(isNaN(expected)) return{value:field,valid:false,corrected:false};
+  if(mrzCheckDigit(field)===expected) return{value:field,valid:true,corrected:false};
+  for(let i=0;i<field.length;i++){
+    const cands=MRZ_CONFUSION[field[i]]||[];
+    for(const alt of cands){
+      const trial=field.substring(0,i)+alt+field.substring(i+1);
+      if(mrzCheckDigit(trial)===expected) return{value:trial,valid:true,corrected:true};
+    }
+  }
+  for(let i=0;i<field.length;i++){
+    const ci=MRZ_CONFUSION[field[i]]||[];
+    for(const ai of ci){
+      const f1=field.substring(0,i)+ai+field.substring(i+1);
+      for(let j=i+1;j<field.length;j++){
+        const cj=MRZ_CONFUSION[f1[j]]||[];
+        for(const aj of cj){
+          const f2=f1.substring(0,j)+aj+f1.substring(j+1);
+          if(mrzCheckDigit(f2)===expected) return{value:f2,valid:true,corrected:true};
+        }
+      }
+    }
+  }
+  return{value:field,valid:false,corrected:false};
+}
+
 function yymmddToISO(yymmdd,isExpiry){
   if(!/^\d{6}$/.test(yymmdd))return null;
   const yy=parseInt(yymmdd.substr(0,2),10),mm=yymmdd.substr(2,2),dd=yymmdd.substr(4,2);
+  if(parseInt(mm)<1||parseInt(mm)>12||parseInt(dd)<1||parseInt(dd)>31)return null;
   let year;
   if(isExpiry){
-    year=2000+yy; // تواريخ الانتهاء دايماً في القرن الحالي للجوازات الحديثة
+    year=2000+yy;
   }else{
     const curYY=new Date().getFullYear()%100;
-    year=yy>curYY?1900+yy:2000+yy; // تاريخ الميلاد لازم يكون في الماضي
+    year=yy>curYY?1900+yy:2000+yy;
   }
   return `${year}-${mm}-${dd}`;
 }
 
-// يدور على سطرين الـ MRZ جوه النص المستخرج ويفكهم
-function parseMRZ(rawText){
-  const lines=rawText.split(/\n/).map(l=>l.replace(/\s/g,'').toUpperCase()).filter(l=>{
-    const angleCount=(l.match(/</g)||[]).length;
-    return l.length>=25&&angleCount>=3&&/^[A-Z0-9<]+$/.test(l);
-  });
-  if(lines.length<2)return null;
-  // نجيب آخر سطرين مرشحين (المفروض يكونوا متتاليين)
-  const line1=lines[lines.length-2],line2=lines[lines.length-1];
-  if(!line1.startsWith('P<')&&!line1.startsWith('P4'))return null;
-  const pad=s=>(s+'<'.repeat(44)).substr(0,44);
-  const l2=pad(line2);
-  const passportNo=l2.substr(0,9).replace(/</g,'');
-  const nationalityCode=l2.substr(10,3).replace(/</g,'');
-  const birthISO=yymmddToISO(l2.substr(13,6),false);
-  const sexChar=l2.substr(20,1);
-  const expiryISO=yymmddToISO(l2.substr(21,6),true);
-  // الاسم من السطر الأول: P<CCCSURNAME<<GIVEN<NAMES<<<<<
-  const namesPart=pad(line1).substr(5).replace(/<+$/,'');
-  const [surname,given]=namesPart.split('<<');
-  const fullNameEn=[given?given.replace(/</g,' ').trim():'',surname?surname.replace(/</g,' ').trim():''].filter(Boolean).join(' ');
-  return{
-    passport_no:passportNo||null,
-    nationality:MRZ_NAT_MAP[nationalityCode]||nationalityCode||null,
-    birth_date:birthISO,
-    gender:sexChar==='M'?'ذكر':sexChar==='F'?'أنثى':null,
-    passport_expiry_date:expiryISO,
-    full_name_en:fullNameEn||null,
-  };
+// تصحيح أخطاء OCR الشائعة في سطور MRZ (حروف بتتشابه مع أرقام)
+function fixMrzLine(line){
+  // السطر التاني من MRZ: المواضع 0-8 رقم الجواز، 9 check digit، 10-12 جنسية، 13-18 تاريخ ميلاد، إلخ
+  // الأرقام بتتحول لحروف أحياناً: O→0, I→1, S→5, B→8, G→6, Q→0, Z→2, U→0
+  // الحروف بتتحول لأرقام أحياناً في جزء الاسم
+  return line
+    .replace(/O/g,'0')  // O → 0 (أشيع غلطة في MRZ)
+    .replace(/I/g,'1')  // I → 1
+    .replace(/S(?=\d)/g,'5') // S قبل رقم → 5
+    .replace(/(?<=\d)S/g,'5') // S بعد رقم → 5
+    .replace(/B(?=\d)/g,'8') // B قبل رقم → 8
+    .replace(/G(?=\d)/g,'6'); // G قبل رقم → 6
 }
 
-// كلمات/عناوين مطبوعة بتظهر كتير في صفحة بيانات الجواز - لو السطر يحتوي عليها فهو مش الاسم
-const ARABIC_LABEL_BLACKLIST=['جمهورية مصر العربية','جمهورية مصر','مصر العربية','جواز سفر','جواز السفر','وزارة الداخلية','النوع','الاسم','اللقب','الجنسية','تاريخ الميلاد','تاريخ الاصدار','تاريخ الإصدار','تاريخ الانتهاء','تاريخ الانتهاي','مكان الميلاد','الرقم القومى','الرقم القومي','جهة الاصدار','جهة الإصدار','نوع الجواز','رقم الجواز','التوقيع','محل الاقامة','محل الإقامة','الديانة','المهنة','الحالة الاجتماعية'];
+// يدور على سطرين الـ MRZ جوه النص المستخرج ويفكهم - مع تصحيح أخطاء OCR
+// تصحيح سطر MRZ بشكل كامل - كل موضع له قواعده
+function correctMrzLine2(raw){
+  // السطر التاني من MRZ الجواز:
+  // [0-8]  رقم الجواز (alphanumeric - حروف+أرقام)
+  // [9]    check digit (رقم)
+  // [10-12] كود الجنسية (حروف)
+  // [13-18] تاريخ الميلاد YYMMDD (أرقام فقط)
+  // [19]   check digit (رقم)
+  // [20]   الجنس M/F/< (حرف)
+  // [21-26] تاريخ الانتهاء YYMMDD (أرقام فقط)
+  // [27]   check digit (رقم)
+  // [28-41] optional data (أرقام)
+  // [42]   check digit
+  // [43]   check digit كلي
+  const s=(raw+'<'.repeat(44)).substr(0,44);
+  // دالة تصلح موضع رقمي: حروف OCR شائعة بتتشابه مع أرقام
+  const fixNum=c=>{
+    const m={'O':'0','o':'0','I':'1','l':'1','i':'1','S':'5','s':'5','B':'8','b':'8','G':'6','g':'6','Z':'2','z':'2','T':'7','A':'4','Q':'0','U':'0','D':'0','L':'1'};
+    return m[c]||c;
+  };
+  // دالة تصلح موضع حرفي: أرقام OCR شائعة بتتشابه مع حروف
+  const fixAlpha=c=>{
+    const m={'0':'O','1':'I','4':'A','5':'S','8':'B','6':'G','2':'Z'};
+    return m[c]||c;
+  };
+  let out='';
+  // [0-8] رقم الجواز: alphanumeric - نصلح الأرقام المتشابهة مع الحروف فقط في المواضع الرقمية
+  // رقم الجواز المصري: حرف أو حرفين ثم أرقام (مثلاً A416102644)
+  // نحاول نتعرف على الجزء الحرفي في الأول ثم الباقي أرقام
+  const ppRaw=s.substr(0,9);
+  let ppFixed='';
+  let numStarted=false;
+  for(let j=0;j<ppRaw.length;j++){
+    const c=ppRaw[j];
+    if(c==='<'){ppFixed+='<';continue;}
+    if(!numStarted&&/[A-Za-z]/.test(c)&&j<=1){
+      // أول حرف أو حرفين: احتمال جزء حرفي من رقم الجواز
+      ppFixed+=c.toUpperCase();
+    }else{
+      numStarted=true;
+      ppFixed+=fixNum(c);
+    }
+  }
+  out+=ppFixed;
+  // [9] check digit: رقم
+  out+=fixNum(s[9]);
+  // [10-12] الجنسية: حروف
+  out+=s.substr(10,3).split('').map(c=>(/\d/.test(c)?fixAlpha(c):c.toUpperCase())).join('');
+  // [13-18] تاريخ الميلاد: أرقام فقط
+  out+=s.substr(13,6).split('').map(fixNum).join('');
+  // [19] check digit
+  out+=fixNum(s[19]);
+  // [20] الجنس: M أو F أو <
+  const sex=s[20].toUpperCase();
+  out+=(sex==='M'||sex==='F')?sex:'<';
+  // [21-26] تاريخ الانتهاء: أرقام فقط
+  out+=s.substr(21,6).split('').map(fixNum).join('');
+  // [27-43] الباقي: أرقام و<
+  out+=s.substr(27).split('').map(c=>(c==='<'?'<':fixNum(c))).join('');
+  return out;
+}
+
+function parseMRZ(rawText){
+  if(!rawText)return null;
+  // خطوة 1: تنظيف السطور وتوحيدها
+  const rawLines=rawText.split(/\n/).map(l=>{
+    let clean=l.toUpperCase();
+    // استبدل الأرقام العربية/الفارسية
+    clean=clean.replace(/[٠-٩]/g,d=>String.fromCharCode(d.charCodeAt(0)-1632+48));
+    // شيل المسافات الداخلية في سطور MRZ (Tesseract أحياناً بيضيف space جوه الـ MRZ)
+    clean=clean.replace(/\s/g,'');
+    return clean;
+  });
+
+  // خطوة 2: نجمع كل سطور MRZ المحتملة - نقبل سطور فيها < وحروف+أرقام فقط
+  // بنخلي الـ filter أقل صرامة عشان نمسك أكبر عدد من السطور
+  const candidates=rawLines.filter(l=>{
+    if(l.length<20)return false;
+    // شيل أي حرف مش حرف لاتيني أو رقم أو < قبل التحقق
+    const stripped=l.replace(/[^A-Z0-9<]/g,'');
+    return stripped.length>=20&&(stripped.match(/</g)||[]).length>=1;
+  }).map(l=>l.replace(/[^A-Z0-9<]/g,'')); // نظّفها من أي رموز غريبة
+
+  if(candidates.length<2)return null;
+
+  // خطوة 3: نجرب كل زوج من السطور
+  for(let i=0;i<candidates.length-1;i++){
+    const l1=candidates[i];
+    // السطر الأول لازم يبدأ بـ P< أو P< مع تصحيح محتمل (PK, PC, P4 كلها أخطاء OCR لـ P<)
+    if(!l1.match(/^P[<K4C]/))continue;
+    // لو بدأ بـ PK أو P4 أو PC صلحها لـ P<
+    const l1fixed='P<'+l1.substr(2);
+
+    for(let j=i+1;j<Math.min(i+3,candidates.length);j++){
+      const l2=candidates[j];
+      if(l2.length<30)continue;
+      // السطر التاني لازم يبدأ بـ alphanumeric (مش <)
+      if(l2[0]==='<')continue;
+
+      let l2fixed=correctMrzLine2(l2);
+      const pad=s=>(s+'<'.repeat(44)).substr(0,44);
+
+      // تحقق رقمي (checksum) لكل حقل مهم + تصحيح تلقائي لو رقم التحقق مش مظبوط
+      const checksumInfo={passport:null,birth:null,expiry:null};
+      {
+        const field=l2fixed.substr(0,9), chk=l2fixed[9];
+        const res=mrzChecksumFix(field,chk);
+        checksumInfo.passport=res.valid;
+        if(res.corrected) l2fixed=res.value+l2fixed.substring(9);
+      }
+      {
+        const field=l2fixed.substr(13,6), chk=l2fixed[19];
+        const res=mrzChecksumFix(field,chk);
+        checksumInfo.birth=res.valid;
+        if(res.corrected) l2fixed=l2fixed.substring(0,13)+res.value+l2fixed.substring(19);
+      }
+      {
+        const field=l2fixed.substr(21,6), chk=l2fixed[27];
+        const res=mrzChecksumFix(field,chk);
+        checksumInfo.expiry=res.valid;
+        if(res.corrected) l2fixed=l2fixed.substring(0,21)+res.value+l2fixed.substring(27);
+      }
+
+      const passportNo=l2fixed.substr(0,9).replace(/</g,'');
+      const nationalityCode=l2fixed.substr(10,3).replace(/</g,'');
+      const birthRaw=l2fixed.substr(13,6);
+      const birthISO=yymmddToISO(birthRaw,false);
+      const sexChar=l2fixed.substr(20,1);
+      const expiryRaw=l2fixed.substr(21,6);
+      const expiryISO=yymmddToISO(expiryRaw,true);
+
+      // الاسم من السطر الأول: P<CCCSURNAME<<GIVEN<NAMES<<<<<
+      const l1pad=pad(l1fixed);
+      const namesPart=l1pad.substr(5).replace(/<+$/,'');
+      const dbl=namesPart.indexOf('<<');
+      let surname='',given='';
+      if(dbl>=0){surname=namesPart.substr(0,dbl);given=namesPart.substr(dbl+2);}
+      else{surname=namesPart;}
+      // ترتيب الاسم في MRZ: SURNAME<<GIVEN → نعرضه GIVEN SURNAME
+      const fullNameEn=[given.replace(/</g,' ').trim(),surname.replace(/</g,' ').trim()].filter(Boolean).join(' ');
+
+      // تحقق بسيط: لازم يكون فيه على الأقل رقم جواز أو تاريخ صحيح
+      if(passportNo.length<5&&!birthISO&&!expiryISO)continue;
+
+      return{
+        passport_no:passportNo||null,
+        nationality:MRZ_NAT_MAP[nationalityCode]||nationalityCode||null,
+        birth_date:birthISO,
+        gender:sexChar==='M'?'ذكر':sexChar==='F'?'أنثى':null,
+        passport_expiry_date:expiryISO,
+        full_name_en:fullNameEn||null,
+        checksumInfo,
+      };
+    }
+  }
+  return null;
+}
+
+// كلمات/عناوين بتظهر في صفحة الجواز - السطر اللي يحتوي عليها مش اسم
+const ARABIC_LABEL_BLACKLIST=[
+  'جمهورية مصر العربية','جمهورية مصر','مصر العربية','جواز سفر','جواز السفر',
+  'وزارة الداخلية','الجنسية','تاريخ الميلاد','تاريخ الاصدار','تاريخ الإصدار',
+  'تاريخ الانتهاء','تاريخ الانتهاي','مكان الميلاد','الرقم القومى','الرقم القومي',
+  'جهة الاصدار','جهة الإصدار','نوع الجواز','رقم الجواز','التوقيع',
+  'محل الاقامة','محل الإقامة','الديانة','المهنة','الحالة الاجتماعية',
+  'جمهورية','وزارة','الداخلية','إدارة الجوازات','اسم الزوج','اسم الزوجة',
+  'المنوفية','الغربية','القاهرة','الإسكندرية','الجيزة','البحيرة','الشرقية',
+  'المنيا','أسيوط','سوهاج','قنا','الأقصر','أسوان','بني سويف','الفيوم',
+  'دمياط','كفر الشيخ','مرسى مطروح','شمال سيناء','جنوب سيناء','البحر الأحمر',
+  'بورسعيد','السويس','الإسماعيلية','العنوان','المحافظة','البر','بركة',
+  'الوظيفة','المهنة','ربة منزل','موظف','طالب','مهندس','طبيب',
+  'EGYPT','Republic','ARAB','PASSPORT'
+];
 
 // تنضيف النص العربي: شيل التشكيل والتطويل وأي حروف مش عربية
 function normalizeArabic(s){
@@ -2582,113 +2809,305 @@ function normalizeArabic(s){
     .trim();
 }
 
-// يدور على الاسم بالعربي في النص المطبوع بالصفحة (مش موجود في الـ MRZ أصلاً)
+// يدور على الاسم بالعربي - محسوب على layout الجواز المصري
 function extractArabicName(text){
   if(!text)return null;
   const lines=text.split(/\n/).map(l=>l.trim()).filter(Boolean);
-  // أولاً: نلاقي سطر جنبه كلمة "الاسم" ونجيب اللي بعدها
-  for(const l of lines){
-    if(/الاسم/.test(l)){
-      const after=l.split(/الاسم/)[1];
-      const c=after?normalizeArabic(after):'';
-      const words=c.split(' ').filter(Boolean);
-      if(words.length>=2&&words.length<=6)return c;
+
+  // ====== استراتيجية 1: بحث مباشر عن label "الاسم" أو "Full Name" ======
+  // في الجواز المصري الاسم العربي بيكون في السطر اللي فيه كلمة "الاسم" أو اللي بعده
+  for(let i=0;i<lines.length;i++){
+    const l=lines[i];
+    // لو السطر فيه "الاسم" بس مش "اسم الزوج" أو "اسم المحافظة" أو أي اسم تاني
+    if(/\bالاسم\b/.test(l)&&!/اسم الزوج|اسم الأب|اسم الأم/.test(l)){
+      // جرب ما بعد "الاسم" في نفس السطر
+      const after=l.replace(/.*الاسم\s*/,'');
+      const c=normalizeArabic(after);
+      const words=c.split(' ').filter(w=>w.length>1);
+      if(words.length>=2&&words.length<=7&&!ARABIC_LABEL_BLACKLIST.some(w=>c.includes(w)))return c;
+      // جرب السطر اللي بعده مباشرة
+      for(let k=i+1;k<=Math.min(i+2,lines.length-1);k++){
+        const next=normalizeArabic(lines[k]);
+        if(!next)continue;
+        const nwords=next.split(' ').filter(w=>w.length>1);
+        const arabicRatio=(next.match(/[\u0600-\u06FF]/g)||[]).length/Math.max(next.replace(/\s/g,'').length,1);
+        if(nwords.length>=2&&nwords.length<=7&&arabicRatio>=0.75&&!ARABIC_LABEL_BLACKLIST.some(w=>next.includes(w)))return next;
+      }
     }
   }
-  // تاني: نلاقي أفضل سطر عربي خالص (بدون تشويش أو كلمات العناوين) بافتراض إنه الاسم الكامل
+
+  // ====== استراتيجية 2: الاسم يجي قبل "تاريخ الميلاد" أو "الجنسية" في layout الجواز ======
+  // في الجواز المصري الترتيب: الاسم → تاريخ الميلاد → الجنسية → ...
+  // فالاسم هيكون في أول سطور عربية قبل الـ landmark ده
+  const landmarkIdx=lines.findIndex(l=>/تاريخ الميلاد|الجنسية|مكان الميلاد|Date of Birth/.test(l));
+  // لو لقينا landmark، نبحث في السطور قبله بس
+  // لو ملقيناش، نبحث في كل السطور
+  const upperBound=landmarkIdx>0?landmarkIdx:lines.length;
+  const searchLines=lines.slice(0,upperBound);
+
+  // ====== استراتيجية 3: أفضل سطر عربي خالص في منطقة الاسم ======
   let best=null,bestScore=0;
-  for(const l of lines){
+  for(const l of searchLines){
     const arabicCount=(l.match(/[\u0600-\u06FF]/g)||[]).length;
     const totalNoSpace=l.replace(/\s/g,'').length;
-    if(totalNoSpace===0)continue;
+    if(totalNoSpace===0||arabicCount<5)continue;
     const ratio=arabicCount/totalNoSpace;
-    if(ratio<0.85||arabicCount<8)continue;
+    if(ratio<0.75)continue;
     const c=normalizeArabic(l);
-    if(!c)continue;
+    if(!c||c.length<4)continue;
     if(ARABIC_LABEL_BLACKLIST.some(w=>c.includes(w)))continue;
-    const words=c.split(' ').filter(Boolean);
-    if(words.length<2||words.length>6)continue;
-    // نفضّل الأسماء اللي فيها 3-4 كلمات (الاسم الرباعي الشائع في مصر) وأطول تطابق عربي
-    const score=arabicCount+(words.length>=3&&words.length<=4?5:0);
+    const words=c.split(' ').filter(w=>w.length>1);
+    if(words.length<2||words.length>7)continue;
+    // نفضّل 3-5 كلمات (اسم ثلاثي أو رباعي أو خماسي)
+    // وكمان نعاقب السطور اللي فيها كلمات قصيرة جداً (زي العناوين)
+    const avgWordLen=words.reduce((s,w)=>s+w.length,0)/words.length;
+    const score=arabicCount
+      +(words.length>=3&&words.length<=5?10:0)
+      +(words.length===4?5:0)
+      +(avgWordLen>=3?5:0); // الأسماء كلماتها أطول من كلمات العناوين القصيرة
     if(score>bestScore){best=c;bestScore=score;}
+  }
+
+  // ====== استراتيجية 4 (fallback): لو ملقيناش في منطقة الاسم، ابحث في كل السطور ======
+  if(!best){
+    for(const l of lines){
+      const arabicCount=(l.match(/[\u0600-\u06FF]/g)||[]).length;
+      const totalNoSpace=l.replace(/\s/g,'').length;
+      if(totalNoSpace===0||arabicCount<5)continue;
+      const ratio=arabicCount/totalNoSpace;
+      if(ratio<0.75)continue;
+      const c=normalizeArabic(l);
+      if(!c)continue;
+      if(ARABIC_LABEL_BLACKLIST.some(w=>c.includes(w)))continue;
+      const words=c.split(' ').filter(w=>w.length>1);
+      if(words.length<2||words.length>5)continue;
+      const avgWordLen=words.reduce((s,w)=>s+w.length,0)/words.length;
+      if(avgWordLen<3)continue; // كلمات قصيرة جداً = عنوان مش اسم
+      const score=arabicCount+(words.length>=3?8:0);
+      if(score>bestScore){best=c;bestScore=score;}
+    }
   }
   return best;
 }
 
-// تحسين جودة صورة الجواز قبل الـ OCR (تكبير + رفع تباين) عشان يقرأ الاسم العربي الصغير بدقة أعلى
-// كل ده بيتم جوه المتصفح بالـ Canvas - مجاني بالكامل ومفيش أي رفع لسيرفر خارجي
-function preprocessOcrImage(file,scale){
-  scale=scale||2.2;
-  return new Promise((resolve)=>{
-    try{
-      const img=new Image();
-      img.onload=()=>{
-        try{
-          const w=Math.round(img.width*scale),h=Math.round(img.height*scale);
-          const canvas=document.createElement('canvas');
-          canvas.width=w;canvas.height=h;
-          const ctx=canvas.getContext('2d');
-          ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-          ctx.drawImage(img,0,0,w,h);
-          const imgData=ctx.getImageData(0,0,w,h);
-          const d=imgData.data;
-          const contrast=1.35,intercept=128*(1-contrast);
-          for(let i=0;i<d.length;i+=4){
-            const gray=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
-            let v=gray*contrast+intercept;
-            v=v<0?0:(v>255?255:v);
-            d[i]=d[i+1]=d[i+2]=v;
-          }
-          ctx.putImageData(imgData,0,0);
-          canvas.toBlob(b=>resolve(b||file),'image/png',1);
-        }catch(err){console.error('preprocess failed',err);resolve(file);}
-      };
-      img.onerror=()=>resolve(file);
-      img.src=URL.createObjectURL(file);
-    }catch(err){resolve(file);}
+// ============================================================
+// تحسينات دقة الـ OCR (كلها مجانية - بدون أي خدمة خارجية):
+// 1) تصحيح الميل (Deskew): بيلاقي زاوية دوران الصورة الصح تلقائياً
+// 2) تحديد منطقة الـ MRZ تلقائياً (Auto-crop): بيقص بس السطرين اللي فيهم
+//    الكود عشان Tesseract يركّز مجهوده عليهم بدقة أعلى بدل ما يشتت
+//    نفسه على صورة الجواز كلها (صورة شخصية + شعارات + نص عربي...)
+// 3) إعادة محاولة ذكية: لو المحاولة الأولى ما ظبطتش رقم التحقق
+//    (checksum) بيجرب إعدادات تانية (تكبير أعلى/تباين مختلف/مع
+//    أو من غير قص) لحد ما يوصل لتحقق رقمي كامل أو تخلص المحاولات
+// ============================================================
+
+// صورة ثنائية (أبيض/أسود) صغيرة - للتحليل السريع بس (مش للـ OCR نفسه)
+function toBinarySmall(img,maxW){
+  const scale=Math.min(1,maxW/img.width);
+  const w=Math.max(1,Math.round(img.width*scale)),h=Math.max(1,Math.round(img.height*scale));
+  const c=document.createElement('canvas');c.width=w;c.height=h;
+  const ctx=c.getContext('2d');
+  ctx.drawImage(img,0,0,w,h);
+  const id=ctx.getImageData(0,0,w,h),d=id.data;
+  for(let i=0;i<d.length;i+=4){
+    const gray=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+    const v=gray<128?0:255;
+    d[i]=d[i+1]=d[i+2]=v;
+  }
+  ctx.putImageData(id,0,0);
+  return c;
+}
+// بيدوّر canvas بزاوية معينة حول مركزه - بخلفية بيضا عشان مفيش حواف سودة تلخبط الحساب
+function rotateCanvasBy(sourceCanvas,degrees){
+  const w=sourceCanvas.width,h=sourceCanvas.height;
+  const c=document.createElement('canvas');c.width=w;c.height=h;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);
+  ctx.translate(w/2,h/2);ctx.rotate(degrees*Math.PI/180);
+  ctx.drawImage(sourceCanvas,-w/2,-h/2);
+  return c;
+}
+// بيحسب "حدة" صفوف الصورة: كل ما السطور معدلة صح (مش مايلة) كل ما الفرق بين
+// صف فيه نص أسود وصف فاضي أبيض بيبقى واضح، فالتباين بين الصفوف بيبقى أعلى
+function rowSharpness(canvas){
+  const ctx=canvas.getContext('2d');
+  const w=canvas.width,h=canvas.height;
+  const id=ctx.getImageData(0,0,w,h),d=id.data;
+  const rowSums=new Float64Array(h);
+  for(let y=0;y<h;y++){
+    let sum=0;const base=y*w*4;
+    for(let x=0;x<w;x++){ if(d[base+x*4]<128) sum++; }
+    rowSums[y]=sum;
+  }
+  let mean=0;for(let y=0;y<h;y++)mean+=rowSums[y];mean/=h;
+  let variance=0;for(let y=0;y<h;y++){const diff=rowSums[y]-mean;variance+=diff*diff;}
+  return{variance:variance/h,rowSums};
+}
+// بيدور على أفضل زاوية تصحيح ميل للصورة (بين -12 و +12 درجة) - مسح خشن ثم تدقيق
+function detectSkewAngle(img){
+  try{
+    const small=toBinarySmall(img,480);
+    let bestAngle=0,bestScore=-1;
+    for(let a=-12;a<=12;a+=2){
+      const score=rowSharpness(rotateCanvasBy(small,a)).variance;
+      if(score>bestScore){bestScore=score;bestAngle=a;}
+    }
+    const coarse=bestAngle;
+    for(let a=coarse-2;a<=coarse+2;a+=0.5){
+      const score=rowSharpness(rotateCanvasBy(small,a)).variance;
+      if(score>bestScore){bestScore=score;bestAngle=a;}
+    }
+    return bestAngle;
+  }catch(e){console.error('skew detect failed',e);return 0;}
+}
+// بيلاقي منطقة الـ MRZ (السطرين اللي فيهم الكود) في الجزء السفلي من صورة الجواز
+// وبيرجع نسب البداية/النهاية (0-1) عشان نطبقها على أي نسخة من الصورة بأي دقة
+function detectMrzBand(img,skewAngle){
+  try{
+    const small=rotateCanvasBy(toBinarySmall(img,480),skewAngle);
+    const w=small.width,h=small.height;
+    const{rowSums}=rowSharpness(small);
+    const searchStart=Math.round(h*0.5); // الـ MRZ بيكون عادة في آخر 45% من صفحة الجواز
+    const threshold=w*0.12; // على الأقل 12% من عرض الصف أسود = محتمل سطر نص
+    let start=-1,end=-1;
+    for(let y=searchStart;y<h;y++){
+      if(rowSums[y]>threshold){ if(start===-1)start=y; end=y; }
+    }
+    if(start===-1)return null;
+    const marginTop=Math.round(h*0.025),marginBottom=Math.round(h*0.02);
+    return{
+      startRatio:Math.max(0,(start-marginTop)/h),
+      endRatio:Math.min(1,(end+marginBottom)/h)
+    };
+  }catch(e){console.error('mrz band detect failed',e);return null;}
+}
+// بيدوّر الصورة الأصلية كاملة الدقة مرة واحدة (بعد ما اتحسبت الزاوية) - وبنعيد استخدام
+// النتيجة دي في كل محاولات الـ OCR بعد كده عشان منعيدش الدوران في كل مرة (أسرع بكتير)
+function rotateFullImage(img,skewAngle){
+  const w=img.width,h=img.height;
+  const c=document.createElement('canvas');c.width=w;c.height=h;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);
+  ctx.translate(w/2,h/2);ctx.rotate(skewAngle*Math.PI/180);
+  ctx.drawImage(img,-w/2,-h/2);
+  return c;
+}
+// بيجهز نسخة جاهزة للـ OCR من الصورة المصححة الميل: قص اختياري لمنطقة الـ MRZ + تباين + تكبير
+function buildOcrVariant(rotSrc,band,opts){
+  const scale=opts.scale||3,contrast=opts.contrast||1.8;
+  const fullW=rotSrc.width,fullH=rotSrc.height;
+  let srcY=0,srcH=fullH;
+  if(opts.cropToBand&&band){
+    srcY=Math.round(band.startRatio*fullH);
+    srcH=Math.round((band.endRatio-band.startRatio)*fullH);
+    if(srcH<10){srcY=0;srcH=fullH;}
+  }
+  const outW=Math.round(fullW*scale),outH=Math.round(srcH*scale);
+  const canvas=document.createElement('canvas');canvas.width=outW;canvas.height=outH;
+  const ctx=canvas.getContext('2d');
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+  ctx.drawImage(rotSrc,0,srcY,fullW,srcH,0,0,outW,outH);
+  const imgData=ctx.getImageData(0,0,outW,outH);
+  const d=imgData.data;
+  const intercept=128*(1-contrast);
+  for(let i=0;i<d.length;i+=4){
+    const gray=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+    let v=gray*contrast+intercept;
+    v=v<0?0:(v>255?255:v);
+    d[i]=d[i+1]=d[i+2]=v;
+  }
+  ctx.putImageData(imgData,0,0);
+  return new Promise(resolve=>canvas.toBlob(b=>resolve(b),'image/png',1));
+}
+function loadImageFromFile(file){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.onload=()=>resolve(img);
+    img.onerror=reject;
+    img.src=URL.createObjectURL(file);
   });
 }
 
-// النواة المشتركة لتحليل صورة الجواز - بترجع البيانات من غير ما تلمس أي عنصر في الصفحة
-// (نفس المنطق بالظبط بيستخدمه كل من "إضافة عميل فردي" و"إضافة أسرة" عشان الدقة تفضل واحدة 100%)
+// النواة المشتركة لتحليل صورة الجواز - تصحيح ميل + قص تلقائي لمنطقة MRZ + إعادة محاولة ذكية
 async function analyzePassportImage(file, onProgress) {
-  onProgress&&onProgress(5,'جاري تجهيز الصورة...');
+  onProgress&&onProgress(3,'جاري تجهيز الصورة...');
   if(typeof Tesseract==='undefined'){
     await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
   }
-  // تحسين الصورة (تكبير + تباين) قبل أي قراءة - بيرفع دقة قراءة الاسم العربي بشكل ملحوظ
-  const proc=await preprocessOcrImage(file,2.2);
 
-  // القراءة الأولى: الصفحة كاملة (عربي+إنجليزي) - احتياطي عام ولقراءة رقم الجواز لو باقي الطرق فشلت
-  onProgress&&onProgress(10,'جاري تحليل الصفحة...');
-  const rFull=await Tesseract.recognize(proc,'ara+eng',{logger:m=>{if(m.status==='recognizing text')onProgress&&onProgress(10+Math.round(m.progress*25),'جاري تحليل الصفحة...');}});
+  let img;
+  try{ img=await loadImageFromFile(file); }
+  catch(e){ console.error('image load failed',e); return{arName:null,mrz:null,passportNoFallback:null}; }
 
-  // القراءة الثانية: عربي فقط (من غير إنجليزي) على الصورة المحسّنة - مخصصة لاستخراج الاسم العربي بدقة أعلى
-  onProgress&&onProgress(35,'جاري قراءة الاسم العربي بدقة أعلى...');
+  onProgress&&onProgress(6,'جاري تصحيح ميل الصورة...');
+  const skewAngle=detectSkewAngle(img);
+  const rotSrc=rotateFullImage(img,skewAngle);
+  const band=detectMrzBand(img,skewAngle);
+
+  // قراءة الاسم العربي: صورة كاملة بعد تصحيح الميل، تباين معتدل
+  onProgress&&onProgress(12,'جاري قراءة الاسم العربي...');
   let rArText='';
   try{
-    const rAr=await Tesseract.recognize(proc,'ara',{logger:m=>{if(m.status==='recognizing text')onProgress&&onProgress(35+Math.round(m.progress*25),'جاري قراءة الاسم العربي بدقة أعلى...');}});
+    const procAr=await buildOcrVariant(rotSrc,band,{scale:2.5,contrast:1.4,cropToBand:false});
+    const rAr=await Tesseract.recognize(procAr,'ara',{
+      logger:m=>{if(m.status==='recognizing text')onProgress&&onProgress(12+Math.round(m.progress*20),'جاري قراءة الاسم العربي...');},
+      tessedit_pageseg_mode:'6',
+    });
     rArText=rAr.data.text;
-  }catch(e1){console.error('Arabic-only pass failed',e1);}
+  }catch(e1){console.error('Arabic pass failed',e1);}
 
-  // القراءة الثالثة: إنجليزي فقط - بتقلل التشويش وتحسن قراءة سطرين الـ MRZ
-  onProgress&&onProgress(65,'جاري قراءة رمز MRZ بدقة أعلى...');
-  let rMrzText='';
-  try{
-    const rMrz=await Tesseract.recognize(proc,'eng',{logger:m=>{if(m.status==='recognizing text')onProgress&&onProgress(65+Math.round(m.progress*30),'جاري قراءة رمز MRZ بدقة أعلى...');}});
-    rMrzText=rMrz.data.text;
-  }catch(e2){console.error('MRZ pass failed, falling back to full text only',e2);}
+  // محاولات قراءة الـ MRZ بالترتيب - بتوقف أول ما توصل لتحقق رقمي (checksum) كامل وصحيح
+  const attempts=[
+    {scale:4,contrast:2.0,cropToBand:true, psm:'6'}, // قص لمنطقة الـ MRZ + تكبير عالي (الأدق عادة)
+    {scale:3,contrast:1.8,cropToBand:false,psm:'6'}, // الصورة كاملة (زي الوضع السابق) كاحتياط
+    {scale:5,contrast:2.2,cropToBand:true, psm:'7'}, // تكبير أعلى + سطر واحد لو القص مش دقيق كفاية
+  ];
+  let bestMrz=null,bestScore=-1,bestRawText='';
+  for(let i=0;i<attempts.length;i++){
+    const at=attempts[i];
+    onProgress&&onProgress(32+i*18,`جاري قراءة رمز MRZ (محاولة ${i+1})...`);
+    try{
+      const procMrz=await buildOcrVariant(rotSrc,band,at);
+      const rMrz=await Tesseract.recognize(procMrz,'eng',{
+        logger:m=>{if(m.status==='recognizing text')onProgress&&onProgress(32+i*18+Math.round(m.progress*15),`جاري قراءة رمز MRZ (محاولة ${i+1})...`);},
+        tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<',
+        tessedit_pageseg_mode:at.psm,
+      });
+      bestRawText+='\n'+rMrz.data.text;
+      const mrz=parseMRZ(rMrz.data.text);
+      if(mrz){
+        const ci=mrz.checksumInfo||{};
+        const score=(ci.passport?1:0)+(ci.birth?1:0)+(ci.expiry?1:0);
+        if(score>bestScore){bestScore=score;bestMrz=mrz;}
+        if(score===3)break; // الثلاث أرقام تحقق مظبوطين رياضياً - مفيش داعي لمحاولات تانية
+      }
+    }catch(e2){console.error('MRZ pass '+i+' failed',e2);}
+  }
 
-  onProgress&&onProgress(95,'جاري تجميع النتائج...');
-  const mrz=parseMRZ(rMrzText)||parseMRZ(rFull.data.text);
-  const arName=extractArabicName(rArText)||extractArabicName(rFull.data.text);
+  // لو كل المحاولات فشلت، جرب عربي+إنجليزي على الصورة كاملة كحل أخير
+  let rFullText='';
+  if(!bestMrz){
+    onProgress&&onProgress(88,'جاري تحليل احتياطي...');
+    try{
+      const procAr2=await buildOcrVariant(rotSrc,band,{scale:2.5,contrast:1.4,cropToBand:false});
+      const rFull=await Tesseract.recognize(procAr2,'ara+eng',{
+        logger:m=>{if(m.status==='recognizing text')onProgress&&onProgress(88+Math.round(m.progress*8),'جاري تحليل احتياطي...');}
+      });
+      rFullText=rFull.data.text;
+      bestMrz=bestMrz||parseMRZ(rFullText);
+    }catch(e3){console.error('full pass failed',e3);}
+  }
+
+  onProgress&&onProgress(97,'جاري تجميع النتائج...');
+  const arName=extractArabicName(rArText)||extractArabicName(rFullText);
   let passportNoFallback=null;
-  if(!mrz){
-    const pp=rFull.data.text.match(/[A-Z]{1,2}\d{6,8}/)||rMrzText.match(/[A-Z]{1,2}\d{6,8}/);
-    if(pp)passportNoFallback=pp[0];
+  if(!bestMrz){
+    const allText=bestRawText+'\n'+rArText+'\n'+rFullText;
+    const pp=allText.match(/[A-Z]{1,2}[0-9O]{6,8}/);
+    if(pp)passportNoFallback=pp[0].replace(/O/g,'0');
   }
   onProgress&&onProgress(100,'تم التحليل');
-  return{arName,mrz,passportNoFallback};
+  return{arName,mrz:bestMrz,passportNoFallback};
 }
 
 async function doOCR(file,prefix){
@@ -2727,7 +3146,6 @@ async function doOCR(file,prefix){
   }
 }
 
-
 // ============ BOOKINGS ============
 async function loadBookings(){
   try{
@@ -2764,6 +3182,9 @@ function renderBks(list){
     const rem=(+b.final_price)-paid;
     const disc=[b.has_own_ticket&&'&#x2708;&#xFE0F;',b.has_own_barcode&&'&#x1F4CA;',b.has_own_visa&&'&#x1FABA;'].filter(Boolean).join(' ');
     const add=[b.has_meals&&'&#x1F35D;',b.has_train&&'&#x1F68D;',b.has_makkah_view&&'&#x1F54C;',b.has_haram_view&&'&#x1F54B;'].filter(Boolean).join(' ');
+    const rootId=c?familyRootId(c.id):null;
+    const famCount=rootId?aBks.filter(x=>x.trip_id==b.trip_id&&x.status!=='ملغي'&&aClients.some(cc=>cc.id==x.client_id&&familyRootId(cc.id)===rootId)).length:1;
+    const famBtn=famCount>1?`<button class="btn btn-gold btn-sm btn-icon" onclick="printFamilyFile(${b.trip_id},${rootId})" title="ملف الأسرة (${famCount} أفراد)">👪</button> `:'';
     return`<tr><td>${i+1}</td>
     <td><b style="cursor:pointer;color:var(--gold)" onclick="openClientProfile(${b.client_id})">${c?c.full_name_ar:'-'}</b>${c?.phone?`<br><small style="color:var(--text3)">📱 ${c.phone}</small>`:''}</td>
     <td>${t?t.name:'-'}${pg?`<br><span class="badge badge-blue">&#x643;&#x648;&#x62F; ${pg.code}</span>`:''}</td>
@@ -2772,18 +3193,95 @@ function renderBks(list){
     <td><b style="color:var(--gold)">${fn(b.final_price)} ${b.currency}</b>${disc?`<br><small style="color:var(--red-light)">${disc}</small>`:''}${add?`<br><small style="color:#4caf84">${add}</small>`:''}${(+b.supplier_cost>0)?`<br><small style="color:${(b.final_price-b.supplier_cost)>=0?'#4caf84':'var(--red-light)'}">📈 مكسب: ${fn(b.final_price-b.supplier_cost)} ج</small>`:''}</td>
     <td><span style="color:#4caf84">${fn(paid)} ج</span>${rem>0?`<br><small style="color:var(--red-light)">&#x645;&#x62A;&#x628;&#x642;&#x64A;: ${fn(rem)}</small>`:''}</td>
     <td>${bdg(b.status)}</td><td>${bdg(b.visa_status)}</td>
-    <td style="white-space:nowrap"><button class="btn btn-outline btn-sm btn-icon" onclick="editBk(${b.id})" title="تعديل">&#x270F;&#xFE0F;</button> <button class="btn btn-primary btn-sm btn-icon" onclick="addPayForBk(${b.id})" title="دفعة">&#x1F4B0;</button> <button class="btn btn-gold btn-sm btn-icon" onclick="printBkCard(${b.id})" title="طباعة">&#x1F5A8;&#xFE0F;</button> <button class="btn btn-outline btn-sm btn-icon" onclick="openClientProfile(${b.client_id})" title="ملف العميل">👤</button> <button class="btn btn-danger btn-sm btn-icon" onclick="confirmDelBk(${b.id},'${c?c.full_name_ar:''}')" title="حذف">&#x1F5D1;&#xFE0F;</button></td>
+    <td style="white-space:nowrap">${famBtn}<button class="btn btn-outline btn-sm btn-icon" onclick="editBk(${b.id})" title="تعديل">&#x270F;&#xFE0F;</button> <button class="btn btn-primary btn-sm btn-icon" onclick="addPayForBk(${b.id})" title="دفعة">&#x1F4B0;</button> <button class="btn btn-gold btn-sm btn-icon" onclick="printBkCard(${b.id})" title="طباعة">&#x1F5A8;&#xFE0F;</button> <button class="btn btn-outline btn-sm btn-icon" onclick="openClientProfile(${b.client_id})" title="ملف العميل">👤</button> <button class="btn btn-danger btn-sm btn-icon" onclick="confirmDelBk(${b.id},'${c?c.full_name_ar:''}')" title="حذف">&#x1F5D1;&#xFE0F;</button></td>
     </tr>`;
   }).join('');
 }
+async function recalcTripBookingPrices(){
+  const tid=document.getElementById('bk-trip-f').value;
+  if(!tid){toast('اختر رحلة معينة من فوق أولاً عشان نعرف نحدّث حجوزات مين','error');return;}
+  const btn=document.getElementById('bk-recalc-btn');
+  try{
+    if(btn){btn.disabled=true;btn.textContent='⏳ جاري الحساب...';}
+    const trip=await sb(`haj_trips?id=eq.${tid}&limit=1`).then(r=>r[0]);
+    if(!trip){toast('الرحلة غير موجودة','error');return;}
+    const progs=await sb(`haj_programs?trip_id=eq.${tid}&limit=200`);
+    const bks=await sb(`haj_bookings?trip_id=eq.${tid}&status=neq.ملغي&limit=1000`);
+    if(!bks.length){toast('لا توجد حجوزات لهذه الرحلة','info');return;}
+    if(!aPays.length)aPays=await sb('haj_payments?limit=2000');
+    const rmap={فردي:'price_single',ثنائي:'price_double',ثلاثي:'price_triple',رباعي:'price_quad',خماسي:'price_quint'};
+    const changes=[];
+    bks.forEach(b=>{
+      const pg=progs.find(p=>p.id==b.program_id);
+      let base=0;
+      if(b.traveler_type==='رضيع')base=+trip.infant_price||0;
+      else if(b.traveler_type==='طفل')base=+trip.child_price||0;
+      else if(pg){const key=rmap[b.room_type||'ثنائي'];base=+(pg[key]||0);}
+      else base=+b.base_price||0; // مفيش برنامج مرتبط، سيب السعر الأساسي زي ما هو
+      const deduct=(b.has_own_ticket?+trip.ticket_price||0:0)+(b.has_own_barcode?+trip.barcode_price||0:0)+(b.has_own_visa?+trip.visa_price||0:0);
+      const add=(b.has_meals?+trip.meals_price||0:0)+(b.has_train?+trip.train_price||0:0)+(b.has_makkah_view?+trip.makkah_view_price||0:0)+(b.has_haram_view?+trip.haram_view_price||0:0);
+      const exdisc=+b.extra_discount||0;
+      const fin=base-deduct+add-exdisc;
+      if(Math.abs(fin-(+b.final_price))>0.009){
+        changes.push({b,base,deduct,add,fin,oldFin:+b.final_price});
+      }
+    });
+    if(!changes.length){toast('✅ كل الحجوزات متطابقة بالفعل مع أسعار الرحلة الحالية','success');return;}
+    const totalDiff=changes.reduce((s,c)=>s+(c.fin-c.oldFin),0);
+    const ok=await sConfirm(
+      `تحديث سعر ${changes.length} حجز؟`,
+      `هيتغير السعر النهائي لـ ${changes.length} حجز بناءً على أسعار الرحلة/البرنامج الحالية. الفرق الإجمالي: ${totalDiff>=0?'+':''}${fn(totalDiff)} ج. الخصومات والإضافات والخصم الخاص بكل حجز هتفضل زي ما هي.`,
+      '🔄', true
+    );
+    if(!ok)return;
+    let done=0;
+    for(const c of changes){
+      const paid=aPays.filter(p=>p.booking_id==c.b.id&&p.currency==='EGP').reduce((s,p)=>s+(+p.amount),0);
+      const ns=c.b.status==='ملغي'?c.b.status:(paid>=c.fin?'مكتمل':paid>0?'مدفوع جزئي':'محجوز');
+      await sb(`haj_bookings?id=eq.${c.b.id}`,'PATCH',{base_price:c.base,deductions_total:c.deduct,additions_total:c.add,final_price:c.fin,status:ns});
+      done++;
+    }
+    toast(`✅ تم تحديث ${done} حجز بنجاح`,'success');
+    loadBookings();
+  }catch(e){toast('خطأ: '+e.message,'error');}
+  finally{ if(btn){btn.disabled=false;btn.textContent='🔄 تحديث الأسعار من الرحلة';} }
+}
 async function _openBkModalBase(id=null,preCl=null){
-  ed.bk=id;document.getElementById('bk-ttl').textContent=id?'تعديل الحجز':'حجز جديد';
+  ed.bk=id;
+  if(id){
+    const b=aBks.find(x=>x.id==id);
+    const bkDate=b?.created_at?fd(b.created_at.split('T')[0]):'';
+    document.getElementById('bk-ttl').innerHTML=`تعديل الحجز <small style="font-size:11px;color:var(--text3);font-weight:400">#${id}${bkDate?' · '+bkDate:''}</small>`;
+  } else {
+    document.getElementById('bk-ttl').textContent='حجز جديد';
+  }
   if(!aClients.length)aClients=await sb('haj_clients?is_cancelled=eq.false&limit=1000');
   if(!aTrips.length)aTrips=await sb('haj_trips?limit=200');
   fillClSels();fillTrSels();
   ['bk-tkt','bk-brc','bk-vis','bk-mls','bk-trn','bk-mkv','bk-hrv'].forEach(f=>document.getElementById(f).checked=false);
-  if(!id){document.getElementById('bk-rm').value='ثنائي';['bk-rm-mc','bk-rm-md','bk-nts'].forEach(f=>document.getElementById(f).value='');document.getElementById('bk-supcost').value='';document.getElementById('bk-exdisc').value='';resetSupCostOverride();document.getElementById('bk-exdisc-r').value='';document.getElementById('bk-cur').value='EGP';document.getElementById('bk-vstat').value='لم تُقدَّم';document.getElementById('bk-vac').value='غير مكتملة';document.getElementById('bk-st').value='محجوز';document.getElementById('bk-tp').value='بالغ';document.getElementById('bk-pg').innerHTML='<option value="">-- اختر الرحلة أولاً --</option>';if(preCl){document.getElementById('bk-cl').value=preCl;onClChange();}}
-  else{const b=aBks.find(x=>x.id==id);if(!b)return;document.getElementById('bk-cl').value=b.client_id;document.getElementById('bk-tr').value=b.trip_id;await onTrChange();document.getElementById('bk-pg').value=b.program_id;document.getElementById('bk-tp').value=b.traveler_type;document.getElementById('bk-rm').value=b.room_type||'ثنائي';document.getElementById('bk-rm-mc').value=b.room_number_mecca||'';document.getElementById('bk-rm-md').value=b.room_number_madina||'';document.getElementById('bk-tkt').checked=b.has_own_ticket||false;document.getElementById('bk-brc').checked=b.has_own_barcode||false;document.getElementById('bk-vis').checked=b.has_own_visa||false;document.getElementById('bk-mls').checked=b.has_meals||false;document.getElementById('bk-trn').checked=b.has_train||false;document.getElementById('bk-mkv').checked=b.has_makkah_view||false;document.getElementById('bk-hrv').checked=b.has_haram_view||false;document.getElementById('bk-cur').value=b.currency||'EGP';document.getElementById('bk-vstat').value=b.visa_status;document.getElementById('bk-vac').value=b.vaccine_status;document.getElementById('bk-st').value=b.status;document.getElementById('bk-nts').value=b.notes||'';document.getElementById('bk-supcost').value=b.supplier_cost||'';document.getElementById('bk-exdisc').value=b.extra_discount||'';document.getElementById('bk-exdisc-r').value=b.extra_discount_reason||'';calcPx();}
+  if(!id){_resetPriceLock();document.getElementById('bk-rm').value='ثنائي';['bk-rm-mc','bk-rm-md','bk-nts'].forEach(f=>document.getElementById(f).value='');document.getElementById('bk-supcost').value='';document.getElementById('bk-exdisc').value='';resetSupCostOverride();document.getElementById('bk-exdisc-r').value='';document.getElementById('bk-cur').value='EGP';document.getElementById('bk-vstat').value='لم تُقدَّم';document.getElementById('bk-vac').value='غير مكتملة';document.getElementById('bk-st').value='محجوز';document.getElementById('bk-tp').value='بالغ';document.getElementById('bk-pg').innerHTML='<option value="">-- اختر الرحلة أولاً --</option>';if(preCl){document.getElementById('bk-cl').value=preCl;onClChange();}}
+  else{const b=aBks.find(x=>x.id==id);if(!b)return;document.getElementById('bk-cl').value=b.client_id;document.getElementById('bk-tr').value=b.trip_id;await onTrChange();document.getElementById('bk-pg').value=b.program_id;document.getElementById('bk-tp').value=b.traveler_type;document.getElementById('bk-rm').value=b.room_type||'ثنائي';document.getElementById('bk-rm-mc').value=b.room_number_mecca||'';document.getElementById('bk-rm-md').value=b.room_number_madina||'';document.getElementById('bk-tkt').checked=b.has_own_ticket||false;document.getElementById('bk-brc').checked=b.has_own_visa||false;document.getElementById('bk-vis').checked=b.has_own_visa||false;document.getElementById('bk-mls').checked=b.has_meals||false;document.getElementById('bk-trn').checked=b.has_train||false;document.getElementById('bk-mkv').checked=b.has_makkah_view||false;document.getElementById('bk-hrv').checked=b.has_haram_view||false;document.getElementById('bk-cur').value=b.currency||'EGP';document.getElementById('bk-vstat').value=b.visa_status;document.getElementById('bk-vac').value=b.vaccine_status;document.getElementById('bk-st').value=b.status;document.getElementById('bk-nts').value=b.notes||'';document.getElementById('bk-supcost').value=b.supplier_cost||'';document.getElementById('bk-exdisc').value=b.extra_discount||'';document.getElementById('bk-exdisc-r').value=b.extra_discount_reason||'';
+    // ===== قفل السعر للحجوزات القديمة =====
+    window._lockedBkPrice = {base:+b.base_price||0, deduct:+b.deductions_total||0, add:+b.additions_total||0, fin:+b.final_price||0};
+    window._priceIsLocked = true;
+    calcPx(); // يحسب السعر الجديد مؤقتاً لنقارنه
+    const newBase = prc.base;
+    const oldBase = window._lockedBkPrice.base;
+    // نعيد السعر القديم لأن الحجز محفوظ عليه
+    prc = {...window._lockedBkPrice};
+    document.getElementById('px-base').textContent = fn(oldBase)+' ج';
+    document.getElementById('px-fin').textContent = fn(window._lockedBkPrice.fin)+' ج';
+    // اظهر البانر
+    const banner = document.getElementById('px-lock-banner');
+    if(banner){ banner.style.display='block';
+      const diffEl = document.getElementById('px-lock-diff');
+      if(newBase !== oldBase && diffEl){
+        const diff = newBase - oldBase;
+        diffEl.style.display='block';
+        diffEl.innerHTML = `<span style="color:var(--text3)">سعر الرحلة الحالي للتسكين:</span> <b style="color:${diff>0?'var(--red-light)':'#4caf84'}">${fn(newBase)} ج</b> &nbsp;|&nbsp; <span style="color:var(--text3)">السعر المحفوظ في الحجز:</span> <b style="color:var(--gold)">${fn(oldBase)} ج</b> &nbsp;|&nbsp; <span style="color:${diff>0?'var(--red-light)':'#4caf84'}">${diff>0?'↑':'↓'} فرق ${fn(Math.abs(diff))} ج</span>`;
+      } else if(diffEl){ diffEl.style.display='none'; }
+    }
+  }
   openM('bk-modal');
 }
 function editBk(id){openBkModal(id);}
@@ -2804,6 +3302,25 @@ async function onTrChange(){
 }
 function calcPx(){
   if(!curTrip)return;
+  // لو السعر مقفول (حجز قديم)، نستخدم السعر المحفوظ بس نحسب الإضافات/الخصومات المتغيرة
+  if(window._priceIsLocked && window._lockedBkPrice){
+    const lk=window._lockedBkPrice;
+    const exdisc=+document.getElementById('bk-exdisc')?.value||0;
+    const gt=id=>document.getElementById(id).checked;
+    const deduct=(gt('bk-tkt')?+curTrip.ticket_price:0)+(gt('bk-brc')?+curTrip.barcode_price:0)+(gt('bk-vis')?+curTrip.visa_price:0);
+    const add=(gt('bk-mls')?+curTrip.meals_price:0)+(gt('bk-trn')?+curTrip.train_price:0)+(gt('bk-mkv')?+curTrip.makkah_view_price:0)+(gt('bk-hrv')?+curTrip.haram_view_price:0);
+    const fin=lk.base-deduct+add-exdisc;
+    document.getElementById('px-base').textContent=fn(lk.base)+' ج';
+    document.getElementById('px-fin').textContent=fn(fin)+' ج';
+    const sw=(id,cond,amt)=>{document.getElementById(id+'-r').style.display=cond?'flex':'none';if(cond)document.getElementById(id).textContent=fn(amt)+' ج';};
+    sw('px-tkt',gt('bk-tkt'),curTrip.ticket_price);sw('px-brc',gt('bk-brc'),curTrip.barcode_price);sw('px-vis',gt('bk-vis'),curTrip.visa_price);sw('px-mls',gt('bk-mls'),curTrip.meals_price);sw('px-trn',gt('bk-trn'),curTrip.train_price);sw('px-mkv',gt('bk-mkv'),curTrip.makkah_view_price);sw('px-hrv',gt('bk-hrv'),curTrip.haram_view_price);
+    sw('px-exdisc',exdisc>0,exdisc);
+    prc={base:lk.base,deduct,add,exdisc,fin};
+    const supEl=document.getElementById('bk-supcost');const supCost=supEl?(+supEl.value||0):0;
+    const profitR=document.getElementById('px-profit-r');
+    if(supCost>0){profitR.style.display='flex';const prof=fin-supCost;document.getElementById('px-profit').textContent=fn(prof)+' ج';document.getElementById('px-profit').style.color=prof>=0?'#4caf84':'var(--red-light)';}else profitR.style.display='none';
+    return;
+  }
   const tp=document.getElementById('bk-tp').value,rm=document.getElementById('bk-rm').value;
   const pgSel=document.getElementById('bk-pg'),opt=pgSel.options[pgSel.selectedIndex];
   let pg=null;try{if(opt&&opt.dataset.p)pg=JSON.parse(opt.dataset.p);}catch(e){}
@@ -2825,7 +3342,7 @@ function calcPx(){
   // --- تكلفة المورد التلقائية من البرنامج ---
   const supEl=document.getElementById('bk-supcost');
   if(supEl && pg && !supEl.dataset.manualOverride){
-    const scMap={فردي:pg.sup_cost_single,ثنائي:pg.sup_cost_double,ثلاثي:pg.sup_cost_triple,رباعي:pg.sup_cost_quad,خماسي:pg.sup_cost_quint};
+    const scMap={فردي:pg.sup_cost_single,ثنائي:pg.sup_cost_double,ثلاثي:pg.sup_cost_triple,رباعي:pg.sup_cost_quad,خماسي:pg.sup_cost_quint,بدون:pg.sup_cost_child,رضيع:pg.sup_cost_infant};
     const autoSc=+(scMap[rm]||0);
     if(autoSc>0 && supEl.value==='') supEl.value=autoSc;
   }
@@ -2834,7 +3351,26 @@ function calcPx(){
   if(supCost>0){profitR.style.display='flex';const prof=fin-supCost;document.getElementById('px-profit').textContent=fn(prof)+' ج';document.getElementById('px-profit').style.color=prof>=0?'#4caf84':'var(--red-light)';}
   else profitR.style.display='none';
 }
-// لو المستخدم عدّل تكلفة المورد يدوياً نحط flag عشان مانعملوش override
+// ===== دوال قفل/فتح السعر =====
+function unlockPriceRecalc(){
+  window._priceIsLocked=false;window._lockedBkPrice=null;
+  const banner=document.getElementById('px-lock-banner');
+  if(banner) banner.style.display='none';
+  calcPx();
+  toast('✅ تم تحديث السعر من الرحلة الحالية - راجع السعر قبل الحفظ','info');
+}
+function keepLockedPrice(){
+  const banner=document.getElementById('px-lock-banner');
+  if(banner) banner.style.display='none';
+  toast('🔒 تم الاحتفاظ بالسعر الأصلي للحجز','info');
+}
+function _resetPriceLock(){
+  window._priceIsLocked=false;window._lockedBkPrice=null;
+  const banner=document.getElementById('px-lock-banner');
+  if(banner){banner.style.display='none';}
+  const diffEl=document.getElementById('px-lock-diff');
+  if(diffEl){diffEl.style.display='none';diffEl.innerHTML='';}
+}
 function onSupCostInput(){
   const el=document.getElementById('bk-supcost');
   if(el) el.dataset.manualOverride = el.value?'1':'';
@@ -2922,7 +3458,15 @@ async function saveEditPay(){
   if(!_editPayId)return;
   const d={amount:+document.getElementById('ep-amt').value,currency:document.getElementById('ep-cur').value,payment_method:document.getElementById('ep-mth').value,payment_date:document.getElementById('ep-dt').value,receipt_no:document.getElementById('ep-rc').value.trim()||null,notes:document.getElementById('ep-nts').value.trim()||null};
   if(!d.amount){toast('يرجى إدخال المبلغ','error');return;}
-  try{await sb(`haj_payments?id=eq.${_editPayId}`,'PATCH',d);const idx=aPays.findIndex(p=>p.id==_editPayId);if(idx>-1)aPays[idx]={...aPays[idx],...d};toast('تم التعديل ✅');closeM('edit-pay-modal');loadPayments();}catch(e){toast('خطأ: '+e.message,'error');}
+  try{
+    await sb(`haj_payments?id=eq.${_editPayId}`,'PATCH',d);
+    const idx=aPays.findIndex(p=>p.id==_editPayId);if(idx>-1)aPays[idx]={...aPays[idx],...d};
+    if(_cbPayMap[_editPayId]) _cbPayMap[_editPayId]={..._cbPayMap[_editPayId],...d};
+    toast('تم التعديل ✅');closeM('edit-pay-modal');
+    loadPayments();
+    if(document.querySelector('#cb-result table')) loadCashboxStatement();
+    if(document.getElementById('acc-jrn-from')?.value || document.getElementById('acc-jrn-to')?.value) loadJournal();
+  }catch(e){toast('خطأ: '+e.message,'error');}
 }
 function delPayFromEditModal(){
   if(!_editPayId||!requirePerm('حذف دفعة')) return;
@@ -3019,42 +3563,57 @@ async function _printRepBase(type,tid){
   if(!aProgs.length)aProgs=await sb('haj_programs?limit=1000');
   const trip=aTrips.find(x=>x.id==tid);
   const REP_TITLES={travelers:'قائمة المسافرين',passports:'قائمة الجوازات',visa:'متابعة التأشيرات',vaccine:'متابعة التطعيمات',financial:'الحساب المالي'};
-  const css=`<style>body{font-family:Arial,sans-serif;padding:20px;direction:rtl}h1{text-align:center;color:#1a6b4a;margin-bottom:15px}p.sub{text-align:center;color:#666;margin-bottom:15px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:7px 10px;text-align:right;font-size:12px}th{background:#f0f0f0;font-weight:bold}.exp{color:red}@media print{body{padding:5px}}</style>`;
+  const REP_ICONS={travelers:'👥',passports:'🛂',visa:'📋',vaccine:'💉',financial:'💰'};
   const rows=bks.map((b,i)=>{const c=aClients.find(x=>x.id==b.client_id),pg=aProgs.find(x=>x.id==b.program_id);return{i:i+1,b,c,pg};});
+  // شارة حالة صغيرة بلون مناسب بدل النص العادي
+  const stBadge=txt=>{
+    const t=(txt||'').toString();
+    const green=['موافق عليها','تم','مكتملة','مؤكد'];
+    const red=['مرفوضة','لم تقدم','غير مكتملة','ملغي'];
+    const gold=['قيد المراجعة','جاري التقديم'];
+    let cls='badge-gray';
+    if(green.some(k=>t.includes(k)))cls='badge-green';
+    else if(red.some(k=>t.includes(k)))cls='badge-red';
+    else if(gold.some(k=>t.includes(k)))cls='badge-gold';
+    return t?`<span class="badge ${cls}">${t}</span>`:'-';
+  };
   let body='';
   if(type==='travelers'){
-    body=`<h1>قائمة المسافرين - ${trip?.name||''}</h1><p class="sub">${fd(trip?.depart_date)}</p>
-    <table><thead><tr><th>#</th><th>الاسم</th><th>الاسم إنجليزي</th><th>الجنس</th><th>النوع</th><th>الكود</th><th>التسكين</th><th>التأشيرة</th><th>التطعيمات</th></tr></thead><tbody>
-    ${rows.map(r=>`<tr><td>${r.i}</td><td>${r.c?.full_name_ar||'-'}</td><td>${r.c?.full_name_en||'-'}</td><td>${r.c?.gender||'-'}</td><td>${r.b.traveler_type}</td><td>${r.pg?'كود '+r.pg.code:'-'}</td><td>${r.b.room_type||'-'}</td><td>${r.b.visa_status}</td><td>${r.b.vaccine_status}</td></tr>`).join('')}
-    </tbody></table>`;
+    body=`<div class="table-wrap"><table><thead><tr><th>#</th><th>الاسم</th><th>الاسم إنجليزي</th><th>الجنس</th><th>النوع</th><th>الكود</th><th>التسكين</th><th>التأشيرة</th><th>التطعيمات</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${r.i}</td><td style="font-weight:700">${r.c?.full_name_ar||'-'}</td><td>${r.c?.full_name_en||'-'}</td><td>${r.c?.gender||'-'}</td><td>${r.b.traveler_type}</td><td>${r.pg?'كود '+r.pg.code:'-'}</td><td>${r.b.room_type||'-'}</td><td>${stBadge(r.b.visa_status)}</td><td>${stBadge(r.b.vaccine_status)}</td></tr>`).join('')}
+    </tbody></table></div>`;
   }else if(type==='passports'){
-    body=`<h1>قائمة الجوازات - ${trip?.name||''}</h1>
-    <table><thead><tr><th>#</th><th>الاسم</th><th>رقم الجواز</th><th>تاريخ الميلاد</th><th>الجنسية</th><th>إصدار</th><th>انتهاء الجواز</th></tr></thead><tbody>
-    ${rows.map(r=>{const exp=r.c?.passport_expiry_date&&new Date(r.c.passport_expiry_date)<new Date();return`<tr><td>${r.i}</td><td>${r.c?.full_name_ar||'-'}</td><td class="${exp?'exp':''}">${r.c?.passport_no||'-'}</td><td>${fd(r.c?.birth_date)}</td><td>${r.c?.nationality||'-'}</td><td>${fd(r.c?.passport_issue_date)}</td><td class="${exp?'exp':''}">${fd(r.c?.passport_expiry_date)}${exp?' ⚠️':''}</td></tr>`;}).join('')}
-    </tbody></table>`;
+    body=`<div class="table-wrap"><table><thead><tr><th>#</th><th>الاسم</th><th>رقم الجواز</th><th>تاريخ الميلاد</th><th>الجنسية</th><th>إصدار</th><th>انتهاء الجواز</th></tr></thead><tbody>
+    ${rows.map(r=>{const exp=r.c?.passport_expiry_date&&new Date(r.c.passport_expiry_date)<new Date();return`<tr><td>${r.i}</td><td style="font-weight:700">${r.c?.full_name_ar||'-'}</td><td style="${exp?'color:#c0392b;font-weight:700':''}">${r.c?.passport_no||'-'}</td><td>${fd(r.c?.birth_date)}</td><td>${r.c?.nationality||'-'}</td><td>${fd(r.c?.passport_issue_date)}</td><td style="${exp?'color:#c0392b;font-weight:700':''}">${fd(r.c?.passport_expiry_date)}${exp?' ⚠️':''}</td></tr>`;}).join('')}
+    </tbody></table></div>`;
   }else if(type==='visa'){
-    body=`<h1>متابعة التأشيرات - ${trip?.name||''}</h1>
-    <table><thead><tr><th>#</th><th>الاسم</th><th>رقم الجواز</th><th>حالة التأشيرة</th><th>تأشيرة خاصة</th><th>باركود</th><th>تذكرة خاصة</th></tr></thead><tbody>
-    ${rows.map(r=>`<tr><td>${r.i}</td><td>${r.c?.full_name_ar||'-'}</td><td>${r.c?.passport_no||'-'}</td><td>${r.b.visa_status}</td><td>${r.b.has_own_visa?'✅':'❌'}</td><td>${r.b.has_own_barcode?'✅':'❌'}</td><td>${r.b.has_own_ticket?'✅':'❌'}</td></tr>`).join('')}
-    </tbody></table>`;
+    body=`<div class="table-wrap"><table><thead><tr><th>#</th><th>الاسم</th><th>رقم الجواز</th><th>حالة التأشيرة</th><th>تأشيرة خاصة</th><th>باركود</th><th>تذكرة خاصة</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${r.i}</td><td style="font-weight:700">${r.c?.full_name_ar||'-'}</td><td>${r.c?.passport_no||'-'}</td><td>${stBadge(r.b.visa_status)}</td><td>${r.b.has_own_visa?'✅':'❌'}</td><td>${r.b.has_own_barcode?'✅':'❌'}</td><td>${r.b.has_own_ticket?'✅':'❌'}</td></tr>`).join('')}
+    </tbody></table></div>`;
   }else if(type==='vaccine'){
-    body=`<h1>متابعة التطعيمات - ${trip?.name||''}</h1>
-    <table><thead><tr><th>#</th><th>الاسم</th><th>رقم الجواز</th><th>التطعيمات</th></tr></thead><tbody>
-    ${rows.map(r=>`<tr><td>${r.i}</td><td>${r.c?.full_name_ar||'-'}</td><td>${r.c?.passport_no||'-'}</td><td>${r.b.vaccine_status}</td></tr>`).join('')}
-    </tbody></table>`;
+    body=`<div class="table-wrap"><table><thead><tr><th>#</th><th>الاسم</th><th>رقم الجواز</th><th>التطعيمات</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${r.i}</td><td style="font-weight:700">${r.c?.full_name_ar||'-'}</td><td>${r.c?.passport_no||'-'}</td><td>${stBadge(r.b.vaccine_status)}</td></tr>`).join('')}
+    </tbody></table></div>`;
   }else if(type==='financial'){
     const bids=bks.map(b=>b.id);const pays=bids.length?await sb(`haj_payments?booking_id=in.(${bids.join(',')})&limit=1000`):[];const tpays=pays;
-    body=`<h1>الحساب المالي - ${trip?.name||''}</h1>
-    <table><thead><tr><th>#</th><th>العميل</th><th>النوع</th><th>التسكين</th><th>السعر</th><th>المدفوع</th><th>المتبقي</th><th>تكلفة المورد</th><th>المكسب</th><th>الحالة</th></tr></thead><tbody>
-    ${rows.map(r=>{const paid=tpays.filter(p=>p.booking_id==r.b.id&&p.currency==='EGP').reduce((s,p)=>s+(+p.amount),0),rem=(+r.b.final_price)-paid,sc=+r.b.supplier_cost||0,pr=sc>0?(+r.b.final_price)-sc:null;return`<tr><td>${r.i}</td><td>${r.c?.full_name_ar||'-'}</td><td>${r.b.traveler_type}</td><td>${r.b.room_type||'-'}</td><td>${fn(r.b.final_price)} ${r.b.currency}</td><td style="color:green">${fn(paid)} ج</td><td style="${rem>0?'color:red':''}">${fn(rem)} ج</td><td>${sc>0?fn(sc)+' ج':'-'}</td><td style="${pr!==null?(pr>=0?'color:green':'color:red'):''}">${pr!==null?fn(pr)+' ج':'-'}</td><td>${r.b.status}</td></tr>`;}).join('')}
-    </tbody></table>`;
+    let totalFinal=0,totalPaid=0,totalRem=0;
+    const trs=rows.map(r=>{const paid=tpays.filter(p=>p.booking_id==r.b.id&&p.currency==='EGP').reduce((s,p)=>s+(+p.amount),0),rem=(+r.b.final_price)-paid,sc=+r.b.supplier_cost||0,pr=sc>0?(+r.b.final_price)-sc:null;
+      totalFinal+=(+r.b.final_price||0);totalPaid+=paid;totalRem+=rem;
+      return`<tr><td>${r.i}</td><td style="font-weight:700">${r.c?.full_name_ar||'-'}</td><td>${r.b.traveler_type}</td><td>${r.b.room_type||'-'}</td><td>${fn(r.b.final_price)} ${r.b.currency}</td><td style="color:#1a7a52;font-weight:700">${fn(paid)} ج</td><td style="${rem>0?'color:#c0392b;font-weight:700':''}">${fn(rem)} ج</td><td>${sc>0?fn(sc)+' ج':'-'}</td><td style="${pr!==null?(pr>=0?'color:#1a7a52':'color:#c0392b'):''}">${pr!==null?fn(pr)+' ج':'-'}</td><td>${stBadge(r.b.status)}</td></tr>`;}).join('');
+    body=`<div class="stats-grid">
+      <div class="stat-card"><div class="stat-icon">💵</div><div class="stat-num">${fn(totalFinal)}</div><div class="stat-label">إجمالي المستحق</div></div>
+      <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-num">${fn(totalPaid)}</div><div class="stat-label">إجمالي المدفوع</div></div>
+      <div class="stat-card ${totalRem>0?'red':'green'}"><div class="stat-icon">${totalRem>0?'⏳':'✅'}</div><div class="stat-num">${fn(totalRem)}</div><div class="stat-label">إجمالي المتبقي</div></div>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>#</th><th>العميل</th><th>النوع</th><th>التسكين</th><th>السعر</th><th>المدفوع</th><th>المتبقي</th><th>تكلفة المورد</th><th>المكسب</th><th>الحالة</th></tr></thead><tbody>
+    ${trs}
+    </tbody><tfoot><tr><td colspan="4">الإجمالي</td><td>${fn(totalFinal)} ج</td><td style="color:#1a7a52">${fn(totalPaid)} ج</td><td style="${totalRem>0?'color:#c0392b':''}">${fn(totalRem)} ج</td><td colspan="2"></td></tr></tfoot></table></div>`;
   }
   const _pn = await askPrintNotes(REP_TITLES[type]||'التقرير');
-  const w=window.open('','_blank');w.document.write(`<html dir="rtl"><head><meta charset="UTF-8"><title>تقرير</title>${css}</head><body>
-  <div style="text-align:center;margin-bottom:8px">${coLogoImgHtml(50)}</div>
-  ${body}
-  ${notesBlockHtml(_pn)}
-  <p style="text-align:center;color:#999;margin-top:20px;font-size:11px">${getCoName()}${getCoLicense()?' | ترخيص: '+getCoLicense():''} | ${fd(new Date().toISOString())}</p></body></html>`);w.document.close();w.print();
+  const heading=`${REP_ICONS[type]||'📋'} ${REP_TITLES[type]||'تقرير'} - ${trip?.name||''}`;
+  const sub=`📅 ${fd(trip?.depart_date)} &nbsp;|&nbsp; 👥 عدد المسافرين: ${rows.length}`;
+  const footer=notesBlockHtml(_pn);
+  openStyledPrintWindow(REP_TITLES[type]||'تقرير', trip?.name?`رحلة: ${trip.name}`:'', heading, sub, body, footer);
 }
 
 // ============ PRINT CARDS ============
@@ -3072,9 +3631,13 @@ async function printBkCard(bid){
   const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(qrData)}`;
   const _pn = await askPrintNotes('بطاقة الحجز');
   const html=`<html dir="rtl"><head><meta charset="UTF-8"><title>بطاقة حجز ${rcpNo}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    *{box-sizing:border-box}
-    body{font-family:Arial,sans-serif;padding:0;margin:0;background:#f5f5f5}
+    @page{size:A4;margin:10mm 12mm}
+    *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{font-family:'Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif;padding:0;margin:0;background:#f5f5f5;line-height:1.6}
     .page{max-width:680px;margin:20px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15)}
     .header{background:linear-gradient(135deg,#1a6b4a,#2a8a60);padding:20px 25px;color:white;display:flex;justify-content:space-between;align-items:center}
     .co-name{font-size:22px;font-weight:800;margin-bottom:3px}
@@ -3176,7 +3739,361 @@ async function printPayRcp(pid){
   const bk=aBks.find(x=>x.id==p.booking_id),c=bk?aClients.find(x=>x.id==bk.client_id):null,t=bk?aTrips.find(x=>x.id==bk.trip_id):null;
   const coName=getCoName();
   const _pn = await askPrintNotes('إيصال الدفع');
-  const html=`<html dir="rtl"><head><meta charset="UTF-8"><title>إيصال</title><style>body{font-family:Arial,sans-serif;padding:30px;max-width:400px;margin:auto}h1{color:#1a6b4a;text-align:center}.r{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:13px}.amt{font-size:32px;font-weight:800;color:#1a6b4a;text-align:center;padding:20px;background:#f9f5e7;border-radius:8px;margin:15px 0}</style></head><body>
+  const html=`<html dir="rtl"><head><meta charset="UTF-8"><title>إيصال</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{size:A4;margin:10mm}body{font-family:'Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif;padding:30px;max-width:400px;margin:auto;line-height:1.6}h1{color:#1a6b4a;text-align:center}.r{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:13px}.amt{font-size:32px;font-weight:800;color:#1a6b4a;text-align:center;padding:20px;background:#f9f5e7;border-radius:8px;margin:15px 0}</style></head><body>
+  <div style="text-align:center;margin-bottom:10px">${coLogoImgHtml(55)}</div>
+  <h1>🕌 إيصال دفع</h1>
+  <div style="text-align:center;font-size:12px;color:#666;margin-bottom:8px">${coName}${coLicenseLineHtml()}</div>
+  <div class="r"><span>العميل</span><b>${c?.full_name_ar||'-'}</b></div>
+  <div class="r"><span>الرحلة</span><b>${t?.name||'-'}</b></div>
+  <div class="r"><span>طريقة الدفع</span><b>${p.payment_method}</b></div>
+  <div class="r"><span>التاريخ</span><b>${fd(p.payment_date)}</b></div>
+  ${p.receipt_no?`<div class="r"><span>رقم الإيصال</span><b>${p.receipt_no}</b></div>`:''}
+  <div class="amt">${fn(p.amount)} ${p.currency}</div>
+  ${notesBlockHtml(_pn)}
+  <p style="text-align:center;color:#999;font-size:11px">${coName} | ${fd(new Date().toISOString())}</p>
+  </body></html>`;
+  const w=window.open('','_blank');w.document.write(html);w.document.close();w.print();
+}
+
+async function printFamilyFile(tid, rootClientId){
+  if(!aClients.length)aClients=await sb('haj_clients?is_cancelled=eq.false&limit=1000');
+  if(!aTrips.length)aTrips=await sb('haj_trips?limit=200');
+  if(!aProgs.length)aProgs=await sb('haj_programs?limit=1000');
+  const rootId=familyRootId(rootClientId);
+  const root=aClients.find(x=>x.id==rootId);
+  // كل أفراد الأسرة: رب الأسرة + كل اللي مربوطين بيه
+  const familyClientIds=aClients.filter(c=>familyRootId(c.id)===rootId).map(c=>c.id);
+  if(!familyClientIds.length){toast('تعذر إيجاد أفراد الأسرة','error');return;}
+  const bks=(await sb(`haj_bookings?trip_id=eq.${tid}&status=neq.ملغي&limit=500`)).filter(b=>familyClientIds.includes(b.client_id));
+  if(!bks.length){toast('لا توجد حجوزات لهذه الأسرة في هذه الرحلة','error');return;}
+  const bids=bks.map(b=>b.id);
+  const pays=bids.length?await sb(`haj_payments?booking_id=in.(${bids.join(',')})&limit=1000`):[];
+  const t=aTrips.find(x=>x.id==tid);
+  const coName=getCoName(), coPh=getCoPhone();
+  const fileNo='FAM-'+String(rootId).padStart(5,'0')+'-'+tid;
+  const totalFinal=bks.filter(b=>b.currency==='EGP').reduce((s,b)=>s+(+b.final_price),0);
+  const totalPaid=pays.filter(p=>p.currency==='EGP').reduce((s,p)=>s+(+p.amount),0);
+  const totalRem=totalFinal-totalPaid;
+  const _pn=await askPrintNotes('ملف حجز الأسرة');
+  const rows=bks.map((b,i)=>{
+    const c=aClients.find(x=>x.id==b.client_id), pg=aProgs.find(x=>x.id==b.program_id);
+    const bPaid=pays.filter(p=>p.booking_id==b.id&&p.currency==='EGP').reduce((s,p)=>s+(+p.amount),0);
+    const bRem=(+b.final_price)-bPaid;
+    return`<tr>
+      <td>${i+1}</td>
+      <td>BK-${String(b.id).padStart(5,'0')}</td>
+      <td style="text-align:right"><b>${c?.full_name_ar||'-'}</b>${c?.link_relation?` <small style="color:#999">(${c.link_relation})</small>`:(c?.id===rootId?' <small style="color:#999">(رب الأسرة)</small>':'')}</td>
+      <td>${c?.passport_no||'-'}</td>
+      <td>${b.traveler_type}</td>
+      <td>${pg?'كود '+pg.code:'-'}</td>
+      <td>${b.room_type||'-'}</td>
+      <td style="font-weight:700">${fn(b.final_price)}</td>
+      <td style="color:#2e7d32">${fn(bPaid)}</td>
+      <td style="color:${bRem>0?'#c62828':'#2e7d32'}">${fn(bRem)}</td>
+    </tr>`;
+  }).join('');
+  const html=`<html dir="rtl"><head><meta charset="UTF-8"><title>ملف حجز أسرة - ${root?.full_name_ar||''}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    @page{size:A4;margin:10mm 12mm}
+    *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{font-family:'Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif;padding:0;margin:0;background:#f5f5f5;line-height:1.6}
+    .page{max-width:900px;margin:20px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+    .header{background:linear-gradient(135deg,#1a6b4a,#2a8a60);padding:20px 25px;color:white;display:flex;justify-content:space-between;align-items:center}
+    .co-name{font-size:22px;font-weight:800;margin-bottom:3px}
+    .co-sub{font-size:12px;opacity:.8}
+    .rcpno{background:rgba(255,255,255,.2);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;letter-spacing:1px}
+    .gold-bar{height:4px;background:linear-gradient(90deg,#c9a84c,#e8c97a,#c9a84c)}
+    .body{padding:20px 25px}
+    .fam-title{font-size:19px;font-weight:800;color:#1a6b4a;margin-bottom:4px}
+    .fam-sub{font-size:13px;color:#666;margin-bottom:14px}
+    table{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:16px}
+    th{background:#f0f0f0;padding:8px 10px;text-align:center;border:1px solid #e0e0e0;font-weight:700;color:#333}
+    td{padding:8px 10px;text-align:center;border:1px solid #eee}
+    tfoot td{background:#f9f5e7;font-weight:800;font-size:14px}
+    .status-bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+    .status-box{text-align:center;padding:12px;border-radius:8px}
+    .s-total{background:#fff8e1;border:1px solid #f9a825}.s-paid{background:#e8f5e9;border:1px solid #2e7d32}.s-rem{background:${totalRem>0?'#fde8e8':'#e8f5e9'};border:1px solid ${totalRem>0?'#c62828':'#2e7d32'}}
+    .s-lbl{font-size:11px;color:#666;margin-bottom:4px}.s-val{font-size:18px;font-weight:800}
+    .notes{background:#fffde7;border:1px solid #f9a825;border-radius:8px;padding:12px;font-size:12px;color:#666;margin-bottom:10px}
+    .footer{background:#f9f9f9;padding:12px 25px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#999;border-top:1px solid #eee}
+    @media print{body{background:white}.page{margin:0;box-shadow:none;border-radius:0}}
+  </style></head><body>
+  <div class="page">
+    <div class="header">
+      <div style="display:flex;align-items:center;gap:12px">
+        ${coLogoImgHtml(46)}
+        <div><div class="co-name">🕌 ${coName}</div><div class="co-sub">إدارة السياحة الدينية${coPh?' | '+coPh:''}</div>${coLicenseLineHtml()}</div>
+      </div>
+      <div style="text-align:left"><div class="rcpno">${fileNo}</div><div style="font-size:11px;margin-top:4px;opacity:.7">👪 ملف حجز أسرة</div></div>
+    </div>
+    <div class="gold-bar"></div>
+    <div class="body">
+      <div class="fam-title">👪 أسرة ${root?.full_name_ar||''}</div>
+      <div class="fam-sub">${t?.name||''} | 📅 ${fd(t?.depart_date)} | عدد الأفراد: ${bks.length}${root?.phone?' | 📱 '+root.phone:''}</div>
+      <table>
+        <thead><tr><th>#</th><th>مرجع</th><th>الاسم</th><th>الجواز</th><th>النوع</th><th>الكود</th><th>التسكين</th><th>السعر</th><th>المدفوع</th><th>المتبقي</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr><td colspan="7">الإجمالي</td><td>${fn(totalFinal)} ج</td><td style="color:#2e7d32">${fn(totalPaid)} ج</td><td style="color:${totalRem>0?'#c62828':'#2e7d32'}">${fn(totalRem)} ج</td></tr></tfoot>
+      </table>
+      <div class="status-bar">
+        <div class="status-box s-total"><div class="s-lbl">إجمالي الأسرة</div><div class="s-val" style="color:#f9a825">${fn(totalFinal)} ج</div></div>
+        <div class="status-box s-paid"><div class="s-lbl">إجمالي المدفوع</div><div class="s-val" style="color:#2e7d32">${fn(totalPaid)} ج</div></div>
+        <div class="status-box s-rem"><div class="s-lbl">إجمالي المتبقي</div><div class="s-val" style="color:${totalRem>0?'#c62828':'#2e7d32'}">${fn(totalRem)} ج</div></div>
+      </div>
+      ${t?.form_notes?`<div class="notes"><b>📋 شروط الحجز:</b><br>${t.form_notes.replace(/\n/g,'<br>')}</div>`:''}
+      ${notesBlockHtml(_pn)}
+    </div>
+    <div class="footer">
+      <span>🗓️ تاريخ الطباعة: ${fd(new Date().toISOString())}</span>
+      <span>${fileNo} | ${coName}</span>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:10px"><button onclick="window.print()" style="padding:10px 30px;background:#1a6b4a;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer">🖨️ طباعة</button></div>
+  </body></html>`;
+  const w=window.open('','_blank');w.document.write(html);w.document.close();
+}
+// ============================================================
+// PRINT SHELL - قالب طباعة احترافي موحّد لكل التقارير
+// بيغلّف أي محتوى (حتى لو منسوخ من الشاشة) بتصميم فاتح احترافي،
+// وبيعيد تعريف متغيرات الثيم الغامق بألوان مناسبة للطباعة عشان
+// أي عنصر بيستخدم var(--xxx) يطلع شكله صح على الورق بدل الشكل الغامق بتاع النظام
+// ============================================================
+function _printLightCss(){
+  return `
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800;900&display=swap');
+  :root{
+    --gold:#a07820;--gold-light:#c9a027;--gold-dark:#8a6816;--gold-glow:rgba(160,120,32,.10);
+    --green:#1a7a52;--green-light:#1f9463;--green-dark:#0e4830;--green-glow:rgba(26,122,82,.08);
+    --bg:#ffffff;--bg2:#f7f7f7;--bg3:#f0f0f0;--card:#ffffff;--border:#e2e2e2;
+    --text:#222222;--text2:#444444;--text3:#777777;
+    --red:#c0392b;--red-light:#c0392b;--blue:#2471a3;--purple:#7d3c98;
+    --teal:#0e8c74;--orange:#c1650f;
+    --radius:8px;--radius-sm:6px;
+    --side-1:#f7f7f7;--side-2:#f2f2f2;--side-3:#ececec;
+    --side-border:#dddddd;--side-text:#444444;--side-text-strong:#222222;--side-text-dim:#888888;
+  }
+  @page{size:A4;margin:10mm 12mm}
+  *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{font-family:'Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif;background:#f0f0f0;margin:0;padding:0;color:#222;line-height:1.65;font-feature-settings:"tnum" 1}
+  .page{max-width:980px;margin:20px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.15);border:1px solid #e6e6e6}
+  .header{background:linear-gradient(135deg,#0e4830,#1a6b4a 55%,#2a8a60);padding:22px 28px;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+  .co-name{font-size:21px;font-weight:800;margin-bottom:3px;letter-spacing:.2px}
+  .co-sub{font-size:12px;opacity:.88;font-weight:500}
+  .rcpno{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);padding:7px 16px;border-radius:20px;font-size:13px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+  .gold-bar{height:4px;background:linear-gradient(90deg,#a07820,#e8c97a,#a07820)}
+  .body{padding:24px 28px}
+  .p-title{font-size:18px;font-weight:800;color:#0e4830;margin-bottom:5px}
+  .p-sub{font-size:13px;color:#666;margin-bottom:18px;font-weight:500}
+  .footer{background:#f7f7f7;padding:12px 28px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#999;border-top:1px solid #eee;flex-wrap:wrap;gap:6px}
+  @media print{
+    body{background:#fff}
+    .page{margin:0;box-shadow:none;border-radius:0;border:none;max-width:none}
+    .no-print{display:none!important}
+    .card{page-break-inside:avoid}
+    table{page-break-inside:auto}
+    tr{page-break-inside:avoid;page-break-after:auto}
+    thead{display:table-header-group}
+    tfoot{display:table-footer-group}
+  }
+
+  /* عناصر واجهة النظام معاد تلوينها بشكل فاتح واحترافي للطباعة */
+  .btn,button.btn{display:none!important}
+  .card{background:#fff;border:1px solid #e2e2e2;border-radius:9px;padding:16px 18px;margin-bottom:16px}
+  .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #eee;flex-wrap:wrap;gap:8px}
+  .card-title{font-size:14px;font-weight:700;color:#a07820}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px}
+  .stat-card{background:#fafafa;border:1px solid #e5e5e5;border-radius:9px;padding:14px 12px;text-align:center;position:relative}
+  .stat-icon{font-size:20px;margin-bottom:6px;display:block}
+  .stat-num{font-size:19px;font-weight:800;color:#a07820}
+  .stat-label{font-size:10.5px;color:#777;margin-top:4px;font-weight:600}
+  .stat-card.green .stat-num{color:#1a7a52}
+  .stat-card.red .stat-num{color:#c0392b}
+  .stat-card.blue .stat-num{color:#2471a3}
+  .table-wrap{overflow-x:auto;border:1px solid #e6e6e6;border-radius:9px;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  thead th{background:linear-gradient(135deg,#0e4830,#1a6b4a);color:#fff;padding:10px 12px;text-align:right;font-weight:700;font-size:11.5px;white-space:nowrap}
+  tbody tr:nth-child(even){background:#fafbfa}
+  tbody tr{border-bottom:1px solid #eee}
+  tbody td{padding:8px 12px;color:#222}
+  tfoot td{background:#f9f5e7;font-weight:800;padding:9px 12px}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:700}
+  .badge-green{background:#e8f5e9;color:#1a7a52;border:1px solid #b7dfc4}
+  .badge-gold{background:#fbf1da;color:#a07820;border:1px solid #ecd8a3}
+  .badge-red{background:#fdecea;color:#c0392b;border:1px solid #f3bcb5}
+  .badge-blue{background:#e8f1f8;color:#2471a3;border:1px solid #b9d6ea}
+  .badge-gray{background:#f0f0f0;color:#777;border:1px solid #ddd}
+  .badge-purple{background:#f3e9f7;color:#7d3c98;border:1px solid #dcbfe6}
+  .empty-state{text-align:center;padding:30px 20px;color:#999}
+  .empty-icon{font-size:32px;margin-bottom:8px}
+  .info-box{padding:10px 16px;border-radius:8px;font-size:12.5px;margin-bottom:12px;border-right:3px solid #a07820;background:#fbf7ec;color:#555}
+  .search-bar,select,input:not([type=checkbox]){display:none!important}
+  `;
+}
+function openStyledPrintWindow(title, badge, heading, sub, bodyHtml, footerNote){
+  const coName=getCoName(), coPh=getCoPhone();
+  const html=`<html dir="rtl"><head><meta charset="UTF-8"><title>${title}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>${_printLightCss()}</style></head><body>
+  <div class="page">
+    <div class="header">
+      <div style="display:flex;align-items:center;gap:12px">
+        ${coLogoImgHtml(46)}
+        <div><div class="co-name">🕌 ${coName}</div><div class="co-sub">إدارة السياحة الدينية${coPh?' | '+coPh:''}</div>${coLicenseLineHtml()}</div>
+      </div>
+      ${badge?`<div style="text-align:left"><div class="rcpno">${badge}</div></div>`:''}
+    </div>
+    <div class="gold-bar"></div>
+    <div class="body">
+      ${heading?`<div class="p-title">${heading}</div>`:''}
+      ${sub?`<div class="p-sub">${sub}</div>`:''}
+      ${bodyHtml}
+      ${footerNote?`<div class="info-box">${footerNote}</div>`:''}
+    </div>
+    <div class="footer">
+      <span>🗓️ تاريخ الطباعة: ${fd(new Date().toISOString())}</span>
+      <span>${title} | ${coName}</span>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:10px" class="no-print"><button onclick="window.print()" style="padding:10px 30px;background:#1a6b4a;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer">🖨️ طباعة</button></div>
+  </body></html>`;
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  return w;
+}
+async function printBkCard(bid){
+  if(!aBks.length)return;const b=aBks.find(x=>x.id==bid);if(!b)return;
+  const c=aClients.find(x=>x.id==b.client_id),t=aTrips.find(x=>x.id==b.trip_id),pg=aProgs.find(x=>x.id==b.program_id);
+  const pays=await sb(`haj_payments?booking_id=eq.${bid}&limit=50`);
+  const paid=pays.filter(x=>x.currency==='EGP').reduce((s,x)=>s+(+x.amount),0);
+  const rem=(+b.final_price)-paid;
+  const disc=[b.has_own_ticket&&'✈️ تذكرة طيران',b.has_own_barcode&&'📊 باركود',b.has_own_visa&&'🪪 تأشيرة'].filter(Boolean).join(' | ');
+  const add=[b.has_meals&&'🍽️ وجبات',b.has_train&&'🚄 قطار الحرمين',b.has_makkah_view&&'🕌 إطلالة مكة',b.has_haram_view&&'🕋 إطلالة الحرم'].filter(Boolean).join(' | ');
+  const coName=getCoName(), coPh=getCoPhone();
+  const rcpNo='BK-'+String(bid).padStart(5,'0');
+  const qrData=`${rcpNo}|${c?.full_name_ar||''}|${t?.name||''}|${b.final_price}`;
+  const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(qrData)}`;
+  const _pn = await askPrintNotes('بطاقة الحجز');
+  const html=`<html dir="rtl"><head><meta charset="UTF-8"><title>بطاقة حجز ${rcpNo}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    @page{size:A4;margin:10mm 12mm}
+    *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{font-family:'Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif;padding:0;margin:0;background:#f5f5f5;line-height:1.6}
+    .page{max-width:680px;margin:20px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+    .header{background:linear-gradient(135deg,#1a6b4a,#2a8a60);padding:20px 25px;color:white;display:flex;justify-content:space-between;align-items:center}
+    .co-name{font-size:22px;font-weight:800;margin-bottom:3px}
+    .co-sub{font-size:12px;opacity:.8}
+    .rcpno{background:rgba(255,255,255,.2);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;letter-spacing:1px}
+    .gold-bar{height:4px;background:linear-gradient(90deg,#c9a84c,#e8c97a,#c9a84c)}
+    .body{padding:20px 25px}
+    .client-section{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:16px;border-bottom:2px dashed #eee}
+    .client-name{font-size:20px;font-weight:800;color:#1a6b4a;margin-bottom:4px}
+    .client-sub{font-size:13px;color:#666}
+    .qr-img{border:2px solid #eee;border-radius:8px;padding:4px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+    .field{background:#f9f9f9;border-radius:8px;padding:10px 14px}
+    .field-lbl{font-size:11px;color:#999;margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px}
+    .field-val{font-size:13px;font-weight:700;color:#333}
+    .section-title{font-size:12px;font-weight:700;color:#1a6b4a;text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid #eee}
+    .badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+    .badge{display:inline-block;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600}
+    .bdg-red{background:#fde8e8;color:#c0392b}.bdg-green{background:#e8f5e9;color:#1a6b4a}
+    .price-table{width:100%;border-collapse:collapse;margin-bottom:14px}
+    .price-table td{padding:8px 12px;font-size:13px}
+    .price-table tr{border-bottom:1px solid #f0f0f0}
+    .price-table .total-row{background:#f9f5e7;font-weight:700;font-size:16px}
+    .price-table .green-row{color:#1a6b4a}.price-table .red-row{color:#c0392b}
+    .status-bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+    .status-box{text-align:center;padding:12px;border-radius:8px}
+    .s-total{background:#fff8e1;border:1px solid #f9a825}.s-paid{background:#e8f5e9;border:1px solid #2e7d32}.s-rem{background:${rem>0?'#fde8e8':'#e8f5e9'};border:1px solid ${rem>0?'#c62828':'#2e7d32'}}
+    .s-lbl{font-size:11px;color:#666;margin-bottom:4px}.s-val{font-size:18px;font-weight:800}
+    .notes{background:#fffde7;border:1px solid #f9a825;border-radius:8px;padding:12px;font-size:12px;color:#666;margin-bottom:10px}
+    .footer{background:#f9f9f9;padding:12px 25px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#999;border-top:1px solid #eee}
+    @media print{body{background:white}.page{margin:0;box-shadow:none;border-radius:0}}
+  </style></head><body>
+  <div class="page">
+    <div class="header">
+      <div style="display:flex;align-items:center;gap:12px">
+        ${coLogoImgHtml(46)}
+        <div><div class="co-name">🕌 ${coName}</div><div class="co-sub">إدارة السياحة الدينية${coPh?' | '+coPh:''}</div>${coLicenseLineHtml()}</div>
+      </div>
+      <div style="text-align:left"><div class="rcpno">${rcpNo}</div><div style="font-size:11px;margin-top:4px;opacity:.7">بطاقة حجز</div></div>
+    </div>
+    <div class="gold-bar"></div>
+    <div class="body">
+      <div class="client-section">
+        <div>
+          <div class="client-name">${c?.full_name_ar||'-'}</div>
+          <div class="client-sub">${c?.full_name_en||''}</div>
+          <div class="client-sub" style="margin-top:4px">🪪 ${c?.passport_no||'-'} | ينتهي: ${fd(c?.passport_expiry_date)}</div>
+          <div class="client-sub">📱 ${c?.phone||'-'}</div>
+        </div>
+        <img class="qr-img" src="${qrUrl}" width="90" height="90" alt="QR">
+      </div>
+
+      <div class="section-title">تفاصيل الرحلة</div>
+      <div class="grid">
+        <div class="field"><div class="field-lbl">اسم الرحلة</div><div class="field-val">${t?.name||'-'}</div></div>
+        <div class="field"><div class="field-lbl">تاريخ السفر</div><div class="field-val">📅 ${fd(t?.depart_date)}</div></div>
+        <div class="field"><div class="field-lbl">البرنامج / الكود</div><div class="field-val">${pg?`كود ${pg.code} - ${pg.program_details||''}`:'-'}</div></div>
+        <div class="field"><div class="field-lbl">نوع المسافر</div><div class="field-val">${b.traveler_type}</div></div>
+        <div class="field"><div class="field-lbl">فندق مكة</div><div class="field-val">🕋 ${pg?.mecca_hotel||'-'} (${pg?.mecca_nights||0} ليالي)</div></div>
+        <div class="field"><div class="field-lbl">فندق المدينة</div><div class="field-val">🕌 ${pg?.madina_hotel||'-'} (${pg?.madina_nights||0} ليالي)</div></div>
+        <div class="field"><div class="field-lbl">نوع التسكين</div><div class="field-val">🛏️ ${b.room_type||'-'}</div></div>
+        <div class="field"><div class="field-lbl">حالة التأشيرة</div><div class="field-val">${b.visa_status}</div></div>
+      </div>
+
+      ${disc||add?`<div class="section-title">الخصومات والإضافات</div><div class="badges">
+        ${disc?disc.split(' | ').map(d=>`<span class="badge bdg-red">✂️ ${d}</span>`).join(''):''}
+        ${add?add.split(' | ').map(a=>`<span class="badge bdg-green">➕ ${a}</span>`).join(''):''}
+      </div>`:''}
+
+      <div class="section-title">ملخص السعر</div>
+      <table class="price-table">
+        <tr><td>السعر الأساسي</td><td style="text-align:left;font-weight:700">${fn(b.base_price||b.final_price)} ج</td></tr>
+        ${b.deductions_total>0?`<tr class="red-row"><td>✂️ إجمالي الخصومات</td><td style="text-align:left">- ${fn(b.deductions_total)} ج</td></tr>`:''}
+        ${b.additions_total>0?`<tr class="green-row"><td>➕ إجمالي الإضافات</td><td style="text-align:left">+ ${fn(b.additions_total)} ج</td></tr>`:''}
+        <tr class="total-row"><td>💰 السعر النهائي</td><td style="text-align:left;color:#1a6b4a">${fn(b.final_price)} ${b.currency}</td></tr>
+      </table>
+
+      <div class="status-bar">
+        <div class="status-box s-total"><div class="s-lbl">الإجمالي</div><div class="s-val" style="color:#f9a825">${fn(b.final_price)} ج</div></div>
+        <div class="status-box s-paid"><div class="s-lbl">المدفوع</div><div class="s-val" style="color:#2e7d32">${fn(paid)} ج</div></div>
+        <div class="status-box s-rem"><div class="s-lbl">المتبقي</div><div class="s-val" style="color:${rem>0?'#c62828':'#2e7d32'}">${fn(rem)} ج</div></div>
+      </div>
+
+      ${t?.form_notes?`<div class="notes"><b>📋 شروط الحجز:</b><br>${t.form_notes.replace(/\n/g,'<br>')}</div>`:''}
+      ${notesBlockHtml(_pn)}
+    </div>
+    <div class="footer">
+      <span>🗓️ تاريخ الطباعة: ${fd(new Date().toISOString())}</span>
+      <span>حالة الحجز: <b>${b.status}</b></span>
+      <span>${rcpNo} | ${coName}</span>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:10px"><button onclick="window.print()" style="padding:10px 30px;background:#1a6b4a;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer">🖨️ طباعة</button></div>
+  </body></html>`;
+  const w=window.open('','_blank');w.document.write(html);w.document.close();
+}
+async function printPayRcp(pid){
+  if(!aPays.length)return;const p=aPays.find(x=>x.id==pid);if(!p)return;
+  const bk=aBks.find(x=>x.id==p.booking_id),c=bk?aClients.find(x=>x.id==bk.client_id):null,t=bk?aTrips.find(x=>x.id==bk.trip_id):null;
+  const coName=getCoName();
+  const _pn = await askPrintNotes('إيصال الدفع');
+  const html=`<html dir="rtl"><head><meta charset="UTF-8"><title>إيصال</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{size:A4;margin:10mm}body{font-family:'Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif;padding:30px;max-width:400px;margin:auto;line-height:1.6}h1{color:#1a6b4a;text-align:center}.r{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:13px}.amt{font-size:32px;font-weight:800;color:#1a6b4a;text-align:center;padding:20px;background:#f9f5e7;border-radius:8px;margin:15px 0}</style></head><body>
   <div style="text-align:center;margin-bottom:10px">${coLogoImgHtml(55)}</div>
   <h1>🕌 إيصال دفع</h1>
   <div style="text-align:center;font-size:12px;color:#666;margin-bottom:8px">${coName}${coLicenseLineHtml()}</div>
@@ -3843,8 +4760,12 @@ async function printTripProgram(tid){
   const coPh=getCoPhone();
   const _pn = await askPrintNotes('برنامج الرحلة');
   const html=`<html dir="rtl"><head><meta charset="UTF-8"><title>برنامج الرحلة</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    *{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f5f5f5}
+    @page{size:A4;margin:10mm 12mm}
+    *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:'Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif;margin:0;padding:0;background:#f5f5f5;line-height:1.6}
     .page{max-width:720px;margin:20px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15)}
     .header{background:linear-gradient(135deg,#1a6b4a,#2a8a60);padding:25px 30px;color:white}
     .co{font-size:14px;opacity:.8;margin-bottom:5px}.trip-name{font-size:24px;font-weight:800;margin-bottom:8px}
@@ -4087,6 +5008,7 @@ async function openClientProfile(cid){
   const body=document.getElementById('client-profile-body');
   body.innerHTML='<div class="loading"><div class="spinner"></div><p>جاري التحميل...</p></div>';
   try{
+    if(!aClients.length)aClients=await sb('haj_clients?is_cancelled=eq.false&limit=1000');
     const c=aClients.find(x=>x.id==cid)||await sb(`haj_clients?id=eq.${cid}&limit=1`).then(r=>r[0]);
     if(!c){body.innerHTML='<div class="info-box danger">❌ العميل غير موجود</div>';return;}
     const bks=await sb(`haj_bookings?client_id=eq.${cid}&order=created_at.desc&limit=50`);
@@ -4132,13 +5054,15 @@ async function openClientProfile(cid){
           const t=aTrips.find(x=>x.id==b.trip_id),pg=aProgs.find(x=>x.id==b.program_id);
           const paid=bkPays.filter(p=>p.booking_id==b.id&&p.currency==='EGP').reduce((s,p)=>s+(+p.amount),0);
           const rem=(+b.final_price)-paid;
+          const _root=familyRootId(cid);
+          const _famCount=aClients.filter(cc=>familyRootId(cc.id)===_root).length;
           return`<tr><td><b>${t?.name||'-'}</b>${pg?`<br><span class="badge badge-blue">كود ${pg.code}</span>`:''}<br><small style="color:var(--text3)">${fd(b.created_at)}</small></td>
           <td>${b.traveler_type}</td><td>${b.room_type||'-'}</td>
           <td style="color:var(--gold);font-weight:700">${fn(b.final_price)} ${b.currency}</td>
           <td style="color:#4caf84">${fn(paid)} ج</td>
           <td style="color:${rem>0?'var(--red-light)':'#4caf84'};font-weight:${rem>0?700:400}">${fn(rem)} ج</td>
           <td>${bdg(b.status)}</td><td>${bdg(b.visa_status)}</td>
-          <td><button class="btn btn-primary btn-sm btn-icon" onclick="addPayForBk(${b.id})">💰</button></td></tr>`;
+          <td>${_famCount>1?`<button class="btn btn-gold btn-sm btn-icon" onclick="printFamilyFile(${b.trip_id},${_root})" title="ملف الأسرة">👪</button> `:''}<button class="btn btn-primary btn-sm btn-icon" onclick="addPayForBk(${b.id})">💰</button></td></tr>`;
         }).join('')}</tbody>
       </table></div>`:'<div class="empty-state"><div class="empty-icon">📋</div><h3>لا توجد حجوزات</h3></div>'}
     </div>
@@ -4864,6 +5788,10 @@ async function saveFam() {
     toast(`تم حفظ الأسرة كاملة (${ordered.length} فرد) ✅`);
     aClients=[]; aBks=[];
     closeFamModal();
+    if(await sConfirm('تم الحفظ بنجاح ✅','تحب تطبع ملف الأسرة دلوقتي؟ (كل الأفراد في صفحة واحدة بإجمالي واحد)','👪')){
+      aClients=await sb('haj_clients?is_cancelled=eq.false&limit=1000');
+      printFamilyFile(tid, head.client_id);
+    }
   } catch(e) {
     toast('حصل خطأ أثناء الحفظ: '+e.message+' - اللي اتحفظ فعلاً مش هيتكرر، صلّحي المشكلة واضغطي حفظ تاني','error');
   } finally {
@@ -5294,7 +6222,8 @@ async function printRoomsReport() {
   });
   const trip = aTrips.find(x=>x.id==_roomsData.tripId);
   const html = `<html dir="rtl"><head><meta charset="UTF-8"><title>التسكين</title>
-  <style>body{font-family:Arial,sans-serif;padding:20px}h1{color:#1a6b4a;text-align:center}h2{color:#666;text-align:center;font-size:14px;margin-bottom:15px}.room{break-inside:avoid;margin-bottom:12px;border:1px solid #ccc;border-radius:8px;overflow:hidden}.room-hdr{background:#1a6b4a;color:white;padding:8px 12px;display:flex;justify-content:space-between}.room-body{padding:10px}.guest{padding:5px 0;border-bottom:1px solid #eee;font-size:13px}@media print{body{padding:5px}}</style>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{size:A4;margin:10mm 12mm}body{font-family:'Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif;padding:20px;line-height:1.6}h1{color:#1a6b4a;text-align:center}h2{color:#666;text-align:center;font-size:14px;margin-bottom:15px}.room{break-inside:avoid;margin-bottom:12px;border:1px solid #ccc;border-radius:8px;overflow:hidden}.room-hdr{background:#1a6b4a;color:white;padding:8px 12px;display:flex;justify-content:space-between}.room-body{padding:10px}.guest{padding:5px 0;border-bottom:1px solid #eee;font-size:13px}@media print{body{padding:5px}}</style>
   </head><body>
   <h1>توزيع الغرف - ${city}</h1><h2>${trip?.name||''}</h2>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
@@ -5448,11 +6377,23 @@ async function loadTripStatement() {
     if(!aClients.length)aClients=await sb('haj_clients?is_cancelled=eq.false&limit=1000');
     const bids=bks.map(b=>b.id);
     const tpays=bids.length?await sb(`haj_payments?booking_id=in.(${bids.join(',')})&limit=1000`):[];
+    // مدفوعات المورد الفعلية لهذه الرحلة (اللي فعلاً اتدفعله)
+    let supPays=[];
+    try{supPays=await sb(`haj_supplier_payments?trip_id=eq.${tid}&order=payment_date.asc&limit=500`);}catch(e){supPays=[];}
+
+    // --- الإيرادات والمحصّل والمتبقي ---
     const totalRev=bks.filter(b=>b.currency==='EGP').reduce((s,b)=>s+(+b.final_price),0);
     const totalColl=tpays.filter(p=>p.currency==='EGP').reduce((s,p)=>s+(+p.amount),0);
-    const totalExp=exps.filter(e=>e.currency==='EGP').reduce((s,e)=>s+(+e.amount),0);
-    const profit=totalColl-totalExp;
     const remaining=totalRev-totalColl;
+
+    // --- تكلفة الرحلة: من تكلفة المورد بتاعة كل حجز (اللي بتدفعها للمورد) ---
+    const supplierObligation=bks.reduce((s,b)=>s+(+b.supplier_cost||0),0); // الالتزام الكلي للمورد (سواء اتدفع أو لسه)
+    const supplierPaidActual=supPays.filter(p=>p.currency==='EGP').reduce((s,p)=>s+(+p.amount),0); // اللي فعلاً اتدفع للمورد
+    const otherExp=exps.filter(e=>e.currency==='EGP').reduce((s,e)=>s+(+e.amount),0); // مصاريف إضافية (خلاف المورد) زي مواصلات إلخ
+
+    // --- الربح: الإيراد - تكلفة المورد - المصاريف الإضافية ---
+    const totalCost=supplierObligation+otherExp;
+    const profit=totalRev-totalCost;
 
     let rows='';
     bks.forEach(b=>{
@@ -5461,6 +6402,8 @@ async function loadTripStatement() {
       const paid=bkPays.reduce((s,p)=>s+(+p.amount),0);
       const final=b.currency==='EGP'?+b.final_price:0;
       const rem=final-paid;
+      const sc=+b.supplier_cost||0;
+      const pr=final-sc;
       rows+=`<tr>
         <td>${c?.full_name_ar||'-'}</td>
         <td>${c?.passport_no||'-'}</td>
@@ -5469,6 +6412,8 @@ async function loadTripStatement() {
         <td style="color:var(--red-light)">${fn(final)} ج</td>
         <td style="color:#4caf84">${fn(paid)} ج</td>
         <td style="color:${rem>0?'var(--red-light)':'#4caf84'};font-weight:${rem>0?'700':'400'}">${fn(rem)} ج</td>
+        <td>${sc>0?fn(sc)+' ج':'-'}</td>
+        <td style="color:${pr>=0?'#4caf84':'var(--red-light)'};font-weight:700">${sc>0?fn(pr)+' ج':'-'}</td>
         <td>${bdg(b.status)}</td>
       </tr>`;
     });
@@ -5481,19 +6426,26 @@ async function loadTripStatement() {
         <button class="btn btn-primary btn-sm" onclick="exportExcel('financial',${tid})">📊 Excel</button>
       </div>
     </div>
-    <div class="stats-grid" style="grid-template-columns:repeat(5,1fr);margin-bottom:14px">
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
       <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-num">${bks.length}</div><div class="stat-label">إجمالي الحجوزات</div></div>
-      <div class="stat-card red"><div class="stat-icon">💸</div><div class="stat-num">${fn(totalRev)}</div><div class="stat-label">إيرادات متوقعة</div></div>
-      <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-num">${fn(totalColl)}</div><div class="stat-label">محصّل</div></div>
-      <div class="stat-card ${remaining>0?'red':'green'}"><div class="stat-icon">⏳</div><div class="stat-num">${fn(remaining)}</div><div class="stat-label">متبقي</div></div>
-      <div class="stat-card ${profit>=0?'green':'red'}"><div class="stat-icon">${profit>=0?'📈':'📉'}</div><div class="stat-num">${fn(profit)}</div><div class="stat-label">صافي الربح</div></div>
+      <div class="stat-card red"><div class="stat-icon">💵</div><div class="stat-num">${fn(totalRev)}</div><div class="stat-label">إجمالي إيراد الرحلة (البيع)</div></div>
+      <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-num">${fn(totalColl)}</div><div class="stat-label">إجمالي المحصّل من العملاء</div></div>
+      <div class="stat-card ${remaining>0?'red':'green'}"><div class="stat-icon">⏳</div><div class="stat-num">${fn(remaining)}</div><div class="stat-label">إجمالي المتبقي على العملاء</div></div>
+      <div class="stat-card blue"><div class="stat-icon">🏢</div><div class="stat-num" style="color:#5dade2">${fn(supplierObligation)}</div><div class="stat-label">إجمالي تكلفة الرحلة (المورد)</div></div>
+      <div class="stat-card ${profit>=0?'green':'red'}"><div class="stat-icon">${profit>=0?'📈':'📉'}</div><div class="stat-num">${fn(Math.abs(profit))}</div><div class="stat-label">${profit>=0?'✅ صافي ربح الرحلة':'⚠️ خسارة الرحلة'}</div></div>
+    </div>
+    <div style="background:linear-gradient(135deg,var(--side-2),var(--side-3));border:1px solid var(--side-border);border-radius:var(--radius);padding:14px;margin-bottom:16px;font-size:13px;display:flex;flex-wrap:wrap;gap:16px">
+      <div>🏢 <b>المدفوع فعليًا للمورد:</b> <span style="color:#4caf84;font-weight:700">${fn(supplierPaidActual)} ج</span></div>
+      <div>⚖️ <b>المتبقي للمورد:</b> <span style="color:${(supplierObligation-supplierPaidActual)>0?'var(--red-light)':'#4caf84'};font-weight:700">${fn(Math.abs(supplierObligation-supplierPaidActual))} ج</span></div>
+      ${otherExp>0?`<div>💸 <b>مصاريف إضافية (خلاف المورد):</b> <span style="color:var(--red-light);font-weight:700">${fn(otherExp)} ج</span></div>`:''}
+      <div>📊 <b>إجمالي تكلفة الرحلة (مورد + مصاريف):</b> <span style="color:var(--red-light);font-weight:700">${fn(totalCost)} ج</span></div>
     </div>
     <div class="table-wrap"><table>
-      <thead><tr><th>العميل</th><th>الجواز</th><th>النوع</th><th>التسكين</th><th style="color:var(--red-light)">المستحق</th><th style="color:#4caf84">المدفوع</th><th>المتبقي</th><th>الحالة</th></tr></thead>
+      <thead><tr><th>العميل</th><th>الجواز</th><th>النوع</th><th>التسكين</th><th style="color:var(--red-light)">المستحق</th><th style="color:#4caf84">المدفوع</th><th>المتبقي</th><th>تكلفة المورد</th><th>المكسب</th><th>الحالة</th></tr></thead>
       <tbody>${rows}</tbody>
-      <tfoot><tr style="background:var(--bg3);font-weight:700"><td colspan="4">الإجمالي</td><td style="color:var(--red-light)">${fn(totalRev)} ج</td><td style="color:#4caf84">${fn(totalColl)} ج</td><td style="color:var(--red-light)">${fn(remaining)} ج</td><td></td></tr></tfoot>
+      <tfoot><tr style="background:var(--bg3);font-weight:700"><td colspan="4">الإجمالي</td><td style="color:var(--red-light)">${fn(totalRev)} ج</td><td style="color:#4caf84">${fn(totalColl)} ج</td><td style="color:var(--red-light)">${fn(remaining)} ج</td><td>${fn(supplierObligation)} ج</td><td style="color:${profit>=0?'#4caf84':'var(--red-light)'}">${fn(profit)} ج</td><td></td></tr></tfoot>
     </table></div>
-    ${exps.length?`<div style="margin-top:14px"><div class="card-title" style="margin-bottom:10px">💸 مصروفات الرحلة</div><div class="table-wrap"><table><thead><tr><th>البند</th><th>المورد</th><th>المبلغ</th><th>العملة</th></tr></thead><tbody>${exps.map(e=>`<tr><td>${e.category}</td><td>${e.supplier||'-'}</td><td>${fn(e.amount)}</td><td>${e.currency}</td></tr>`).join('')}</tbody><tfoot><tr style="font-weight:700;background:var(--bg3)"><td colspan="2">إجمالي المصروفات</td><td>${fn(totalExp)} ج</td><td></td></tr></tfoot></table></div></div>`:''}`;
+    ${exps.length?`<div style="margin-top:14px"><div class="card-title" style="margin-bottom:10px">💸 مصروفات الرحلة الإضافية (خلاف المورد)</div><div class="table-wrap"><table><thead><tr><th>البند</th><th>المورد</th><th>المبلغ</th><th>العملة</th></tr></thead><tbody>${exps.map(e=>`<tr><td>${e.category}</td><td>${e.supplier||'-'}</td><td>${fn(e.amount)}</td><td>${e.currency}</td></tr>`).join('')}</tbody><tfoot><tr style="font-weight:700;background:var(--bg3)"><td colspan="2">إجمالي المصروفات الإضافية</td><td>${fn(otherExp)} ج</td><td></td></tr></tfoot></table></div></div>`:''}`;
   } catch(e){res.innerHTML='<div class="info-box danger">❌ خطأ: '+e.message+'</div>';}
 }
 
@@ -5504,7 +6456,7 @@ let _jrnLineIdx = 0;
 let _jrnCurrentEntry = null;
 
 // فتح modal لقيد جديد
-function openJournalModal(entryId=null){
+async function openJournalModal(entryId=null){
   _jrnCurrentEntry = entryId;
   _jrnLineIdx = 0;
   document.getElementById('jrn-edit-id').value = entryId || '';
@@ -5516,34 +6468,407 @@ function openJournalModal(entryId=null){
   document.getElementById('jrn-notes').value = '';
   document.getElementById('jrn-type').value = 'manual';
   document.getElementById('jrn-currency').value = 'EGP';
+  document.getElementById('jrn-client-dir').value = 'in';
+  document.getElementById('jrn-client-method').value = 'كاش';
+  document.getElementById('jrn-sup-dir').value = 'out';
+  document.getElementById('jrn-sup-method').value = 'كاش';
+  document.getElementById('jrn-from-acc').value = 'كاش';
+  document.getElementById('jrn-to-acc').value = 'تحويل';
   document.getElementById('jrn-lines-cnt').innerHTML = '';
   document.getElementById('jrn-balance-check').style.display = 'none';
-  onJrnTypeChange();
-
-  // ملء قوائم العملاء والموردين والرحلات
   const cSel = document.getElementById('jrn-client-sel');
-  cSel.innerHTML = '<option value="">-- اختر العميل --</option>' +
-    aClients.map(c=>`<option value="${c.id}">${c.full_name_ar}</option>`).join('');
-
   const supSel = document.getElementById('jrn-sup-sel');
-  supSel.innerHTML = '<option value="">-- اختر المورد --</option>' +
-    aSups.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
-
   const tripSel = document.getElementById('jrn-trip-sel');
-  tripSel.innerHTML = '<option value="">-- اختر الرحلة --</option>' +
-    aTrips.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
-
-  // لو تعديل: جلب البيانات الحالية
-  if(entryId){
-    loadJrnEntryForEdit(entryId);
-  } else {
-    // إضافة سطرين افتراضيين (مدين + دائن)
-    addJrnLine({side:'debit', account:'', amount:0});
-    addJrnLine({side:'credit', account:'', amount:0});
-  }
-
+  cSel.innerHTML = '<option value="">-- جاري تحميل العملاء... --</option>';
+  supSel.innerHTML = '<option value="">-- جاري تحميل الموردين... --</option>';
   openM('jrn-modal');
+  // نتأكد إن قوائم العملاء/الموردين/الرحلات محمّلة فعليًا قبل ما نعرضها (ممكن تكون لسه ماتحمّلتش لو المستخدم مفتحش تبويبهم الأصلي قبل كده)
+  try{
+    if(!aClients.length) aClients = await sb('haj_clients?is_cancelled=eq.false&limit=1000');
+    if(!aSups.length) aSups = await sb('haj_suppliers?order=name.asc&limit=200');
+    if(!aTrips.length) aTrips = await sb('haj_trips?order=depart_date.desc&limit=200');
+  }catch(e){ toast('تعذر تحميل قوائم العملاء/الموردين: '+e.message,'error'); }
+  cSel.innerHTML = '<option value="">-- اختر العميل --</option>' + aClients.map(c=>`<option value="${c.id}">${c.full_name_ar}</option>`).join('');
+  supSel.innerHTML = '<option value="">-- اختر المورد --</option>' + aSups.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  tripSel.innerHTML = '<option value="">-- اختر الرحلة --</option>' + aTrips.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+  onJrnTypeChange();
+  if(entryId){ loadJrnEntryForEdit(entryId); }
 }
+
+async function loadJrnEntryForEdit(id){
+  try{
+    const entries = await sb(`haj_journal?id=eq.${id}&limit=1`);
+    if(!entries.length) return;
+    const e = entries[0];
+    document.getElementById('jrn-date').value = e.entry_date || '';
+    document.getElementById('jrn-desc').value = e.description || '';
+    document.getElementById('jrn-ref').value = e.reference_no || '';
+    document.getElementById('jrn-notes').value = e.notes || '';
+    document.getElementById('jrn-type').value = e.entry_type || 'manual';
+    document.getElementById('jrn-currency').value = e.currency || 'EGP';
+    onJrnTypeChange();
+    if(e.client_id) document.getElementById('jrn-client-sel').value = e.client_id;
+    if(e.supplier_id) document.getElementById('jrn-sup-sel').value = e.supplier_id;
+    if(e.trip_id) document.getElementById('jrn-trip-sel').value = e.trip_id;
+    if(e.from_account) document.getElementById('jrn-from-acc').value = e.from_account;
+    if(e.to_account) document.getElementById('jrn-to-acc').value = e.to_account;
+    const lines = await sb(`haj_journal_lines?journal_id=eq.${id}&order=id.asc&limit=50`);
+    document.getElementById('jrn-lines-cnt').innerHTML = '';
+    _jrnLineIdx = 0;
+    lines.forEach(l => addJrnLine({side:l.side, account:l.account_name, amount:l.amount, lineId:l.id}));
+    updateJrnBalance();
+  }catch(e){ toast('خطأ في جلب القيد: '+e.message,'error'); }
+}
+
+function onJrnTypeChange(){
+  const t = document.getElementById('jrn-type').value;
+  document.getElementById('jrn-client-row').style.display   = (t==='client') ? 'block' : 'none';
+  document.getElementById('jrn-supplier-row').style.display = (t==='supplier') ? 'block' : 'none';
+  document.getElementById('jrn-transfer-row').style.display = (t==='transfer') ? 'block' : 'none';
+  rebuildJrnLines();
+}
+
+const JRN_METHOD_LABELS = {'كاش':'🪙 الخزنة (كاش)','تحويل':'🏦 البنك (تحويل)','فيزا':'💳 فيزا','شيك':'📄 شيكات'};
+
+// يعيد بناء سطري القيد الافتراضيين حسب النوع + الاتجاه (تحصيل/دفع) + طريقة الدفع
+// بيحافظ على أي سطور إضافية ضافها المستخدم يدويًا (بيتوقف عن اللمس لو فيه أكتر من سطرين)
+function rebuildJrnLines(){
+  const t = document.getElementById('jrn-type').value;
+  const cnt = document.getElementById('jrn-lines-cnt');
+  const curLines = [...cnt.querySelectorAll('[id^="jrn-line-"]')];
+  if(curLines.length > 2) return;
+  let keepAmount = 0;
+  if(curLines.length){
+    const idx0 = curLines[0].id.replace('jrn-line-','');
+    keepAmount = +document.getElementById('jl-amt-'+idx0)?.value || 0;
+  }
+  cnt.innerHTML = '';
+  _jrnLineIdx = 0;
+
+  const clientSel = document.getElementById('jrn-client-sel');
+  const clientName = clientSel && clientSel.value ? clientSel.options[clientSel.selectedIndex].textContent : '';
+  const supSel = document.getElementById('jrn-sup-sel');
+  const supName = supSel && supSel.value ? supSel.options[supSel.selectedIndex].textContent : '';
+
+  if(t==='client'){
+    const dir = document.getElementById('jrn-client-dir').value; // in=تحصيل من العميل | out=دفع/استرجاع له
+    const methodLabel = JRN_METHOD_LABELS[document.getElementById('jrn-client-method').value] || 'الخزنة (كاش)';
+    const clAcc = clientName ? `ذمم العميل - ${clientName}` : 'ذمم العملاء';
+    if(dir==='in'){ addJrnLine({side:'debit',account:methodLabel,amount:keepAmount}); addJrnLine({side:'credit',account:clAcc,amount:keepAmount}); }
+    else{ addJrnLine({side:'debit',account:clAcc,amount:keepAmount}); addJrnLine({side:'credit',account:methodLabel,amount:keepAmount}); }
+  }
+  else if(t==='supplier'){
+    const dir = document.getElementById('jrn-sup-dir').value; // out=دفع للمورد | in=تحصيل/استرجاع منه
+    const methodLabel = JRN_METHOD_LABELS[document.getElementById('jrn-sup-method').value] || 'الخزنة (كاش)';
+    const supAcc = supName ? `ذمم المورد - ${supName}` : 'ذمم الموردين';
+    if(dir==='out'){ addJrnLine({side:'debit',account:supAcc,amount:keepAmount}); addJrnLine({side:'credit',account:methodLabel,amount:keepAmount}); }
+    else{ addJrnLine({side:'debit',account:methodLabel,amount:keepAmount}); addJrnLine({side:'credit',account:supAcc,amount:keepAmount}); }
+  }
+  else if(t==='transfer'){
+    const from = document.getElementById('jrn-from-acc').value;
+    const to = document.getElementById('jrn-to-acc').value;
+    addJrnLine({side:'debit',account:JRN_METHOD_LABELS[to]||to,amount:keepAmount});
+    addJrnLine({side:'credit',account:JRN_METHOD_LABELS[from]||from,amount:keepAmount});
+  }
+  else if(t==='expense'){
+    addJrnLine({side:'debit',account:'مصروفات',amount:keepAmount});
+    addJrnLine({side:'credit',account:'الخزنة (كاش)',amount:keepAmount});
+  }
+  else{
+    addJrnLine({side:'debit',account:'',amount:keepAmount});
+    addJrnLine({side:'credit',account:'',amount:keepAmount});
+  }
+}
+
+function jlAccTypeOptions(selectedType){
+  const opts = [
+    ['cash','🪙 الخزنة (كاش)'],
+    ['bank','🏦 البنك (تحويل)'],
+    ['visa','💳 فيزا'],
+    ['check','📄 شيكات'],
+    ['client','👤 عميل معين'],
+    ['supplier','🏢 مورد معين'],
+    ['other','✏️ حساب آخر (حر)']
+  ];
+  return opts.map(([v,l])=>`<option value="${v}" ${v===selectedType?'selected':''}>${l}</option>`).join('');
+}
+
+// يحاول يفهم نوع الحساب من النص المخزّن (لعرض القيود القديمة/الجاهزة بشكل صحيح كقوائم)
+function inferJlAccType(accountName){
+  const n = (accountName||'').trim();
+  if(n==='الخزنة (كاش)') return {type:'cash', detail:''};
+  if(n==='البنك (تحويل)') return {type:'bank', detail:''};
+  if(n==='فيزا') return {type:'visa', detail:''};
+  if(n==='شيكات') return {type:'check', detail:''};
+  if(n.startsWith('ذمم العميل - ')){
+    const label = n.slice('ذمم العميل - '.length);
+    const c = aClients.find(x=>x.full_name_ar===label);
+    if(c) return {type:'client', detail:String(c.id)};
+    return {type:'other', detail:n};
+  }
+  if(n==='ذمم العملاء') return {type:'client', detail:''};
+  if(n.startsWith('ذمم المورد - ')){
+    const label = n.slice('ذمم المورد - '.length);
+    const s = aSups.find(x=>x.name===label);
+    if(s) return {type:'supplier', detail:String(s.id)};
+    return {type:'other', detail:n};
+  }
+  if(n==='ذمم الموردين') return {type:'supplier', detail:''};
+  return {type:'other', detail:n};
+}
+
+function renderJlDetail(idx, type, presetDetail){
+  const wrap = document.getElementById('jl-detail-wrap-'+idx);
+  if(!wrap) return;
+  if(type==='client'){
+    wrap.innerHTML = `<select id="jl-detail-${idx}" onchange="updateJrnBalance()" style="border-radius:6px;padding:7px 10px;font-size:13px;width:100%"><option value="">-- اختر العميل --</option>${aClients.map(c=>`<option value="${c.id}" ${String(c.id)===String(presetDetail)?'selected':''}>${c.full_name_ar}</option>`).join('')}</select>`;
+  } else if(type==='supplier'){
+    wrap.innerHTML = `<select id="jl-detail-${idx}" onchange="updateJrnBalance()" style="border-radius:6px;padding:7px 10px;font-size:13px;width:100%"><option value="">-- اختر المورد --</option>${aSups.map(s=>`<option value="${s.id}" ${String(s.id)===String(presetDetail)?'selected':''}>${s.name}</option>`).join('')}</select>`;
+  } else if(type==='other'){
+    wrap.innerHTML = `<input id="jl-detail-${idx}" type="text" list="jrn-accounts-list" value="${(presetDetail||'').replace(/"/g,'&quot;')}" placeholder="اسم الحساب..." style="border-radius:6px;padding:7px 10px;font-size:13px;width:100%">`;
+  } else {
+    wrap.innerHTML = `<div style="padding:7px 10px;font-size:12px;color:var(--text-muted,#999)">— حساب مالي مباشر —</div>`;
+  }
+}
+
+function onJlAccTypeChange(idx){
+  const type = document.getElementById('jl-acctype-'+idx).value;
+  renderJlDetail(idx, type, '');
+  updateJrnBalance();
+}
+
+// يبني اسم الحساب النهائي اللي هيتخزن من نوع السطر + التفصيلة المختارة
+function jlAccountName(idx){
+  const type = document.getElementById('jl-acctype-'+idx)?.value;
+  if(type==='cash') return 'الخزنة (كاش)';
+  if(type==='bank') return 'البنك (تحويل)';
+  if(type==='visa') return 'فيزا';
+  if(type==='check') return 'شيكات';
+  if(type==='client'){
+    const sel = document.getElementById('jl-detail-'+idx);
+    const name = sel && sel.value ? sel.options[sel.selectedIndex].textContent : '';
+    return name ? `ذمم العميل - ${name}` : '';
+  }
+  if(type==='supplier'){
+    const sel = document.getElementById('jl-detail-'+idx);
+    const name = sel && sel.value ? sel.options[sel.selectedIndex].textContent : '';
+    return name ? `ذمم المورد - ${name}` : '';
+  }
+  const inp = document.getElementById('jl-detail-'+idx);
+  return inp ? inp.value.trim() : '';
+}
+
+function addJrnLine(data={}){
+  _jrnLineIdx++;
+  const idx = _jrnLineIdx;
+  let type, detail;
+  if(data.acctype){ type = data.acctype; detail = data.detail||''; }
+  else { const inf = inferJlAccType(data.account); type = inf.type; detail = inf.detail; }
+  const div = document.createElement('div');
+  div.id = 'jrn-line-' + idx;
+  div.style.cssText = 'display:grid;grid-template-columns:95px 150px 1fr 130px auto;gap:8px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;background:var(--bg2)';
+  div.innerHTML = `
+    <select id="jl-side-${idx}" onchange="updateJrnBalance()" style="border-radius:6px;padding:7px 8px;font-size:12px;font-weight:700">
+      <option value="debit" ${data.side==='debit'?'selected':''}>مدين (ح)</option>
+      <option value="credit" ${data.side==='credit'?'selected':''}>دائن (د)</option>
+    </select>
+    <select id="jl-acctype-${idx}" onchange="onJlAccTypeChange(${idx})" style="border-radius:6px;padding:7px 8px;font-size:12px">${jlAccTypeOptions(type)}</select>
+    <div id="jl-detail-wrap-${idx}"></div>
+    <input id="jl-amt-${idx}" type="number" value="${data.amount||0}" min="0" step="0.01" placeholder="0.00" oninput="updateJrnBalance()" style="border-radius:6px;padding:7px 10px;font-size:13px;font-weight:700">
+    <button onclick="removeJrnLine(${idx})" style="background:rgba(192,57,43,.15);border:1px solid rgba(192,57,43,.3);color:var(--red-light);border-radius:6px;padding:7px 9px;cursor:pointer;font-size:13px">🗑️</button>
+  `;
+  document.getElementById('jrn-lines-cnt').appendChild(div);
+  renderJlDetail(idx, type, detail);
+  if(!document.getElementById('jrn-accounts-list')){
+    const dl = document.createElement('datalist');
+    dl.id = 'jrn-accounts-list';
+    const COMMON_ACCOUNTS = ['إيرادات الرحلات','أرباح رحلات','مصروفات عامة','مصروفات فنادق','مصروفات تذاكر','مصروفات تأشيرات','مصروفات نقل'];
+    dl.innerHTML = COMMON_ACCOUNTS.map(a=>`<option value="${a}">`).join('');
+    document.body.appendChild(dl);
+  }
+  updateJrnBalance();
+}
+
+function removeJrnLine(idx){
+  const el = document.getElementById('jrn-line-'+idx);
+  if(el) el.remove();
+  updateJrnBalance();
+}
+
+function updateJrnBalance(){
+  const lines = [...document.querySelectorAll('[id^="jrn-line-"]')];
+  let totalDebit=0, totalCredit=0;
+  lines.forEach(l=>{
+    const idx = l.id.replace('jrn-line-','');
+    const side = document.getElementById('jl-side-'+idx)?.value;
+    const amt = +document.getElementById('jl-amt-'+idx)?.value||0;
+    if(side==='debit') totalDebit+=amt; else totalCredit+=amt;
+    l.style.borderColor = side==='debit' ? 'rgba(192,57,43,.35)' : 'rgba(34,160,107,.35)';
+    l.style.background = side==='debit' ? 'rgba(192,57,43,.05)' : 'rgba(34,160,107,.05)';
+  });
+  const bal = document.getElementById('jrn-balance-check');
+  if(lines.length > 0){
+    bal.style.display = 'flex';
+    const diff = Math.abs(totalDebit - totalCredit);
+    if(diff < 0.01){
+      bal.className = 'jrn-balance-check ok';
+      bal.innerHTML = `✅ القيد متوازن — مجموع مدين: ${fn(totalDebit)} | مجموع دائن: ${fn(totalCredit)}`;
+    } else {
+      bal.className = 'jrn-balance-check err';
+      bal.innerHTML = `⚠️ غير متوازن — مدين: ${fn(totalDebit)} | دائن: ${fn(totalCredit)} | الفرق: ${fn(diff)}`;
+    }
+  } else { bal.style.display = 'none'; }
+}
+
+async function saveJrnEntry(){
+  const entryId = document.getElementById('jrn-edit-id').value;
+  const date = document.getElementById('jrn-date').value;
+  const desc = document.getElementById('jrn-desc').value.trim();
+  if(!date||!desc){toast('التاريخ والبيان إلزاميان','error');return;}
+  const lines = [...document.querySelectorAll('[id^="jrn-line-"]')];
+  let totalDebit=0, totalCredit=0;
+  const lineData = [];
+  let lineClientId = document.getElementById('jrn-client-sel').value || null;
+  let lineSupplierId = document.getElementById('jrn-sup-sel').value || null;
+  lines.forEach(l=>{
+    const idx = l.id.replace('jrn-line-','');
+    const side = document.getElementById('jl-side-'+idx)?.value;
+    const type = document.getElementById('jl-acctype-'+idx)?.value;
+    const acc = jlAccountName(idx);
+    const amt = +document.getElementById('jl-amt-'+idx)?.value||0;
+    if(!acc||!amt) return;
+    if(side==='debit') totalDebit+=amt; else totalCredit+=amt;
+    lineData.push({side,account_name:acc,amount:amt});
+    if(type==='client' && !lineClientId){
+      const sel = document.getElementById('jl-detail-'+idx);
+      if(sel && sel.value) lineClientId = sel.value;
+    }
+    if(type==='supplier' && !lineSupplierId){
+      const sel = document.getElementById('jl-detail-'+idx);
+      if(sel && sel.value) lineSupplierId = sel.value;
+    }
+  });
+  if(Math.abs(totalDebit-totalCredit)>0.01){toast('القيد غير متوازن — يجب أن يتساوى المدين والدائن','error');return;}
+  if(!lineData.length){toast('أضف سطور القيد أولاً (لازم تختار حساب ومبلغ لكل سطر)','error');return;}
+  const entry = {
+    entry_date: date, description: desc,
+    reference_no: document.getElementById('jrn-ref').value.trim()||null,
+    entry_type: document.getElementById('jrn-type').value,
+    currency: document.getElementById('jrn-currency').value,
+    notes: document.getElementById('jrn-notes').value.trim()||null,
+    total_debit: totalDebit, total_credit: totalCredit,
+    client_id: lineClientId||null,
+    supplier_id: lineSupplierId||null,
+    trip_id: document.getElementById('jrn-trip-sel').value||null,
+    from_account: document.getElementById('jrn-from-acc').value||null,
+    to_account: document.getElementById('jrn-to-acc').value||null,
+    is_manual: true
+  };
+  try{
+    let savedId;
+    const isNewEntry = !entryId;
+    if(entryId){ await sb(`haj_journal?id=eq.${entryId}`,'PATCH',entry); savedId = +entryId; await sb(`haj_journal_lines?journal_id=eq.${entryId}`,'DELETE'); }
+    else{ const res = await sb('haj_journal','POST',entry); savedId = res[0]?.id; }
+    for(const l of lineData){ await sb('haj_journal_lines','POST',{journal_id:savedId, side:l.side, account_name:l.account_name, amount:l.amount}); }
+    // لو القيد "دفع لمورد" مربوط برحلة، نسجّله كمان في مدفوعات المورد عشان يظهر وينقص من كشف حساب المورد لنفس الرحلة تلقائيًا
+    if(isNewEntry && entry.entry_type==='supplier' && document.getElementById('jrn-sup-dir').value==='out' && entry.trip_id && entry.supplier_id){
+      try{
+        await sb('haj_supplier_payments','POST',{
+          trip_id: entry.trip_id, supplier_id: entry.supplier_id, amount: totalDebit, currency: entry.currency,
+          payment_method: document.getElementById('jrn-sup-method').value||null,
+          payment_date: entry.entry_date, reference_no: entry.reference_no,
+          notes: `مرحّل تلقائيًا من القيد اليومي #${savedId} — ${entry.description}`
+        });
+        delete _supPayCache[entry.trip_id];
+      }catch(e){ /* الجدول أو الربط قد لا يكون متاحًا؛ القيد اليومي نفسه اتحفظ بنجاح على أي حال */ }
+    }
+    toast(`✅ تم حفظ القيد رقم ${savedId}`,'success');
+    closeM('jrn-modal'); loadJournal();
+  }catch(e){
+    if(e.message.includes('does not exist')){ toast('❗ جدول القيود غير موجود — شغّل الـ SQL التالي في Supabase','error'); setTimeout(()=>showJrnSqlSetup(),600); }
+    else { toast('خطأ: '+e.message,'error'); }
+  }
+}
+
+async function deleteJrnEntry(){
+  const entryId = document.getElementById('jrn-edit-id').value;
+  if(!entryId)return;
+  if(!await sConfirm('حذف هذا القيد؟','لا يمكن التراجع','📒',true)) return;
+  try{
+    await sb(`haj_journal_lines?journal_id=eq.${entryId}`,'DELETE');
+    await sb(`haj_journal?id=eq.${entryId}`,'DELETE');
+    toast('تم حذف القيد'); closeM('jrn-modal'); closeM('jrn-view-modal'); loadJournal();
+  }catch(e){toast('خطأ: '+e.message,'error');}
+}
+
+// حذف مباشر من صفوف الجدول من غير فتح مودال
+async function deleteJrnEntryFromList(id){
+  if(!id)return;
+  if(!await sConfirm('حذف هذا القيد؟','لا يمكن التراجع','📒',true)) return;
+  try{
+    await sb(`haj_journal_lines?journal_id=eq.${id}`,'DELETE');
+    await sb(`haj_journal?id=eq.${id}`,'DELETE');
+    toast('تم حذف القيد'); loadJournal();
+  }catch(e){toast('خطأ: '+e.message,'error');}
+}
+
+function showJrnSqlSetup(){
+  const sql = `CREATE TABLE IF NOT EXISTS haj_journal (id BIGSERIAL PRIMARY KEY, entry_date DATE NOT NULL, description TEXT NOT NULL, reference_no TEXT, entry_type TEXT DEFAULT 'manual', currency TEXT DEFAULT 'EGP', notes TEXT, total_debit NUMERIC DEFAULT 0, total_credit NUMERIC DEFAULT 0, client_id BIGINT, supplier_id BIGINT, trip_id BIGINT, from_account TEXT, to_account TEXT, is_manual BOOLEAN DEFAULT true, created_at TIMESTAMPTZ DEFAULT NOW());\nCREATE TABLE IF NOT EXISTS haj_journal_lines (id BIGSERIAL PRIMARY KEY, journal_id BIGINT REFERENCES haj_journal(id) ON DELETE CASCADE, side TEXT NOT NULL CHECK (side IN ('debit','credit')), account_name TEXT NOT NULL, amount NUMERIC DEFAULT 0, created_at TIMESTAMPTZ DEFAULT NOW());`;
+  const w = window.open('','_blank');
+  w.document.write(`<html dir="rtl"><head><meta charset="UTF-8"><title>SQL Setup</title><style>body{font-family:monospace;padding:30px;background:#111;color:#e0e0e0}pre{background:#1e1e1e;border:1px solid #333;padding:20px;border-radius:8px;white-space:pre-wrap;font-size:13px}h2{color:#d4a843}button{background:#1a7a52;color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-size:14px;margin-top:14px}</style></head><body><h2>🗄️ SQL لإنشاء جداول القيود اليومية</h2><p>انسخ وشغّل في Supabase &gt; SQL Editor:</p><pre>${sql}</pre><button onclick="navigator.clipboard.writeText(document.querySelector('pre').textContent).then(()=>alert('تم النسخ!'))">📋 نسخ SQL</button></body></html>`);
+}
+
+async function viewJrnEntry(id){
+  try{
+    const entries = await sb(`haj_journal?id=eq.${id}&limit=1`);
+    if(!entries.length) return;
+    const e = entries[0];
+    const lines = await sb(`haj_journal_lines?journal_id=eq.${id}&order=id.asc&limit=50`);
+    const typeLabel={manual:'يدوي',client:'أداء عميل',supplier:'دفعة مورد',transfer:'تحويل',expense:'مصروف'};
+    let clientInfo='', supInfo='';
+    if(e.client_id){ const c=aClients.find(x=>x.id==e.client_id); clientInfo=c?c.full_name_ar:''; }
+    if(e.supplier_id){ const s=aSups.find(x=>x.id==e.supplier_id); supInfo=s?s.name:''; }
+    const linesHtml = lines.map(l=>`<tr><td><span class="badge ${l.side==='debit'?'badge-red':'badge-green'}">${l.side==='debit'?'مدين':'دائن'}</span></td><td style="font-weight:600">${l.account_name}</td><td style="${l.side==='debit'?'color:var(--red-light)':'color:#3ed898'};font-weight:700;text-align:left">${fn(l.amount)} ${e.currency}</td></tr>`).join('');
+    const totalDebit=lines.filter(l=>l.side==='debit').reduce((s,l)=>s+(+l.amount),0);
+    const totalCredit=lines.filter(l=>l.side==='credit').reduce((s,l)=>s+(+l.amount),0);
+    const balanced=Math.abs(totalDebit-totalCredit)<0.01;
+    document.getElementById('jrn-view-title').textContent = `قيد #${e.id} — ${fd(e.entry_date)}`;
+    document.getElementById('jrn-view-edit-btn').onclick = ()=>{closeM('jrn-view-modal');openJournalModal(id);};
+    document.getElementById('jrn-view-content').innerHTML=`
+      <div class="jrn-view-section"><div class="jrn-view-title">بيانات القيد</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
+          <div><span style="color:var(--text3)">التاريخ:</span> <b>${fd(e.entry_date)}</b></div>
+          <div><span style="color:var(--text3)">النوع:</span> <b>${typeLabel[e.entry_type]||e.entry_type}</b></div>
+          <div style="grid-column:1/-1"><span style="color:var(--text3)">البيان:</span> <b>${e.description}</b></div>
+          ${e.reference_no?`<div><span style="color:var(--text3)">المرجع:</span> <b>${e.reference_no}</b></div>`:''}
+          ${clientInfo?`<div><span style="color:var(--text3)">العميل:</span> <b>${clientInfo}</b></div>`:''}
+          ${supInfo?`<div><span style="color:var(--text3)">المورد:</span> <b>${supInfo}</b></div>`:''}
+          ${e.notes?`<div style="grid-column:1/-1"><span style="color:var(--text3)">ملاحظات:</span> ${e.notes}</div>`:''}
+        </div>
+      </div>
+      <div style="margin-top:12px"><div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px">📊 أطراف القيد</div>
+        <table class="jrn-lines-table">
+          <thead><tr><th>الجانب</th><th>الحساب</th><th style="text-align:left">المبلغ</th></tr></thead>
+          <tbody>${linesHtml}</tbody>
+          <tfoot><tr style="background:var(--bg3);font-weight:700"><td colspan="2">الإجمالي</td><td style="text-align:left"><span style="color:var(--red-light)">م: ${fn(totalDebit)}</span> &nbsp;|&nbsp; <span style="color:#3ed898">د: ${fn(totalCredit)}</span></td></tr></tfoot>
+        </table>
+        <div class="jrn-balance-check ${balanced?'ok':'err'}" style="margin-top:10px">${balanced?'✅ القيد متوازن':'⚠️ القيد غير متوازن!'}</div>
+      </div>`;
+    openM('jrn-view-modal');
+  }catch(e){toast('خطأ: '+e.message,'error');}
+}
+
+function printJrnEntry(){
+  const content = document.getElementById('jrn-view-content').innerHTML;
+  const title = document.getElementById('jrn-view-title').textContent;
+  const win = window.open('','_blank');
+  win.document.write(`<html dir="rtl"><head><meta charset="UTF-8"><title>${title}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{size:A4;margin:10mm 12mm}body{font-family:'Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif;padding:24px;direction:rtl;line-height:1.6}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:7px 10px;text-align:right;font-size:12px}th{background:#1a6b4a;color:white}.jrn-balance-check{padding:8px 14px;border-radius:6px;margin-top:12px;display:block;font-weight:700}.ok{background:#e8fef2;color:#1a6b4a}.err{background:#fef2f2;color:#c0392b}.jrn-view-section{background:#f9f9f9;border:1px solid #eee;border-radius:8px;padding:14px;margin-bottom:12px}.jrn-view-title{font-size:11px;text-transform:uppercase;color:#999;margin-bottom:8px;border-bottom:1px solid #eee;padding-bottom:4px}</style></head><body><h2>📒 ${title}</h2>${content}</body></html>`);
+  win.document.close();
+  setTimeout(()=>win.print(),400);
+}
+
 
 async function loadJrnEntryForEdit(id){
   try{
@@ -5805,31 +7130,19 @@ async function loadJournal() {
   const typeF=document.getElementById('jrn-type-f')?.value||'';
   const res=document.getElementById('acc-jrn-result');
   const statsEl=document.getElementById('jrn-stats');
-
   if(!from&&!to){toast('اختر فترة زمنية','info');return;}
-
   res.innerHTML='<div class="loading"><div class="spinner"></div><p>جاري التحميل...</p></div>';
-
   try {
-    // القيود اليدوية
     let jrnQuery='haj_journal?order=entry_date.desc&limit=500';
     if(from) jrnQuery+=`&entry_date=gte.${from}`;
     if(to) jrnQuery+=`&entry_date=lte.${to}`;
     if(typeF==='manual') jrnQuery+='&is_manual=eq.true';
     else if(typeF==='client') jrnQuery+='&entry_type=eq.client';
     else if(typeF==='supplier') jrnQuery+='&entry_type=eq.supplier';
-
     let manualEntries=[];
     try{ manualEntries = await sb(jrnQuery); }catch(e){
-      if(e.message.includes('does not exist')){
-        res.innerHTML=`<div class="info-box warning"><span>ℹ️</span><div><b>جدول القيود اليومية غير موجود بعد.</b><br>لإنشاؤه، <a href="#" onclick="showJrnSqlSetup();return false" style="color:var(--gold)">انقر هنا لعرض SQL الإعداد</a> وشغّله في Supabase.</div></div>`;
-        statsEl.style.display='none';
-        return;
-      }
-      throw e;
+      if(e.message.includes('does not exist')){ res.innerHTML=`<div class="info-box warning"><span>ℹ️</span><div><b>جدول القيود اليومية غير موجود.</b> <a href="#" onclick="showJrnSqlSetup();return false" style="color:var(--gold)">انقر هنا لإنشائه</a></div></div>`; if(statsEl)statsEl.style.display='none'; return; } throw e;
     }
-
-    // مدفوعات العملاء (من haj_payments) - إلا لو الفلتر manual فقط
     let payEntries=[];
     if(typeF!=='manual' && typeF!=='supplier'){
       let payQ=`haj_payments?order=payment_date.desc&limit=500`;
@@ -5839,108 +7152,59 @@ async function loadJournal() {
       if(!aBks.length)aBks=await sb('haj_bookings?limit=500');
       if(!aClients.length)aClients=await sb('haj_clients?is_cancelled=eq.false&limit=1000');
       if(!aTrips.length)aTrips=await sb('haj_trips?limit=200');
+      payEntries.forEach(p=>_cbPayMap[p.id]=p);
     }
-
-    // دمج وترتيب
+    let supPayEntries=[];
+    if(typeF!=='manual' && typeF!=='client'){
+      let supPayQ=`haj_supplier_payments?order=payment_date.desc&limit=500`;
+      if(from) supPayQ+=`&payment_date=gte.${from}`;
+      if(to)   supPayQ+=`&payment_date=lte.${to}`;
+      try{ supPayEntries = await sb(supPayQ); }catch(e){}
+      if(!aSups.length)aSups=await sb('haj_suppliers?order=name.asc&limit=200');
+      if(!aTrips.length)aTrips=await sb('haj_trips?limit=200');
+      supPayEntries.forEach(p=>_cbSupPayMap[p.id]=p);
+    }
     const allItems = [
-      ...manualEntries.map(e=>({
-        _type:'manual',
-        date:e.entry_date,
-        desc:e.description,
-        ref:e.reference_no||'',
-        entryType:e.entry_type||'manual',
-        totalDebit:+e.total_debit||0,
-        totalCredit:+e.total_credit||0,
-        currency:e.currency||'EGP',
-        id:e.id,
-        raw:e
-      })),
-      ...payEntries.map(p=>{
-        const bk=aBks.find(x=>x.id==p.booking_id);
-        const c=bk?aClients.find(x=>x.id==bk.client_id):null;
-        const t=bk?aTrips.find(x=>x.id==bk.trip_id):null;
-        return {
-          _type:'payment',
-          date:p.payment_date,
-          desc:`دفعة من عميل: ${c?.full_name_ar||'-'} — ${t?.name||'-'}`,
-          ref:p.receipt_no||'',
-          entryType:'client',
-          totalDebit:0,
-          totalCredit:+p.amount,
-          currency:p.currency||'EGP',
-          id:'pay_'+p.id,
-          raw:p
-        };
-      })
+      ...manualEntries.map(e=>({_type:'manual',date:e.entry_date,desc:e.description,ref:e.reference_no||'',entryType:e.entry_type||'manual',totalDebit:+e.total_debit||0,totalCredit:+e.total_credit||0,currency:e.currency||'EGP',id:e.id})),
+      ...payEntries.map(p=>{const bk=aBks.find(x=>x.id==p.booking_id);const c=bk?aClients.find(x=>x.id==bk.client_id):null;const t=bk?aTrips.find(x=>x.id==bk.trip_id):null;return{_type:'payment',date:p.payment_date,desc:`دفعة: ${c?.full_name_ar||'⚠️ عميل غير معروف'} — ${t?.name||'-'}`,ref:p.receipt_no||'',entryType:'client',totalDebit:0,totalCredit:+p.amount,currency:p.currency||'EGP',id:'pay_'+p.id,rawId:p.id};}),
+      ...supPayEntries.map(p=>{const t=aTrips.find(x=>x.id==p.trip_id);const s=aSups.find(x=>x.id==p.supplier_id);return{_type:'supplier_payment',date:p.payment_date,desc:`دفعة مورد: ${s?.name||'⚠️ مورد غير معروف'} — ${t?.name||'-'}`,ref:p.reference_no||'',entryType:'supplier',totalDebit:+p.amount,totalCredit:0,currency:p.currency||'EGP',id:'suppay_'+p.id,rawId:p.id};})
     ].sort((a,b)=>b.date.localeCompare(a.date));
-
-    // إحصائيات
     const totalDebit=allItems.reduce((s,x)=>s+(x.totalDebit||0),0);
     const totalCredit=allItems.reduce((s,x)=>s+(x.totalCredit||0),0);
-    const manualCnt=manualEntries.length;
-    const payCnt=payEntries.length;
-
-    statsEl.innerHTML=`<div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
-      <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-num">${allItems.length}</div><div class="stat-label">إجمالي القيود</div></div>
-      <div class="stat-card"><div class="stat-icon">✏️</div><div class="stat-num">${manualCnt}</div><div class="stat-label">قيود يدوية</div></div>
-      <div class="stat-card red"><div class="stat-icon">💸</div><div class="stat-num" style="font-size:18px">${fn(totalDebit)}</div><div class="stat-label">إجمالي مدين</div></div>
-      <div class="stat-card green"><div class="stat-icon">💰</div><div class="stat-num" style="font-size:18px">${fn(totalCredit)}</div><div class="stat-label">إجمالي دائن</div></div>
-    </div>`;
-    statsEl.style.display='block';
-
-    if(!allItems.length){
-      res.innerHTML='<div class="empty-state"><div class="empty-icon">📒</div><h3>لا توجد قيود في هذه الفترة</h3><button class="btn btn-gold" onclick="openJournalModal()">➕ أضف قيد جديد</button></div>';
-      return;
+    if(statsEl){
+      statsEl.innerHTML=`<div class="stats-grid" style="grid-template-columns:repeat(4,1fr)"><div class="stat-card"><div class="stat-icon">📋</div><div class="stat-num">${allItems.length}</div><div class="stat-label">إجمالي القيود</div></div><div class="stat-card"><div class="stat-icon">✏️</div><div class="stat-num">${manualEntries.length}</div><div class="stat-label">قيود يدوية</div></div><div class="stat-card red"><div class="stat-icon">💸</div><div class="stat-num" style="font-size:18px">${fn(totalDebit)}</div><div class="stat-label">إجمالي مدين</div></div><div class="stat-card green"><div class="stat-icon">💰</div><div class="stat-num" style="font-size:18px">${fn(totalCredit)}</div><div class="stat-label">إجمالي دائن</div></div></div>`;
+      statsEl.style.display='block';
     }
-
+    if(!allItems.length){res.innerHTML='<div class="empty-state"><div class="empty-icon">📒</div><h3>لا توجد قيود في هذه الفترة</h3><button class="btn btn-gold" onclick="openJournalModal()">➕ أضف قيد جديد</button></div>';return;}
     const typeIcon={manual:'✏️',client:'👤',supplier:'🏢',transfer:'🔄',expense:'💸'};
     const typeLabel={manual:'يدوي',client:'عميل',supplier:'مورد',transfer:'تحويل',expense:'مصروف'};
-
-    const rows = allItems.map((item,i)=>{
-      const isManual = item._type==='manual';
-      const icon = typeIcon[item.entryType]||'📒';
-      return `<tr style="cursor:${isManual?'pointer':'default'}" onclick="${isManual?`viewJrnEntry(${item.id})`:''}">
-        <td>${i+1}</td>
-        <td>${fd(item.date)}</td>
-        <td>
-          <span style="display:inline-flex;align-items:center;gap:5px">
-            <span style="font-size:15px">${icon}</span>
-            <span class="badge badge-${item.entryType==='client'?'green':item.entryType==='supplier'?'blue':item.entryType==='transfer'?'gold':item.entryType==='expense'?'red':'gray'}" style="font-size:10px">${typeLabel[item.entryType]||item.entryType}</span>
-          </span>
-        </td>
+    const rows=allItems.map((item,i)=>{
+      const isManual=item._type==='manual';
+      const isClientPay=item._type==='payment';
+      const isSupPay=item._type==='supplier_payment';
+      let actionsHtml;
+      if(isManual){
+        actionsHtml=`<div style="display:flex;gap:4px"><button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();viewJrnEntry(${item.id})" title="عرض القيد">👁️</button><button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();openJournalModal(${item.id})" title="تعديل">✏️</button><button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();deleteJrnEntryFromList(${item.id})" title="حذف">🗑️</button></div>`;
+      } else if(isClientPay){
+        actionsHtml=`<div style="display:flex;gap:4px"><button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();viewAutoEntry('client',${item.rawId})" title="عرض القيد">👁️</button><button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();editCbClientPayment(${item.rawId})" title="تعديل">✏️</button><button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();confirmDelPay(${item.rawId})" title="حذف">🗑️</button></div>`;
+      } else if(isSupPay){
+        actionsHtml=`<div style="display:flex;gap:4px"><button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();viewAutoEntry('supplier',${item.rawId})" title="عرض القيد">👁️</button><button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();editCbSupplierPayment(${item.rawId})" title="تعديل">✏️</button></div>`;
+      } else {
+        actionsHtml='<span style="font-size:11px;color:var(--text3)">تلقائي</span>';
+      }
+      const rowClick=isManual?`viewJrnEntry(${item.id})`:isClientPay?`viewAutoEntry('client',${item.rawId})`:isSupPay?`viewAutoEntry('supplier',${item.rawId})`:'';
+      return`<tr style="cursor:${rowClick?'pointer':'default'}" onclick="${rowClick}">
+        <td>${i+1}</td><td>${fd(item.date)}</td>
+        <td><span class="badge badge-${item.entryType==='client'?'green':item.entryType==='supplier'?'blue':item.entryType==='transfer'?'gold':item.entryType==='expense'?'red':'gray'}">${typeIcon[item.entryType]||'📒'} ${typeLabel[item.entryType]||item.entryType}</span></td>
         <td style="max-width:250px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b>${item.desc}</b></td>
         <td style="color:var(--text3);font-size:12px">${item.ref||'-'}</td>
         <td style="color:var(--red-light);font-weight:700">${item.totalDebit>0?fn(item.totalDebit)+' '+item.currency:''}</td>
         <td style="color:#3ed898;font-weight:700">${item.totalCredit>0?fn(item.totalCredit)+' '+item.currency:''}</td>
-        <td>
-          ${isManual?`<div style="display:flex;gap:4px">
-            <button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();viewJrnEntry(${item.id})" title="عرض">👁️</button>
-            <button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();openJournalModal(${item.id})" title="تعديل">✏️</button>
-            <button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();deleteJrnEntryFromList(${item.id})" title="حذف">🗑️</button>
-          </div>`:'<span style="font-size:11px;color:var(--text3)">تلقائي</span>'}
-        </td>
+        <td>${actionsHtml}</td>
       </tr>`;
     }).join('');
-
-    res.innerHTML=`<div class="table-wrap"><table>
-      <thead><tr>
-        <th>#</th><th>التاريخ</th><th>النوع</th><th>البيان</th><th>مرجع</th>
-        <th style="color:var(--red-light)">مدين</th>
-        <th style="color:#3ed898">دائن</th>
-        <th>إجراءات</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-      <tfoot><tr style="background:var(--bg3);font-weight:700">
-        <td colspan="5">الإجمالي (${allItems.length} قيد)</td>
-        <td style="color:var(--red-light)">${fn(totalDebit)}</td>
-        <td style="color:#3ed898">${fn(totalCredit)}</td>
-        <td></td>
-      </tr></tfoot>
-    </table></div>`;
-  } catch(e){
-    res.innerHTML='<div class="info-box danger">❌ خطأ: '+e.message+'</div>';
-    console.error(e);
-  }
+    res.innerHTML=`<div class="table-wrap"><table><thead><tr><th>#</th><th>التاريخ</th><th>النوع</th><th>البيان</th><th>مرجع</th><th style="color:var(--red-light)">مدين</th><th style="color:#3ed898">دائن</th><th>إجراءات</th></tr></thead><tbody>${rows}</tbody><tfoot><tr style="background:var(--bg3);font-weight:700"><td colspan="5">الإجمالي (${allItems.length} قيد)</td><td style="color:var(--red-light)">${fn(totalDebit)}</td><td style="color:#3ed898">${fn(totalCredit)}</td><td></td></tr></tfoot></table></div>`;
+  } catch(e){res.innerHTML='<div class="info-box danger">❌ خطأ: '+e.message+'</div>';console.error(e);}
 }
 
 // عرض تفاصيل قيد
@@ -6106,7 +7370,8 @@ async function printClientStatement(cid) {
   });
   const coName=document.getElementById('cfg-co')?.value||'Adriaska Tours';
   const html=`<html dir="rtl"><head><meta charset="UTF-8"><title>كشف حساب</title>
-  <style>body{font-family:Arial,sans-serif;padding:20px}h1{color:#1a6b4a;border-bottom:3px solid #c9a84c;padding-bottom:8px}h2{color:#666;font-size:14px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #ddd;padding:7px 10px;text-align:right}th{background:#1a6b4a;color:white}.tot{font-weight:bold;background:#f0f0f0}@media print{body{padding:5px}}</style>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{size:A4;margin:10mm 12mm}body{font-family:'Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif;padding:20px;line-height:1.6}h1{color:#1a6b4a;border-bottom:3px solid #c9a84c;padding-bottom:8px}h2{color:#666;font-size:14px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #ddd;padding:7px 10px;text-align:right}th{background:#1a6b4a;color:white}.tot{font-weight:bold;background:#f0f0f0}@media print{body{padding:5px}}</style>
   </head><body>
   <h1>كشف حساب عميل - ${coName}</h1>
   <h2>العميل: ${c?.full_name_ar} | جواز: ${c?.passport_no||'-'} | تليفون: ${c?.phone||'-'}</h2>
@@ -6123,11 +7388,18 @@ async function printClientStatement(cid) {
 async function printTripStatement(tid) {
   document.getElementById('acc-tr-sel').value=tid;
   await loadTripStatement();
-  setTimeout(()=>window.print(),500);
+  const body=document.getElementById('acc-tr-result').innerHTML;
+  if(!body || !body.includes('<table')){toast('لا توجد بيانات لطباعتها','error');return;}
+  const trip=aTrips.find(x=>x.id==tid);
+  openStyledPrintWindow('كشف حساب رحلة','🗓️ كشف حساب رحلة', trip?trip.name:'كشف حساب رحلة', trip?('📅 '+fd(trip.depart_date)):'', body);
 }
 
 async function printBalance() {
-  setTimeout(()=>window.print(),300);
+  const body=document.getElementById('acc-bal-result').innerHTML;
+  if(!body || !body.includes('stats-grid')){toast('اضغط "عرض" لحساب الميزان أولاً','error');return;}
+  const tid=document.getElementById('acc-bal-trip')?.value;
+  const label=tid?(aTrips.find(x=>x.id==tid)?.name||''):'كل الرحلات';
+  openStyledPrintWindow('ميزان المراجعة','⚖️ ميزان المراجعة', 'ميزان المراجعة', label, body);
 }
 
 async function exportJournalExcel() {
@@ -6908,8 +8180,20 @@ function stopTaskReminders(){
 let _supPayCache = {}; // { tripId: [...payments] }
 
 async function loadSupplierAccount() {
-  const tid = +document.getElementById('sup-acc-trip').value;
   const el = document.getElementById('sup-acc-result');
+  // تأكد إن البيانات الأساسية موجودة
+  if(!aTrips.length){
+    try{aTrips=await sb('haj_trips?order=depart_date.desc&limit=200');}catch(e){}
+  }
+  if(!aSups.length){
+    try{aSups=await sb('haj_suppliers?order=name.asc&limit=200');}catch(e){}
+  }
+  // إعادة ملء القايمة لو كانت فاضية
+  const sel=document.getElementById('sup-acc-trip');
+  if(sel && sel.options.length<=1 && aTrips.length){
+    sel.innerHTML='<option value="">-- اختر الرحلة --</option>'+aTrips.map(t=>`<option value="${t.id}">${t.name} ${t.supplier_id?'('+(aSups.find(s=>s.id==t.supplier_id)?.name||'')+')':''}</option>`).join('');
+  }
+  const tid = +sel.value;
   if(!tid){el.innerHTML='<div class="empty-state"><div class="empty-icon">🏢</div><h3>اختر رحلة</h3></div>';return;}
   el.innerHTML='<div class="empty-state"><div class="empty-icon">⏳</div><h3>جاري الحساب...</h3></div>';
   try{
@@ -6935,8 +8219,17 @@ async function loadSupplierAccount() {
       pgBks.forEach(b=>{
         const rt=b.room_type||'ثنائي';
         dist[rt]=(dist[rt]||0)+1;
-        const key='sup_cost_'+(roomMap[rt]||'double');
-        pgObl+=(+pg[key]||0);
+        let cost=0;
+        if(rt==='بدون'){
+          // طفل بدون سرير — يستخدم sup_cost_child أو child_cost إن وُجد، وإلا صفر
+          cost=(+pg.sup_cost_child||+pg.child_cost||0);
+        } else if(rt==='رضيع'){
+          cost=(+pg.sup_cost_infant||0);
+        } else {
+          const key='sup_cost_'+(roomMap[rt]||'double');
+          cost=(+pg[key]||0);
+        }
+        pgObl+=cost;
       });
       totalObligation+=pgObl;
       const distStr=Object.entries(dist).map(([k,v])=>`${k}: ${v}`).join(' | ');
@@ -6965,7 +8258,7 @@ async function loadSupplierAccount() {
     if(progRows.length){
       html+=`<div class="card-title" style="margin:16px 0 8px">📋 تفاصيل الالتزام بالبرنامج</div>
       <div class="table-wrap"><table>
-        <thead><tr><th>كود البرنامج</th><th>عدد الأفراد</th><th>التوزيع</th><th>تكلفة الثنائي</th><th>تكلفة الثلاثي</th><th>تكلفة الرباعي</th><th>الالتزام</th></tr></thead>
+        <thead><tr><th>كود البرنامج</th><th>عدد الأفراد</th><th>التوزيع</th><th>تكلفة الثنائي</th><th>تكلفة الثلاثي</th><th>تكلفة الرباعي</th><th>تكلفة الخماسي</th><th>تكلفة الطفل</th><th>تكلفة الرضيع</th><th>الالتزام</th></tr></thead>
         <tbody>`;
       progRows.forEach(r=>{
         html+=`<tr>
@@ -6975,10 +8268,13 @@ async function loadSupplierAccount() {
           <td>${fn(r.pg.sup_cost_double||0)} ج</td>
           <td>${fn(r.pg.sup_cost_triple||0)} ج</td>
           <td>${fn(r.pg.sup_cost_quad||0)} ج</td>
+          <td>${fn(r.pg.sup_cost_quint||0)} ج</td>
+          <td>${fn(r.pg.sup_cost_child||r.pg.child_cost||0)} ج</td>
+          <td>${fn(r.pg.sup_cost_infant||0)} ج</td>
           <td><b style="color:var(--gold)">${fn(r.pgObl)} ج</b></td>
         </tr>`;
       });
-      html+=`<tr style="background:var(--side-2)"><td colspan="6"><b>إجمالي الالتزام</b></td><td><b style="color:var(--red-light);font-size:16px">${fn(totalObligation)} ج</b></td></tr>
+      html+=`<tr style="background:var(--side-2)"><td colspan="9"><b>إجمالي الالتزام</b></td><td><b style="color:var(--red-light);font-size:16px">${fn(totalObligation)} ج</b></td></tr>
       </tbody></table></div>`;
     }
 
@@ -6990,21 +8286,24 @@ async function loadSupplierAccount() {
     if(supPays.length){
       let running=0;
       html+=`<div class="table-wrap"><table>
-        <thead><tr><th>#</th><th>التاريخ</th><th>المبلغ</th><th>العملة</th><th>طريقة الدفع</th><th>مرجع</th><th>ملاحظات</th><th>الرصيد المتبقي</th><th>إجراءات</th></tr></thead>
+        <thead><tr><th>#</th><th>التاريخ</th><th>المبلغ</th><th>العملة</th><th>من حساب</th><th>طريقة الدفع</th><th>مرجع</th><th>ملاحظات</th><th>الرصيد المتبقي</th><th>إجراءات</th></tr></thead>
         <tbody>`;
+      const accIcons={'كاش':'🪙','تحويل':'🏦','فيزا':'💳','شيك':'📄'};
       supPays.forEach((p,i)=>{
         running+=+p.amount;
         const rem=totalObligation-running;
+        const accLabel=p.payment_account?(accIcons[p.payment_account]||'💰')+' '+(p.payment_account):'—';
         html+=`<tr>
           <td>${i+1}</td>
           <td>${fd(p.payment_date)}</td>
           <td><b style="color:var(--green)">${fn(p.amount)}</b></td>
           <td>${p.currency||'EGP'}</td>
+          <td><span style="font-weight:600;color:var(--gold-light)">${accLabel}</span></td>
           <td>${p.payment_method||'-'}</td>
           <td>${p.reference_no||'-'}</td>
           <td style="font-size:12px;color:var(--text3)">${p.notes||''}</td>
           <td><b style="color:${rem<=0?'var(--green)':'var(--red-light)'}">${fn(Math.abs(rem))} ${rem<=0?'✅':''}</b></td>
-          <td><button class="btn btn-danger btn-sm btn-icon" onclick="delSupPay(${p.id},${tid})" title="حذف">🗑️</button></td>
+          <td><button class="btn btn-outline btn-sm btn-icon" onclick="editSupPay(${p.id},${tid})" title="تعديل">✏️</button> <button class="btn btn-danger btn-sm btn-icon" onclick="delSupPay(${p.id},${tid})" title="حذف">🗑️</button></td>
         </tr>`;
       });
       html+=`<tr style="background:var(--side-2)"><td colspan="2"><b>الإجمالي المدفوع</b></td><td colspan="6"><b style="color:var(--green);font-size:15px">${fn(totalPaid)} ج</b></td><td></td></tr>
@@ -7017,34 +8316,51 @@ async function loadSupplierAccount() {
 }
 
 function openSupPayModal(tripId,supId){
+  document.getElementById('spm-ttl').textContent='💸 تسجيل دفعة للمورد';
+  document.getElementById('spm-edit-id').value='';
   document.getElementById('spm-trip-id').value=tripId;
   document.getElementById('spm-sup-id').value=supId;
   document.getElementById('spm-amt').value='';
   document.getElementById('spm-ref').value='';
   document.getElementById('spm-nts').value='';
   document.getElementById('spm-dt').value=new Date().toISOString().split('T')[0];
+  document.getElementById('spm-account').value='';
+  document.getElementById('spm-cur').value='EGP';
+  document.getElementById('spm-mth').value='كاش';
   document.getElementById('sup-pay-modal').style.display='flex';
 }
 
 async function saveSupplierPayment(){
+  const editId=document.getElementById('spm-edit-id').value;
   const tid=+document.getElementById('spm-trip-id').value;
   const sid=+document.getElementById('spm-sup-id').value;
   const amt=+document.getElementById('spm-amt').value;
+  const account=document.getElementById('spm-account').value;
   if(!amt||amt<=0){toast('أدخل مبلغ صحيح','error');return;}
+  if(!account){toast('اختر الحساب (خزنة / بنك)','error');return;}
   const d={
     trip_id:tid,supplier_id:sid,amount:amt,
     currency:document.getElementById('spm-cur').value,
     payment_method:document.getElementById('spm-mth').value,
+    payment_account:account,
     payment_date:document.getElementById('spm-dt').value,
     reference_no:document.getElementById('spm-ref').value.trim()||null,
     notes:document.getElementById('spm-nts').value.trim()||null
   };
   try{
-    await sb('haj_supplier_payments','POST',d);
-    toast('تم تسجيل الدفعة ✅','success');
+    if(editId){
+      await sb(`haj_supplier_payments?id=eq.${editId}`,'PATCH',d);
+      if(_cbSupPayMap[editId]) _cbSupPayMap[editId]={..._cbSupPayMap[editId],...d};
+      toast('تم تعديل الدفعة ✅','success');
+    } else {
+      await sb('haj_supplier_payments','POST',d);
+      toast('تم تسجيل الدفعة ✅','success');
+    }
     closeM('sup-pay-modal');
     delete _supPayCache[tid];
     loadSupplierAccount();
+    if(document.querySelector('#cb-result table')) loadCashboxStatement();
+    if(document.getElementById('acc-jrn-from')?.value || document.getElementById('acc-jrn-to')?.value) loadJournal();
   }catch(e){toast('خطأ: '+e.message,'error');}
 }
 
@@ -7089,6 +8405,11 @@ async function loadCashboxStatement(){
   if(!method){el.innerHTML='<div class="empty-state"><div class="empty-icon">🏦</div><h3>اختر الخزنة أو البنك</h3></div>';sumEl.style.display='none';return;}
   el.innerHTML='<div class="empty-state"><div class="empty-icon">⏳</div><h3>جاري التحميل...</h3></div>';
   try{
+    // تحميل الجداول المرجعية كاملة أولاً (عشان اسم العميل/المورد/الرحلة يظهر صح في كل الأحوال)
+    if(!aSups.length)   aSups=await sb('haj_suppliers?order=name.asc&limit=200');
+    if(!aTrips.length)  aTrips=await sb('haj_trips?limit=200');
+    if(!aBks.length)    aBks=await sb('haj_bookings?limit=2000');
+    if(!aClients.length)aClients=await sb('haj_clients?is_cancelled=eq.false&limit=1000');
     // دفعات العملاء
     let payQ=`haj_payments?payment_method=eq.${encodeURIComponent(method)}&order=payment_date.asc&limit=2000`;
     if(from) payQ+=`&payment_date=gte.${from}`;
@@ -7100,6 +8421,9 @@ async function loadCashboxStatement(){
     if(to)   supPayQ+=`&payment_date=lte.${to}`;
     let supPays=[];
     try{supPays=await sb(supPayQ);}catch(e){}
+    // كاش سريع لأزرار عرض/تعديل القيد
+    pays.forEach(p=>_cbPayMap[p.id]=p);
+    supPays.forEach(p=>_cbSupPayMap[p.id]=p);
     // دمج الحركات وترتيبها
     const credits=pays.map(p=>({date:p.payment_date,type:'credit',desc:'دفعة عميل',ref:p.receipt_no||'',amount:+p.amount,currency:p.currency||'EGP',src:p}));
     const debits=supPays.map(p=>({date:p.payment_date,type:'debit',desc:'دفعة للمورد',ref:p.reference_no||'',amount:+p.amount,currency:p.currency||'EGP',src:p}));
@@ -7125,12 +8449,14 @@ async function loadCashboxStatement(){
       if(x.type==='credit'){
         const bk=aBks?.find?.(b=>b.id==x.src.booking_id);
         const cl=bk?aClients.find(c=>c.id==bk.client_id):null;
-        name=cl?.full_name_ar||'-';
+        const trip=bk?aTrips.find(t=>t.id==bk.trip_id):null;
+        name=(cl?.full_name_ar||'⚠️ عميل غير معروف')+(trip?' / '+trip.name:'');
       } else {
         const trip=aTrips.find(t=>t.id==x.src.trip_id);
         const sup=aSups.find(s=>s.id==x.src.supplier_id);
-        name=(sup?.name||'')+(trip?' / '+trip.name:'');
+        name=(sup?.name||'⚠️ مورد غير معروف')+(trip?' / '+trip.name:'');
       }
+      const entryKind=x.type==='credit'?'client':'supplier';
       rows+=`<tr>
         <td>${i+1}</td>
         <td>${fd(x.date)}</td>
@@ -7140,6 +8466,7 @@ async function loadCashboxStatement(){
         <td style="color:var(--green);font-weight:700">${x.type==='credit'?fn(x.amount)+' '+x.currency:''}</td>
         <td style="color:var(--red-light);font-weight:700">${x.type==='debit'?fn(x.amount)+' '+x.currency:''}</td>
         <td style="font-weight:700;color:${running>=0?'var(--green)':'var(--red-light)'}">${fn(running)}</td>
+        <td style="white-space:nowrap"><button class="btn btn-outline btn-sm btn-icon" onclick="viewAutoEntry('${entryKind}',${x.src.id})" title="عرض تفاصيل القيد">👁️</button> <button class="btn btn-outline btn-sm btn-icon" onclick="${entryKind==='client'?`editCbClientPayment(${x.src.id})`:`editCbSupplierPayment(${x.src.id})`}" title="تعديل القيد">✏️</button></td>
       </tr>`;
     });
     el.innerHTML=`<div style="margin-bottom:8px;font-size:13px;color:var(--text2)">
@@ -7148,7 +8475,7 @@ async function loadCashboxStatement(){
       <button class="btn btn-outline btn-sm" onclick="exportCashboxExcel()">📊 Excel</button>
     </div>
     <div class="table-wrap"><table>
-      <thead><tr><th>#</th><th>التاريخ</th><th>البيان</th><th>الجهة</th><th>مرجع</th><th style="color:var(--green)">وارد</th><th style="color:var(--red-light)">صادر</th><th>الرصيد</th></tr></thead>
+      <thead><tr><th>#</th><th>التاريخ</th><th>البيان</th><th>الجهة</th><th>مرجع</th><th style="color:var(--green)">وارد</th><th style="color:var(--red-light)">صادر</th><th>الرصيد</th><th>إجراءات</th></tr></thead>
       <tbody>${rows}</tbody>
     </table></div>`;
   }catch(e){el.innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><h3>خطأ: ${e.message}</h3></div>`;console.error(e);}
@@ -7156,13 +8483,16 @@ async function loadCashboxStatement(){
 
 function printCashboxStatement(){
   const method=document.getElementById('cb-method-sel').value;
+  if(!method){toast('اختر طريقة الدفع أولاً','error');return;}
   const sum=document.getElementById('cb-summary').innerHTML;
-  const body=document.getElementById('cb-result').innerHTML;
-  const win=window.open('','_blank');
-  win.document.write(`<html dir="rtl"><head><meta charset="UTF-8"><title>كشف ${method}</title>
-  <style>body{font-family:Arial;padding:20px;direction:rtl}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:5px 8px;font-size:11px}th{background:#f0f0f0}.stats-grid{display:flex;gap:12px;margin-bottom:16px}.stat-card{border:1px solid #ccc;border-radius:6px;padding:10px 14px;flex:1}</style></head>
-  <body><h2>🏦 كشف ${method}</h2>${sum}${body}</body></html>`);
-  win.document.close();setTimeout(()=>win.print(),400);
+  const srcTable=document.querySelector('#cb-result table');
+  if(!srcTable){toast('لا توجد بيانات لطباعتها','error');return;}
+  const clone=srcTable.cloneNode(true);
+  clone.querySelectorAll('tr').forEach(tr=>{ if(tr.children.length) tr.removeChild(tr.lastElementChild); }); // استبعاد عمود إجراءات (عرض/تعديل) من الطباعة
+  const bodyWrap=document.getElementById('cb-result').cloneNode(true);
+  const wrapTable=bodyWrap.querySelector('table');
+  if(wrapTable) wrapTable.replaceWith(clone);
+  openStyledPrintWindow(`كشف ${method}`,'🏦 كشف حساب', 'كشف حركة: '+method, '', sum+bodyWrap.innerHTML);
 }
 
 async function exportCashboxExcel(){
@@ -7170,8 +8500,10 @@ async function exportCashboxExcel(){
   if(!method){toast('اختر طريقة الدفع','error');return;}
   const table=document.querySelector('#cb-result table');
   if(!table){toast('لا توجد بيانات للتصدير','error');return;}
+  const clone=table.cloneNode(true);
+  clone.querySelectorAll('tr').forEach(tr=>{ if(tr.children.length) tr.removeChild(tr.lastElementChild); }); // استبعاد عمود إجراءات (عرض/تعديل)
   const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.table_to_sheet(table);
+  const ws=XLSX.utils.table_to_sheet(clone);
   XLSX.utils.book_append_sheet(wb,ws,'كشف '+method);
   XLSX.writeFile(wb,`cashbox_${method}.xlsx`);
 }
@@ -7241,5 +8573,403 @@ function triggerPwaInstall(){
     const banner = document.getElementById('pwa-install-banner');
     if(banner) banner.classList.remove('show');
   });
+}
+
+function editSupPay(id,tid){
+  const p=(_supPayCache[tid]||[]).find(x=>x.id==id);
+  if(!p){toast('تعذر إيجاد الدفعة','error');return;}
+  document.getElementById('spm-ttl').textContent='✏️ تعديل دفعة المورد';
+  document.getElementById('spm-edit-id').value=id;
+  document.getElementById('spm-trip-id').value=p.trip_id;
+  document.getElementById('spm-sup-id').value=p.supplier_id;
+  document.getElementById('spm-amt').value=p.amount;
+  document.getElementById('spm-cur').value=p.currency||'EGP';
+  document.getElementById('spm-mth').value=p.payment_method||'كاش';
+  document.getElementById('spm-account').value=p.payment_account||'';
+  document.getElementById('spm-dt').value=p.payment_date;
+  document.getElementById('spm-ref').value=p.reference_no||'';
+  document.getElementById('spm-nts').value=p.notes||'';
+  document.getElementById('sup-pay-modal').style.display='flex';
+}
+
+async function saveSupplierPayment(){
+  const editId=document.getElementById('spm-edit-id').value;
+  const tid=+document.getElementById('spm-trip-id').value;
+  const sid=+document.getElementById('spm-sup-id').value;
+  const amt=+document.getElementById('spm-amt').value;
+  const account=document.getElementById('spm-account').value;
+  if(!amt||amt<=0){toast('أدخل مبلغ صحيح','error');return;}
+  if(!account){toast('اختر الحساب (خزنة / بنك)','error');return;}
+  const d={
+    trip_id:tid,supplier_id:sid,amount:amt,
+    currency:document.getElementById('spm-cur').value,
+    payment_method:document.getElementById('spm-mth').value,
+    payment_account:account,
+    payment_date:document.getElementById('spm-dt').value,
+    reference_no:document.getElementById('spm-ref').value.trim()||null,
+    notes:document.getElementById('spm-nts').value.trim()||null
+  };
+  try{
+    if(editId){
+      await sb(`haj_supplier_payments?id=eq.${editId}`,'PATCH',d);
+      if(_cbSupPayMap[editId]) _cbSupPayMap[editId]={..._cbSupPayMap[editId],...d};
+      toast('تم تعديل الدفعة ✅','success');
+    } else {
+      await sb('haj_supplier_payments','POST',d);
+      toast('تم تسجيل الدفعة ✅','success');
+    }
+    closeM('sup-pay-modal');
+    delete _supPayCache[tid];
+    loadSupplierAccount();
+    if(document.querySelector('#cb-result table')) loadCashboxStatement();
+    if(document.getElementById('acc-jrn-from')?.value || document.getElementById('acc-jrn-to')?.value) loadJournal();
+  }catch(e){toast('خطأ: '+e.message,'error');}
+}
+
+async function delSupPay(id,tid){
+  if(!await sConfirm('حذف الدفعة؟','سيتم حذف الدفعة نهائياً','💸',true))return;
+  try{
+    await sb(`haj_supplier_payments?id=eq.${id}`,'DELETE');
+    delete _supPayCache[tid];
+    toast('تم الحذف');
+    loadSupplierAccount();
+  }catch(e){toast('خطأ','error');}
+}
+
+function printSupplierAccount(){
+  const el=document.getElementById('sup-acc-result');
+  const body=el.innerHTML;
+  if(!body || !body.includes('<table')){toast('اختر رحلة وحمّل حساب المورد أولاً','error');return;}
+  const tid=+document.getElementById('sup-acc-trip').value;
+  const trip=aTrips.find(x=>x.id==tid);
+  openStyledPrintWindow('حساب المورد','🏢 حساب المورد', trip?('حساب المورد - '+trip.name):'حساب المورد', trip?('📅 '+fd(trip.depart_date)):'', body);
+}
+
+async function exportSupAccExcel(){
+  const el=document.getElementById('sup-acc-result');const tid=+document.getElementById('sup-acc-trip').value;if(!tid){toast('اختر رحلة','error');return;}
+  const supPays=_supPayCache[tid]||[];
+  const wb=XLSX.utils.book_new();
+  const rows=supPays.map((p,i)=>[i+1,p.payment_date,+p.amount,p.currency,p.payment_method,p.reference_no||'',p.notes||'']);
+  const ws=XLSX.utils.aoa_to_sheet([['#','التاريخ','المبلغ','العملة','طريقة الدفع','مرجع','ملاحظات'],...rows]);
+  XLSX.utils.book_append_sheet(wb,ws,'مدفوعات المورد');
+  XLSX.writeFile(wb,'supplier_account.xlsx');
+}
+
+// ================================================================
+// CASHBOX / BANK STATEMENT - كشف الخزن والبنوك
+// ================================================================
+async function loadCashboxStatement(){
+  const method=document.getElementById('cb-method-sel').value;
+  const from=document.getElementById('cb-from').value;
+  const to=document.getElementById('cb-to').value;
+  const el=document.getElementById('cb-result');
+  const sumEl=document.getElementById('cb-summary');
+  if(!method){el.innerHTML='<div class="empty-state"><div class="empty-icon">🏦</div><h3>اختر الخزنة أو البنك</h3></div>';sumEl.style.display='none';return;}
+  el.innerHTML='<div class="empty-state"><div class="empty-icon">⏳</div><h3>جاري التحميل...</h3></div>';
+  try{
+    // تحميل الجداول المرجعية كاملة أولاً (عشان اسم العميل/المورد/الرحلة يظهر صح في كل الأحوال)
+    if(!aSups.length)   aSups=await sb('haj_suppliers?order=name.asc&limit=200');
+    if(!aTrips.length)  aTrips=await sb('haj_trips?limit=200');
+    if(!aBks.length)    aBks=await sb('haj_bookings?limit=2000');
+    if(!aClients.length)aClients=await sb('haj_clients?is_cancelled=eq.false&limit=1000');
+    // دفعات العملاء
+    let payQ=`haj_payments?payment_method=eq.${encodeURIComponent(method)}&order=payment_date.asc&limit=2000`;
+    if(from) payQ+=`&payment_date=gte.${from}`;
+    if(to)   payQ+=`&payment_date=lte.${to}`;
+    const pays=await sb(payQ);
+    // مدفوعات للموردين من نفس الطريقة
+    let supPayQ=`haj_supplier_payments?payment_method=eq.${encodeURIComponent(method)}&order=payment_date.asc&limit=500`;
+    if(from) supPayQ+=`&payment_date=gte.${from}`;
+    if(to)   supPayQ+=`&payment_date=lte.${to}`;
+    let supPays=[];
+    try{supPays=await sb(supPayQ);}catch(e){}
+    // كاش سريع لأزرار عرض/تعديل القيد
+    pays.forEach(p=>_cbPayMap[p.id]=p);
+    supPays.forEach(p=>_cbSupPayMap[p.id]=p);
+    // دمج الحركات وترتيبها
+    const credits=pays.map(p=>({date:p.payment_date,type:'credit',desc:'دفعة عميل',ref:p.receipt_no||'',amount:+p.amount,currency:p.currency||'EGP',src:p}));
+    const debits=supPays.map(p=>({date:p.payment_date,type:'debit',desc:'دفعة للمورد',ref:p.reference_no||'',amount:+p.amount,currency:p.currency||'EGP',src:p}));
+    const all=[...credits,...debits].sort((a,b)=>a.date.localeCompare(b.date));
+    const totalIn=credits.reduce((s,x)=>s+x.amount,0);
+    const totalOut=debits.reduce((s,x)=>s+x.amount,0);
+    const balance=totalIn-totalOut;
+    // ملخص
+    sumEl.style.display='grid';
+    sumEl.innerHTML=`<div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card"><div class="stat-icon">🟢</div><div class="stat-num" style="color:var(--green)">${fn(totalIn)}</div><div class="stat-label">إجمالي الوارد</div></div>
+      <div class="stat-card"><div class="stat-icon">🔴</div><div class="stat-num" style="color:var(--red-light)">${fn(totalOut)}</div><div class="stat-label">إجمالي الصادر</div></div>
+      <div class="stat-card"><div class="stat-icon">⚖️</div><div class="stat-num" style="color:${balance>=0?'var(--green)':'var(--red-light)'}">${fn(Math.abs(balance))}</div><div class="stat-label">${balance>=0?'رصيد دائن':'رصيد مدين'}</div></div>
+    </div>`;
+    if(!all.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><h3>لا توجد حركات في هذه الفترة</h3></div>';return;}
+    let running=0;
+    let rows='';
+    all.forEach((x,i)=>{
+      if(x.type==='credit') running+=x.amount;
+      else running-=x.amount;
+      // اسم العميل أو المورد
+      let name='-';
+      if(x.type==='credit'){
+        const bk=aBks?.find?.(b=>b.id==x.src.booking_id);
+        const cl=bk?aClients.find(c=>c.id==bk.client_id):null;
+        const trip=bk?aTrips.find(t=>t.id==bk.trip_id):null;
+        name=(cl?.full_name_ar||'⚠️ عميل غير معروف')+(trip?' / '+trip.name:'');
+      } else {
+        const trip=aTrips.find(t=>t.id==x.src.trip_id);
+        const sup=aSups.find(s=>s.id==x.src.supplier_id);
+        name=(sup?.name||'⚠️ مورد غير معروف')+(trip?' / '+trip.name:'');
+      }
+      const entryKind=x.type==='credit'?'client':'supplier';
+      rows+=`<tr>
+        <td>${i+1}</td>
+        <td>${fd(x.date)}</td>
+        <td>${x.desc}</td>
+        <td>${name}</td>
+        <td>${x.ref}</td>
+        <td style="color:var(--green);font-weight:700">${x.type==='credit'?fn(x.amount)+' '+x.currency:''}</td>
+        <td style="color:var(--red-light);font-weight:700">${x.type==='debit'?fn(x.amount)+' '+x.currency:''}</td>
+        <td style="font-weight:700;color:${running>=0?'var(--green)':'var(--red-light)'}">${fn(running)}</td>
+        <td style="white-space:nowrap"><button class="btn btn-outline btn-sm btn-icon" onclick="viewAutoEntry('${entryKind}',${x.src.id})" title="عرض تفاصيل القيد">👁️</button> <button class="btn btn-outline btn-sm btn-icon" onclick="${entryKind==='client'?`editCbClientPayment(${x.src.id})`:`editCbSupplierPayment(${x.src.id})`}" title="تعديل القيد">✏️</button></td>
+      </tr>`;
+    });
+    el.innerHTML=`<div style="margin-bottom:8px;font-size:13px;color:var(--text2)">
+      <b>الفترة:</b> ${from?fd(from):'الكل'} — ${to?fd(to):'الآن'} &nbsp;|&nbsp; <b>العمليات:</b> ${all.length}
+      <button class="btn btn-outline btn-sm" style="margin-right:12px" onclick="printCashboxStatement()">🖨️ طباعة</button>
+      <button class="btn btn-outline btn-sm" onclick="exportCashboxExcel()">📊 Excel</button>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>التاريخ</th><th>البيان</th><th>الجهة</th><th>مرجع</th><th style="color:var(--green)">وارد</th><th style="color:var(--red-light)">صادر</th><th>الرصيد</th><th>إجراءات</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+  }catch(e){el.innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><h3>خطأ: ${e.message}</h3></div>`;console.error(e);}
+}
+
+function printCashboxStatement(){
+  const method=document.getElementById('cb-method-sel').value;
+  if(!method){toast('اختر طريقة الدفع أولاً','error');return;}
+  const sum=document.getElementById('cb-summary').innerHTML;
+  const srcTable=document.querySelector('#cb-result table');
+  if(!srcTable){toast('لا توجد بيانات لطباعتها','error');return;}
+  const clone=srcTable.cloneNode(true);
+  clone.querySelectorAll('tr').forEach(tr=>{ if(tr.children.length) tr.removeChild(tr.lastElementChild); }); // استبعاد عمود إجراءات (عرض/تعديل) من الطباعة
+  const bodyWrap=document.getElementById('cb-result').cloneNode(true);
+  const wrapTable=bodyWrap.querySelector('table');
+  if(wrapTable) wrapTable.replaceWith(clone);
+  openStyledPrintWindow(`كشف ${method}`,'🏦 كشف حساب', 'كشف حركة: '+method, '', sum+bodyWrap.innerHTML);
+}
+
+async function exportCashboxExcel(){
+  const method=document.getElementById('cb-method-sel').value;
+  if(!method){toast('اختر طريقة الدفع','error');return;}
+  const table=document.querySelector('#cb-result table');
+  if(!table){toast('لا توجد بيانات للتصدير','error');return;}
+  const clone=table.cloneNode(true);
+  clone.querySelectorAll('tr').forEach(tr=>{ if(tr.children.length) tr.removeChild(tr.lastElementChild); }); // استبعاد عمود إجراءات (عرض/تعديل)
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.table_to_sheet(clone);
+  XLSX.utils.book_append_sheet(wb,ws,'كشف '+method);
+  XLSX.writeFile(wb,`cashbox_${method}.xlsx`);
+}
+// ================================================================
+
+// ================================================================
+// عرض/تعديل أطراف القيد التلقائي (دفعة عميل / دفعة مورد) — نفس منطق
+// نافذة "تفاصيل القيد" (jrn-view-modal) المستخدمة للقيود اليدوية، بحيث
+// أي قيد في النظام (يدوي أو تلقائي من أمر دفع) له نفس زر 👁️ عرض و ✏️ تعديل.
+// يُستخدم من: كشف الخزنة/البنك، دفتر اليومية، وأي شاشة أخرى مستقبلاً.
+// ================================================================
+async function viewAutoEntry(kind, id){
+  try{
+    let p, debitParty, creditParty, desc, ref, dateVal, curr, amt, partyLabel, partyName, extraInfo, editFn;
+    if(kind==='client'){
+      p=_cbPayMap[id];
+      if(!p){ const recs=await sb(`haj_payments?id=eq.${id}&limit=1`); if(!recs.length){toast('لم يتم العثور على الدفعة','error');return;} p=recs[0]; _cbPayMap[id]=p; }
+      if(!aBks.length) aBks=await sb('haj_bookings?limit=2000');
+      if(!aClients.length) aClients=await sb('haj_clients?is_cancelled=eq.false&limit=1000');
+      if(!aTrips.length) aTrips=await sb('haj_trips?limit=200');
+      const bk=aBks.find(b=>b.id==p.booking_id);
+      const cl=bk?aClients.find(c=>c.id==bk.client_id):null;
+      const trip=bk?aTrips.find(t=>t.id==bk.trip_id):null;
+      partyLabel='العميل'; partyName=cl?cl.full_name_ar:'⚠️ عميل غير معروف';
+      extraInfo=trip?trip.name:'';
+      debitParty=p.payment_method||'الخزنة/البنك';
+      creditParty=partyName;
+      desc='دفعة عميل'+(extraInfo?(' — '+extraInfo):'');
+      ref=p.receipt_no||''; dateVal=p.payment_date; curr=p.currency||'EGP'; amt=+p.amount;
+      editFn=()=>{closeM('jrn-view-modal'); editCbClientPayment(p.id);};
+    } else {
+      p=_cbSupPayMap[id];
+      if(!p){ const recs=await sb(`haj_supplier_payments?id=eq.${id}&limit=1`); if(!recs.length){toast('لم يتم العثور على الدفعة','error');return;} p=recs[0]; _cbSupPayMap[id]=p; }
+      if(!aSups.length) aSups=await sb('haj_suppliers?order=name.asc&limit=200');
+      if(!aTrips.length) aTrips=await sb('haj_trips?limit=200');
+      const sup=aSups.find(s=>s.id==p.supplier_id);
+      const trip=aTrips.find(t=>t.id==p.trip_id);
+      partyLabel='المورد'; partyName=sup?sup.name:'⚠️ مورد غير معروف';
+      extraInfo=trip?trip.name:'';
+      debitParty=partyName;
+      creditParty=p.payment_account||p.payment_method||'الخزنة/البنك';
+      desc='دفعة للمورد'+(extraInfo?(' — '+extraInfo):'');
+      ref=p.reference_no||''; dateVal=p.payment_date; curr=p.currency||'EGP'; amt=+p.amount;
+      editFn=()=>{closeM('jrn-view-modal'); editCbSupplierPayment(p.id);};
+    }
+    const linesHtml=`<tr><td><span class="badge badge-red">مدين</span></td><td style="font-weight:600">${debitParty}</td><td style="color:var(--red-light);font-weight:700;text-align:left">${fn(amt)} ${curr}</td></tr>
+      <tr><td><span class="badge badge-green">دائن</span></td><td style="font-weight:600">${creditParty}</td><td style="color:#3ed898;font-weight:700;text-align:left">${fn(amt)} ${curr}</td></tr>`;
+    document.getElementById('jrn-view-title').textContent=`${kind==='client'?'دفعة عميل':'دفعة مورد'} #${p.id} — ${fd(dateVal)}`;
+    document.getElementById('jrn-view-edit-btn').style.display='';
+    document.getElementById('jrn-view-edit-btn').onclick=editFn;
+    document.getElementById('jrn-view-content').innerHTML=`
+      <div class="jrn-view-section"><div class="jrn-view-title">بيانات القيد</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
+          <div><span style="color:var(--text3)">التاريخ:</span> <b>${fd(dateVal)}</b></div>
+          <div><span style="color:var(--text3)">النوع:</span> <b>${kind==='client'?'أداء عميل (تلقائي)':'دفعة مورد (تلقائي)'}</b></div>
+          <div style="grid-column:1/-1"><span style="color:var(--text3)">البيان:</span> <b>${desc}</b></div>
+          ${ref?`<div><span style="color:var(--text3)">المرجع:</span> <b>${ref}</b></div>`:''}
+          <div><span style="color:var(--text3)">${partyLabel}:</span> <b>${partyName}</b></div>
+          ${extraInfo?`<div><span style="color:var(--text3)">الرحلة/البرنامج:</span> <b>${extraInfo}</b></div>`:''}
+          ${p.notes?`<div style="grid-column:1/-1"><span style="color:var(--text3)">ملاحظات:</span> ${p.notes}</div>`:''}
+        </div>
+      </div>
+      <div style="margin-top:12px"><div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px">📊 أطراف القيد</div>
+        <table class="jrn-lines-table">
+          <thead><tr><th>الجانب</th><th>الحساب</th><th style="text-align:left">المبلغ</th></tr></thead>
+          <tbody>${linesHtml}</tbody>
+          <tfoot><tr style="background:var(--bg3);font-weight:700"><td colspan="2">الإجمالي</td><td style="text-align:left"><span style="color:var(--red-light)">م: ${fn(amt)}</span> &nbsp;|&nbsp; <span style="color:#3ed898">د: ${fn(amt)}</span></td></tr></tfoot>
+        </table>
+        <div class="jrn-balance-check ok" style="margin-top:10px">✅ القيد متوازن</div>
+      </div>`;
+    openM('jrn-view-modal');
+  }catch(e){toast('خطأ: '+e.message,'error');}
+}
+
+// فتح نافذة تعديل دفعة عميل من أي مكان (كشف خزنة، دفتر يومية...) بدون الاعتماد على تحميل تبويب المدفوعات أولاً
+function editCbClientPayment(id){
+  const p=_cbPayMap[id]||aPays.find(x=>x.id==id);
+  if(!p){toast('تعذر إيجاد الدفعة، افتح تبويب المدفوعات وحاول مجدداً','error');return;}
+  _editPayId=id;
+  document.getElementById('ep-amt').value=p.amount;
+  document.getElementById('ep-cur').value=p.currency;
+  document.getElementById('ep-mth').value=p.payment_method;
+  document.getElementById('ep-dt').value=p.payment_date;
+  document.getElementById('ep-rc').value=p.receipt_no||'';
+  document.getElementById('ep-nts').value=p.notes||'';
+  if(!aPays.some(x=>x.id==id)) aPays.push(p);
+  openM('edit-pay-modal');
+}
+
+// فتح نافذة تعديل دفعة مورد من أي مكان بنفس فكرة editCbClientPayment
+function editCbSupplierPayment(id){
+  const p=_cbSupPayMap[id];
+  if(!p){toast('تعذر إيجاد الدفعة، افتح تبويب حساب المورد وحاول مجدداً','error');return;}
+  document.getElementById('spm-ttl').textContent='✏️ تعديل دفعة المورد';
+  document.getElementById('spm-edit-id').value=id;
+  document.getElementById('spm-trip-id').value=p.trip_id;
+  document.getElementById('spm-sup-id').value=p.supplier_id;
+  document.getElementById('spm-amt').value=p.amount;
+  document.getElementById('spm-cur').value=p.currency||'EGP';
+  document.getElementById('spm-mth').value=p.payment_method||'كاش';
+  document.getElementById('spm-account').value=p.payment_account||'';
+  document.getElementById('spm-dt').value=p.payment_date;
+  document.getElementById('spm-ref').value=p.reference_no||'';
+  document.getElementById('spm-nts').value=p.notes||'';
+  if(!_supPayCache[p.trip_id]) _supPayCache[p.trip_id]=[];
+  if(!_supPayCache[p.trip_id].some(x=>x.id==id)) _supPayCache[p.trip_id].push(p);
+  document.getElementById('sup-pay-modal').style.display='flex';
+}
+
+async function viewAutoEntry(kind, id){
+  try{
+    let p, debitParty, creditParty, desc, ref, dateVal, curr, amt, partyLabel, partyName, extraInfo, editFn;
+    if(kind==='client'){
+      p=_cbPayMap[id];
+      if(!p){ const recs=await sb(`haj_payments?id=eq.${id}&limit=1`); if(!recs.length){toast('لم يتم العثور على الدفعة','error');return;} p=recs[0]; _cbPayMap[id]=p; }
+      if(!aBks.length) aBks=await sb('haj_bookings?limit=2000');
+      if(!aClients.length) aClients=await sb('haj_clients?is_cancelled=eq.false&limit=1000');
+      if(!aTrips.length) aTrips=await sb('haj_trips?limit=200');
+      const bk=aBks.find(b=>b.id==p.booking_id);
+      const cl=bk?aClients.find(c=>c.id==bk.client_id):null;
+      const trip=bk?aTrips.find(t=>t.id==bk.trip_id):null;
+      partyLabel='العميل'; partyName=cl?cl.full_name_ar:'⚠️ عميل غير معروف';
+      extraInfo=trip?trip.name:'';
+      debitParty=p.payment_method||'الخزنة/البنك';
+      creditParty=partyName;
+      desc='دفعة عميل'+(extraInfo?(' — '+extraInfo):'');
+      ref=p.receipt_no||''; dateVal=p.payment_date; curr=p.currency||'EGP'; amt=+p.amount;
+      editFn=()=>{closeM('jrn-view-modal'); editCbClientPayment(p.id);};
+    } else {
+      p=_cbSupPayMap[id];
+      if(!p){ const recs=await sb(`haj_supplier_payments?id=eq.${id}&limit=1`); if(!recs.length){toast('لم يتم العثور على الدفعة','error');return;} p=recs[0]; _cbSupPayMap[id]=p; }
+      if(!aSups.length) aSups=await sb('haj_suppliers?order=name.asc&limit=200');
+      if(!aTrips.length) aTrips=await sb('haj_trips?limit=200');
+      const sup=aSups.find(s=>s.id==p.supplier_id);
+      const trip=aTrips.find(t=>t.id==p.trip_id);
+      partyLabel='المورد'; partyName=sup?sup.name:'⚠️ مورد غير معروف';
+      extraInfo=trip?trip.name:'';
+      debitParty=partyName;
+      creditParty=p.payment_account||p.payment_method||'الخزنة/البنك';
+      desc='دفعة للمورد'+(extraInfo?(' — '+extraInfo):'');
+      ref=p.reference_no||''; dateVal=p.payment_date; curr=p.currency||'EGP'; amt=+p.amount;
+      editFn=()=>{closeM('jrn-view-modal'); editCbSupplierPayment(p.id);};
+    }
+    const linesHtml=`<tr><td><span class="badge badge-red">مدين</span></td><td style="font-weight:600">${debitParty}</td><td style="color:var(--red-light);font-weight:700;text-align:left">${fn(amt)} ${curr}</td></tr>
+      <tr><td><span class="badge badge-green">دائن</span></td><td style="font-weight:600">${creditParty}</td><td style="color:#3ed898;font-weight:700;text-align:left">${fn(amt)} ${curr}</td></tr>`;
+    document.getElementById('jrn-view-title').textContent=`${kind==='client'?'دفعة عميل':'دفعة مورد'} #${p.id} — ${fd(dateVal)}`;
+    document.getElementById('jrn-view-edit-btn').style.display='';
+    document.getElementById('jrn-view-edit-btn').onclick=editFn;
+    document.getElementById('jrn-view-content').innerHTML=`
+      <div class="jrn-view-section"><div class="jrn-view-title">بيانات القيد</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
+          <div><span style="color:var(--text3)">التاريخ:</span> <b>${fd(dateVal)}</b></div>
+          <div><span style="color:var(--text3)">النوع:</span> <b>${kind==='client'?'أداء عميل (تلقائي)':'دفعة مورد (تلقائي)'}</b></div>
+          <div style="grid-column:1/-1"><span style="color:var(--text3)">البيان:</span> <b>${desc}</b></div>
+          ${ref?`<div><span style="color:var(--text3)">المرجع:</span> <b>${ref}</b></div>`:''}
+          <div><span style="color:var(--text3)">${partyLabel}:</span> <b>${partyName}</b></div>
+          ${extraInfo?`<div><span style="color:var(--text3)">الرحلة/البرنامج:</span> <b>${extraInfo}</b></div>`:''}
+          ${p.notes?`<div style="grid-column:1/-1"><span style="color:var(--text3)">ملاحظات:</span> ${p.notes}</div>`:''}
+        </div>
+      </div>
+      <div style="margin-top:12px"><div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px">📊 أطراف القيد</div>
+        <table class="jrn-lines-table">
+          <thead><tr><th>الجانب</th><th>الحساب</th><th style="text-align:left">المبلغ</th></tr></thead>
+          <tbody>${linesHtml}</tbody>
+          <tfoot><tr style="background:var(--bg3);font-weight:700"><td colspan="2">الإجمالي</td><td style="text-align:left"><span style="color:var(--red-light)">م: ${fn(amt)}</span> &nbsp;|&nbsp; <span style="color:#3ed898">د: ${fn(amt)}</span></td></tr></tfoot>
+        </table>
+        <div class="jrn-balance-check ok" style="margin-top:10px">✅ القيد متوازن</div>
+      </div>`;
+    openM('jrn-view-modal');
+  }catch(e){toast('خطأ: '+e.message,'error');}
+}
+
+// فتح نافذة تعديل دفعة عميل من أي مكان (كشف خزنة، دفتر يومية...) بدون الاعتماد على تحميل تبويب المدفوعات أولاً
+function editCbClientPayment(id){
+  const p=_cbPayMap[id]||aPays.find(x=>x.id==id);
+  if(!p){toast('تعذر إيجاد الدفعة، افتح تبويب المدفوعات وحاول مجدداً','error');return;}
+  _editPayId=id;
+  document.getElementById('ep-amt').value=p.amount;
+  document.getElementById('ep-cur').value=p.currency;
+  document.getElementById('ep-mth').value=p.payment_method;
+  document.getElementById('ep-dt').value=p.payment_date;
+  document.getElementById('ep-rc').value=p.receipt_no||'';
+  document.getElementById('ep-nts').value=p.notes||'';
+  if(!aPays.some(x=>x.id==id)) aPays.push(p);
+  openM('edit-pay-modal');
+}
+
+// فتح نافذة تعديل دفعة مورد من أي مكان بنفس فكرة editCbClientPayment
+function editCbSupplierPayment(id){
+  const p=_cbSupPayMap[id];
+  if(!p){toast('تعذر إيجاد الدفعة، افتح تبويب حساب المورد وحاول مجدداً','error');return;}
+  document.getElementById('spm-ttl').textContent='✏️ تعديل دفعة المورد';
+  document.getElementById('spm-edit-id').value=id;
+  document.getElementById('spm-trip-id').value=p.trip_id;
+  document.getElementById('spm-sup-id').value=p.supplier_id;
+  document.getElementById('spm-amt').value=p.amount;
+  document.getElementById('spm-cur').value=p.currency||'EGP';
+  document.getElementById('spm-mth').value=p.payment_method||'كاش';
+  document.getElementById('spm-account').value=p.payment_account||'';
+  document.getElementById('spm-dt').value=p.payment_date;
+  document.getElementById('spm-ref').value=p.reference_no||'';
+  document.getElementById('spm-nts').value=p.notes||'';
+  if(!_supPayCache[p.trip_id]) _supPayCache[p.trip_id]=[];
+  if(!_supPayCache[p.trip_id].some(x=>x.id==id)) _supPayCache[p.trip_id].push(p);
+  document.getElementById('sup-pay-modal').style.display='flex';
 }
 </script>
