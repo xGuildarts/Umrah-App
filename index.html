@@ -182,10 +182,15 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   <div class="row" style="margin-bottom:8px"><label style="font-size:12px;color:var(--mut)">فلتر:</label>
     <select id="flt" style="font-size:12px;padding:4px 7px"><option value="all">الكل</option><option value="issues">أي نواقص</option><option value="docs">ناقص أوراق</option><option value="pass">جواز فيه مشكلة</option><option value="pay">مطلوب سداد</option><option value="norev">🔍 لسه ماتراجعش</option><option value="room">🛏️ مشاكل غرف</option><option value="noroom">بدون رقم غرفة</option><option value="haspass">🛂 الجواز معانا</option><option value="nopass">الجواز مع العميل</option></select>
     <span id="fltn" class="hint" style="margin:0"></span>
-    <label style="font-size:12px"><input type="checkbox" id="sortroom" checked> ترتيب بالغرفة</label>
+    <select id="sortby" style="font-size:12px;padding:4px 7px"><option value="room">ترتيب: غرفة</option><option value="bk">ترتيب: حجز</option><option value="none">ترتيب: إضافة</option></select>
     <button class="sec" id="autorm" style="font-size:12px;padding:4px 9px">🛏️ تسكين تلقائي</button></div>
   <div id="sumbar" style="font-size:13px;font-weight:700;margin-bottom:8px"></div>
   <div id="roomsum" class="hint"></div>
+  <datalist id="bklist"></datalist>
+  <details id="bkd" style="margin-bottom:8px"><summary id="bks" style="cursor:pointer;font-size:13px;color:var(--mut)">📋 الحجوزات</summary>
+    <div class="tbl-wrap" id="bkt"></div>
+    <button class="sec" id="bkp" style="margin-top:6px;font-size:12px">🖨️ طباعة كشف الحجوزات</button>
+  </details>
   <div class="tbl-wrap"><table id="main-table">
     <thead id="thead-row"></thead>
     <tbody id="tb"></tbody>
@@ -211,6 +216,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       <label><input type="checkbox" data-col="missing" checked> النواقص</label>
       <label><input type="checkbox" data-col="haspass"> 🛂 الجواز معانا؟</label>
       <label><input type="checkbox" data-col="rno" checked> 🛏️ رقم الغرفة</label>
+      <label><input type="checkbox" data-col="bk" checked> 👥 الحجز</label>
     </div>
     <div class="row">
       <label style="font-size:12px;color:var(--mut)">الاسم بـ:</label>
@@ -275,11 +281,22 @@ function roomIssue(p,g){
   return msg.join(' + ');
 }
 var ROOMS=[['single','سنجل'],['double','ثنائي'],['triple','ثلاثي'],['quad','رباعي'],['quint','خماسي']];
-function payInfo(p,g){
+function payOwn(p,g){
   var tot=+(p.custom||(g.pr||{})[p.room]||0),paid=paidOf(p),pct=(g.minPct==null||g.minPct==='')?50:+g.minPct;
   if(tot>0){var need=Math.max(0,Math.ceil(tot*pct/100-paid));return{auto:true,tot:tot,paid:paid,rem:Math.max(0,tot-paid),need:need,due:need>0,amt:need}}
   return{auto:false,tot:0,paid:paid,rem:0,need:0,due:!!p.payDue,amt:+p.payAmt||0};
 }
+function minPct(g){return(g.minPct==null||g.minPct==='')?50:+g.minPct}
+function payInfo(p,g){
+  var o=payOwn(p,g);if(!p.bk)return o;
+  var mem=S.people.filter(function(x){return x.g===g.id&&x.bk===p.bk});if(mem.length<2)return o;
+  var t=0,pd=0;mem.forEach(function(x){t+=payOwn(x,g).tot;pd+=paidOf(x)});if(t<=0)return o;
+  var need=Math.max(0,Math.ceil(t*minPct(g)/100-pd)),lead=mem[0]===p;
+  return{auto:true,bk:p.bk,lead:lead,n:mem.length,tot:o.tot,paid:o.paid,rem:Math.max(0,t-pd),btot:t,bpaid:pd,need:need,due:need>0,amt:lead?need:0};
+}
+function bookings(g){var m={};S.people.forEach(function(p){if(p.g===g.id&&p.bk)(m[p.bk]=m[p.bk]||[]).push(p)});
+  return Object.keys(m).map(function(k){var t=0,pd=0;m[k].forEach(function(x){t+=payOwn(x,g).tot;pd+=paidOf(x)});
+    return{k:k,mem:m[k],tot:t,paid:pd,rem:Math.max(0,t-pd),need:t>0?Math.max(0,Math.ceil(t*minPct(g)/100-pd)):0}})}
 function missing(p,g){
   var m=[];if(!p.photo)m.push('صورة');if(!p.passportDoc)m.push('جواز');if(!p.tajneed&&p.sex!=='F')m.push('تجنيد');
   var c=expStatus(p.exp,g.date).cls;if(c==='tag-bad')m.push('جواز منتهي');else if(c==='tag-warn')m.push('جواز أقل من سنة');
@@ -301,7 +318,8 @@ function fltOK(p,g,f){
   return true;
 }
 function viewList(){var g=grp(),f=$('flt').value,r=list().filter(function(p){return fltOK(p,g,f)});
-  if($('sortroom').checked)r=r.map(function(p,i){return[p,i]}).sort(function(a,b){var x=parseInt(a[0].rno),y=parseInt(b[0].rno);x=isNaN(x)?1e9:x;y=isNaN(y)?1e9:y;return x-y||a[1]-b[1]}).map(function(a){return a[0]});
+  var sb=$('sortby').value;if(sb==='bk')r=r.map(function(p,i){return[p,i]}).sort(function(a,b){var x=a[0].bk||'\uffff',y=b[0].bk||'\uffff';return x<y?-1:x>y?1:a[1]-b[1]}).map(function(a){return a[0]});
+  else if(sb==='room')r=r.map(function(p,i){return[p,i]}).sort(function(a,b){var x=parseInt(a[0].rno),y=parseInt(b[0].rno);x=isNaN(x)?1e9:x;y=isNaN(y)?1e9:y;return x-y||a[1]-b[1]}).map(function(a){return a[0]});
   return r}
 // MRZ check digit (ICAO 7-3-1)
 function chkD(s,c){var w=[7,3,1],t=0;for(var i=0;i<s.length;i++){var ch=s[i],v=ch==='<'?0:/\d/.test(ch)?+ch:ch.charCodeAt(0)-55;t+=v*w[i%3]}return String(t%10)===c}
@@ -389,7 +407,7 @@ async function sbLoad(){
       nat:p.nat||'',sex:p.sex||'',dob:p.dob||'',exp:p.exp||'',
       photo:p.photo||false,passportDoc:p.passport_doc||false,tajneed:p.tajneed||false,
       payDue:p.pay_due||false,payAmt:p.pay_amount==null?'':p.pay_amount,
-      room:p.room||'',paid:p.paid||'',hasPass:p.has_pass||false,pays:p.payments||[],rno:p.room_no||'',fam:p.family||false,mrz:p.mrz||'',rev:p.rev||false,custom:p.price_custom==null?'':p.price_custom
+      room:p.room||'',paid:p.paid||'',hasPass:p.has_pass||false,pays:p.payments||[],rno:p.room_no||'',fam:p.family||false,bk:p.booking||'',mrz:p.mrz||'',rev:p.rev||false,custom:p.price_custom==null?'':p.price_custom
     }});
     if(!S.groups.some(function(g){return g.id===S.active}))S.active=S.groups[0].id;
     var maxId=0;
@@ -408,7 +426,7 @@ async function sbSavePerson(p){
     nat:p.nat||'',sex:p.sex||'',dob:p.dob||null,exp:p.exp||null,
     photo:p.photo||false,passport_doc:p.passportDoc||false,tajneed:p.tajneed||false,
     pay_due:p.payDue||false,pay_amount:(p.payAmt===''||p.payAmt==null)?null:+p.payAmt,
-    room:p.room||'',paid:paidOf(p),has_pass:p.hasPass||false,payments:p.pays||[],room_no:p.rno||'',family:p.fam||false,mrz:p.mrz||'',rev:p.rev||false,price_custom:(p.custom===''||p.custom==null)?null:+p.custom
+    room:p.room||'',paid:paidOf(p),has_pass:p.hasPass||false,payments:p.pays||[],room_no:p.rno||'',family:p.fam||false,booking:p.bk||'',mrz:p.mrz||'',rev:p.rev||false,price_custom:(p.custom===''||p.custom==null)?null:+p.custom
   })});
 }
 async function sbDeletePerson(id){if(!sbReady)return;await sbFetch('fm_people?id=eq.'+id,{method:'DELETE'})}
@@ -577,7 +595,7 @@ $('prices').oninput=function(e){var i=e.target,g=grp();
   save();render()};
 $('prices').onchange=function(){sbSaveGroup(grp())};
 $('flt').onchange=function(){render()};
-$('sortroom').onchange=function(){render()};
+$('sortby').onchange=function(){render()};
 $('gnew').onclick=async function(){
   var n=prompt('اسم المجموعة الجديدة:');if(!n||!n.trim())return;
   var g={id:newId(),name:n.trim(),trip:'',date:''};
@@ -632,7 +650,7 @@ $('tb').onclick=async function(e){
 $('tb').onchange=async function(e){
   // move group
   var s=e.target.closest('select[data-m]');
-  if(s){var p=S.people.find(function(p){return p.id===+s.dataset.m});p.g=+s.value;p.rno='';save();render();await sbSavePerson(p);return}
+  if(s){var p=S.people.find(function(p){return p.id===+s.dataset.m});p.g=+s.value;p.rno='';p.bk='';save();render();await sbSavePerson(p);return}
 };
 // checkbox changes (photo / passportDoc / tajneed)
 $('tb').addEventListener('change',async function(e){
@@ -659,9 +677,9 @@ $('tb').addEventListener('change',async function(e){
 $('tb').addEventListener('change',async function(e){
   var t=e.target,p;
   if(t.dataset.room)p=S.people.find(function(x){return x.id===+t.dataset.room});
-  else if(t.classList.contains('rno'))p=S.people.find(function(x){return x.id===+t.dataset.pid});
+  else if((t.classList.contains('rno')||t.classList.contains('bk')))p=S.people.find(function(x){return x.id===+t.dataset.pid});
   if(!p)return;
-  if(t.dataset.room)p.room=t.value;else p.rno=t.value.trim();
+  if(t.dataset.room)p.room=t.value;else if(t.classList.contains('bk'))p.bk=t.value.trim();else p.rno=t.value.trim();
   save();render();await sbSavePerson(p);
 });
 $('tb').addEventListener('click',async function(e){var b=e.target.closest('button[data-sug]');if(!b)return;
@@ -680,6 +698,10 @@ $('rml').onclick=function(){var g=grp(),m=roomMap(g),mode=$('pmode').value,keys=
     return'<tr><td>'+esc(k)+'</td><td>'+esc(roomLbl(mem[0].room)+(mem.some(function(x){return x.fam})?' (Family)':''))+'</td><td>'+mem.map(function(x){return esc(nameByMode(x,mode))+' ('+esc(x.sex||'?')+(isInf(x,g)?', Infant':'')+')'}).join('<br>')+'</td><td style="color:#991b1b">'+esc(iss)+'</td></tr>'}).join('');
   var st=roomStats(g),sum=Object.keys(st).map(function(k){return esc(roomLbl(k))+': '+st[k].r}).join(' | '),un=list().filter(function(p){return!p.rno}).length;
   $('pa').innerHTML='<h2>Rooming List — '+esc(g.name)+'</h2><div class="meta">'+esc(g.trip||'')+(g.date?' | '+fmtDate(g.date):'')+' | '+sum+(un?' | Unassigned: '+un:'')+'</div><table><thead><tr><th>Room</th><th>Type</th><th>Guests</th><th>Notes</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  window.print()};
+$('bkp').onclick=function(){var g=grp(),b=bookings(g);if(!b.length){alert('مفيش حجوزات.');return}
+  var rows=b.map(function(x){return'<tr><td>'+esc(x.k)+'</td><td>'+x.mem.map(function(p){return esc(nameByMode(p,$('pmode').value))+(p.rno?' [Room '+esc(p.rno)+']':'')}).join('<br>')+'</td><td>'+x.tot+'</td><td>'+x.paid+'</td><td>'+x.rem+'</td><td'+(x.need?' style="color:#991b1b;font-weight:700"':'')+'>'+(x.need?x.need+' '+CUR:'OK')+'</td></tr>'}).join('');
+  $('pa').innerHTML='<h2>Bookings — '+esc(g.name)+'</h2><div class="meta">'+esc(g.trip||'')+(g.date?' | '+fmtDate(g.date):'')+' | Min. payment: '+minPct(g)+'%</div><table><thead><tr><th>Booking</th><th>Passengers</th><th>Total</th><th>Paid</th><th>Remaining</th><th>Due now</th></tr></thead><tbody>'+rows+'</tbody></table>';
   window.print()};
 var payId=0;
 function curP(){return S.people.find(function(x){return x.id===payId})}
@@ -737,7 +759,7 @@ function getSelectedCols(){
 function colLabel(col){
   var map={num:'#',name:'Name',pno:'Passport No.',nat:'Nationality',sex:'Sex',
     dob:'Date of Birth',exp:'Passport Expiry','exp-status':'Status',
-    pay:'Payment',haspass:'Passport Held',rno:'Room',missing:'Missing',photo:'Photo (White BG)',  'passport-doc':'Passport Copy',tajneed:'Military Status'};
+    pay:'Payment',haspass:'Passport Held',rno:'Room',bk:'Booking',missing:'Missing',photo:'Photo (White BG)',  'passport-doc':'Passport Copy',tajneed:'Military Status'};
   return map[col]||col;
 }
 function colValue(p,col,mode,tripDate){
@@ -752,7 +774,8 @@ function colValue(p,col,mode,tripDate){
   if(col==='dob')return fmtDate(p.dob);
   if(col==='exp')return fmtDate(p.exp);
   if(col==='exp-status'){var st=expStatus(p.exp,tripDate);return st.label.replace(/[✓✗⚠️]/g,'').trim()}
-  if(col==='pay'){var pi=payInfo(p,grp());return pi.due?('مطلوب سداد — '+pi.amt+' '+CUR+(pi.auto?' (مدفوع '+pi.paid+' / '+pi.tot+')':'')):(pi.auto?'مسدد '+pi.paid+' / '+pi.tot:'')}
+  if(col==='pay'){var pi=payInfo(p,grp());if(pi.bk)return'حجز '+pi.bk+(pi.lead?': '+(pi.due?'مطلوب سداد — '+pi.amt+' '+CUR:'مسدد')+' (مدفوع '+pi.bpaid+' / '+pi.btot+')':' — ضمن الحجز');return pi.due?('مطلوب سداد — '+pi.amt+' '+CUR+(pi.auto?' (مدفوع '+pi.paid+' / '+pi.tot+')':'')):(pi.auto?'مسدد '+pi.paid+' / '+pi.tot:'')}
+  if(col==='bk')return p.bk||'';
   if(col==='rno')return p.rno?(p.rno+(p.fam?' (family)':'')):'';
   if(col==='haspass')return p.hasPass?'معانا':'مع العميل';
   if(col==='missing')return missing(p,grp()).join('، ');
@@ -783,7 +806,7 @@ $('prt').onclick=function(){
   if(cols.includes('photo'))summary+='ناقص صورة: '+noPhoto+' &nbsp;';
   if(cols.includes('passport-doc'))summary+='ناقص جواز: '+noPass+' &nbsp;';
   if(cols.includes('tajneed'))summary+='بدون موقف تجنيد: '+noTaj+' &nbsp;';
-  var pays=l.filter(function(p){return payInfo(p,g).due}),ptot=pays.reduce(function(a,p){return a+payInfo(p,g).amt},0);
+  var pays=l.filter(function(p){var q=payInfo(p,g);return q.due&&(!q.bk||q.lead)}),ptot=pays.reduce(function(a,p){return a+payInfo(p,g).amt},0);
   if(cols.includes('pay')&&pays.length)summary+='<b style="color:#991b1b">💰 مطلوب سداد: '+pays.length+(ptot?' — '+ptot+' '+CUR:'')+'</b>';
 
   var thead='<tr>';
@@ -855,6 +878,9 @@ function render(){
   $('gtrip').value=g.trip||'';
   $('gdate').value=g.date||'';$('gdate').style.borderColor=(!g.date&&l.length)?'var(--warn)':'';
   var rs=roomStats(g),rp=Object.keys(rs).map(function(k){return roomLbl(k)+': '+rs[k].r+(rs[k].inc?' ('+rs[k].inc+' ناقصة)':'')}),nr=l.filter(function(p){return p.room&&!p.rno}).length,nv=l.filter(function(p){return!p.rev}).length;
+  var bks=bookings(g);$('bks').textContent='📋 الحجوزات ('+bks.length+')';
+  $('bklist').innerHTML=bks.map(function(b){return'<option value="'+esc(b.k)+'">'}).join('');
+  $('bkt').innerHTML=bks.length?'<table><thead><tr><th>الحجز</th><th>الأفراد</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>مطلوب الآن</th></tr></thead><tbody>'+bks.map(function(b){return'<tr><td>'+esc(b.k)+'</td><td>'+b.mem.map(function(p){return esc(nameFull(p))}).join('، ')+'</td><td>'+b.tot+'</td><td>'+b.paid+'</td><td>'+b.rem+'</td><td style="'+(b.need?'color:var(--bad);font-weight:700':'color:var(--ok)')+'">'+(b.need?b.need+' '+CUR:'✓')+'</td></tr>'}).join('')+'</tbody></table>':'<p class="hint">اكتب اسم حجز في خانة "حجز" لأي فرد وهيتجمعوا هنا بإجمالي حسابهم.</p>';
   $('roomsum').textContent=(rp.length?'🛏️ غرف — '+rp.join(' | '):'')+(nr?'  ·  بدون رقم غرفة: '+nr:'')+(nv?'  ·  🔍 لسه ماتراجعش: '+nv:'');
   document.querySelectorAll('#prices input[data-room]').forEach(function(i){if(document.activeElement!==i)i.value=(g.pr&&g.pr[i.dataset.room])||''});
   if(document.activeElement!==$('minpct'))$('minpct').value=g.minPct==null?50:g.minPct;
@@ -867,7 +893,7 @@ function render(){
   $('empty').style.display=l.length?'none':'block';
   // summary warning bar
   var expWarn=l.filter(function(p){var s=expStatus(p.exp,g.date);return s.cls!==''}).length;
-  var nB=l.filter(function(p){return expStatus(p.exp,g.date).cls==='tag-bad'}).length,nDoc=l.filter(function(p){return!p.photo||!p.passportDoc}).length,pays=l.filter(function(p){return payInfo(p,g).due}),tot=pays.reduce(function(a,p){return a+payInfo(p,g).amt},0);
+  var nB=l.filter(function(p){return expStatus(p.exp,g.date).cls==='tag-bad'}).length,nDoc=l.filter(function(p){return!p.photo||!p.passportDoc}).length,pays=l.filter(function(p){var q=payInfo(p,g);return q.due&&(!q.bk||q.lead)}),tot=pays.reduce(function(a,p){return a+payInfo(p,g).amt},0);
   $('sumbar').innerHTML=(l.length?((nB?'<span style="color:var(--bad)">⛔ جوازات فيها مشكلة: '+nB+'</span> &nbsp;':'')+(nDoc?'<span style="color:var(--warn)">📎 ناقص أوراق: '+nDoc+'</span> &nbsp;':'')+(pays.length?'<span style="color:var(--bad)">💰 مطلوب سداد: '+pays.length+(tot?' — '+tot.toLocaleString('en')+' '+CUR:'')+'</span>':'')||'<span style="color:var(--ok)">✓ مفيش ملاحظات</span>')+' &nbsp;<span style="color:var(--mut)">🛂 الجواز معانا: '+l.filter(function(p){return p.hasPass}).length+'/'+l.length+'</span>'+(!g.date?' &nbsp;<span style="color:var(--warn)">📅 حدد تاريخ الرحلة عشان فحص الجواز يبقى دقيق</span>':'')+(function(){var m=roomMap(g),n=0;Object.keys(m).forEach(function(k){if(roomIssue(m[k][0],g))n++});return n?' &nbsp;<span style="color:var(--warn)">🛏️ غرف فيها ملاحظات: '+n+'</span>':''})():'');
   // thead
   var opts=S.groups.map(function(x){return'<option value="'+x.id+'">'+esc(x.name)+'</option>'}).join('');
@@ -880,7 +906,7 @@ function render(){
     +'<th style="width:30px" title="موقف التجنيد">🎖️</th>'
     +'<th style="width:30px" title="الجواز الأصلي معانا">🛂</th>'
     +'<th style="width:30px" title="الاسم اتراجع مع الجواز">🔍</th>'
-    +'<th>التسكين</th><th>غرفة #</th><th>المدفوع</th><th>💰 السداد</th>'
+    +'<th>التسكين</th><th>غرفة #</th><th>حجز</th><th>المدفوع</th><th>💰 السداد</th>'
     +'<th style="width:90px">نقل لـ</th>'
     +'<th style="width:30px"></th>'
     +'</tr>';
@@ -911,8 +937,9 @@ function render(){
       +'<td class="chk"><input type="checkbox" data-pid="'+p.id+'" data-field="rev"'+(p.rev?' checked':'')+'></td>'
       +'<td><select data-room="'+p.id+'" style="font-size:12px;padding:3px 5px"><option value="">—</option>'+ROOMS.map(function(r){return'<option value="'+r[0]+'"'+(p.room===r[0]?' selected':'')+'>'+r[1]+((g.pr&&g.pr[r[0]])?' ('+g.pr[r[0]]+')':'')+'</option>'}).join('')+'</select></td>'
       +'<td><input class="rno" data-pid="'+p.id+'" value="'+esc(p.rno)+'" style="width:46px;padding:3px 5px;font-size:12px"> <label title="عائلة / غرفة مغلقة"><input type="checkbox" data-pid="'+p.id+'" data-field="fam"'+(p.fam?' checked':'')+'>👪</label>'+(p.room&&!p.rno?' <button class="sec" data-sug="'+p.id+'" title="اقتراح غرفة" style="padding:1px 5px;font-size:12px">💡</button>':'')+(ri?' <span title="'+esc(ri)+'" style="cursor:help">⚠️</span>':'')+'</td>'
+      +'<td><input class="bk" list="bklist" data-pid="'+p.id+'" value="'+esc(p.bk)+'" placeholder="—" style="width:80px;padding:3px 5px;font-size:12px"></td>'
       +'<td><button class="sec" data-pay="'+p.id+'" style="padding:3px 8px;font-size:12px">💵 '+paidOf(p)+'</button></td>'
-      +'<td style="font-size:12px">'+(pi.auto?(pi.due?'<b style="color:var(--bad)">💰 مطلوب '+pi.amt+' '+CUR+'</b>':'<b style="color:var(--ok)">✓ '+pct+'%+</b>')+'<br><span style="color:var(--mut)">المتبقي '+pi.rem+'</span>':'<label><input type="checkbox" data-pid="'+p.id+'" data-field="payDue"'+(p.payDue?' checked':'')+'> سداد</label>'+(p.payDue?' <input type="number" min="0" class="amt" data-pid="'+p.id+'" placeholder="المبلغ" value="'+esc(p.payAmt)+'" style="width:70px;padding:3px 5px;font-size:12px">':''))+'</td>'
+      +'<td style="font-size:12px">'+(pi.auto?(pi.due?'<b style="color:var(--bad)">💰 مطلوب '+(pi.bk&&!pi.lead?'ضمن الحجز':pi.amt+' '+CUR)+'</b>':'<b style="color:var(--ok)">✓ '+pct+'%+</b>')+'<br><span style="color:var(--mut)">'+(pi.bk?'حجز '+esc(pi.bk)+' ('+pi.n+'): المتبقي '+pi.rem+' من '+pi.btot:'المتبقي '+pi.rem)+'</span>':'<label><input type="checkbox" data-pid="'+p.id+'" data-field="payDue"'+(p.payDue?' checked':'')+'> سداد</label>'+(p.payDue?' <input type="number" min="0" class="amt" data-pid="'+p.id+'" placeholder="المبلغ" value="'+esc(p.payAmt)+'" style="width:70px;padding:3px 5px;font-size:12px">':''))+'</td>'
       +'<td><select data-m="'+p.id+'" style="font-size:11px;padding:3px 5px">'+opts.replace('value="'+p.g+'"','value="'+p.g+'" selected')+'</select></td>'
       +'<td><button class="x" data-d="'+p.id+'">✕</button></td>'
       +'</tr>'
