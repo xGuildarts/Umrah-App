@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title> AL-Maamoun Flights </title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#eef2f7;--card:#fff;--ink:#12284a;--mut:#5b6b82;--line:#d5dde8;
@@ -82,18 +82,49 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 /* print */
 #pa{display:none}
 @media print{
-  body{background:#fff;color:#000}
-  .wrap{display:none}
-  #pa{display:block;padding:8mm;font-family:Arial,sans-serif;color:#000;direction:ltr}
-  #pa h2{margin:0 0 2px;font-size:14px}
-  #pa .meta{font-size:11px;margin-bottom:6px;color:#555}
-  #pa table{width:100%;font-size:11px;border-collapse:collapse}
-  #pa th,#pa td{border:1px solid #000;padding:3px 6px;text-align:left}
-  #pa th{background:#eee}
+  html,body{background:#fff!important;color:#000!important}
+  .wrap,dialog,#undo-bar{display:none!important}
+  #pa{display:block;direction:ltr;color:#111;font-family:Tajawal,Tahoma,Arial,sans-serif;--fs:11.5px;--pad:5px 7px;line-height:1.35}
+  #pa.s-md{--fs:10.5px;--pad:4px 5px}
+  #pa.s-sm{--fs:9.5px;--pad:3px 4px}
+  #pa .ph{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;border-bottom:2.5px solid #0b7a75;padding-bottom:6px;margin-bottom:8px}
+  #pa .brand{font-size:10px;letter-spacing:.08em;color:#0b7a75;font-weight:700;text-transform:uppercase;margin-bottom:2px}
+  #pa h2{margin:0;font-size:20px;line-height:1.2;color:#12284a;font-weight:800}
+  #pa .sub{font-size:12px;color:#4b5b72;margin-top:3px}
+  #pa .ph .meta{display:flex;flex-wrap:wrap;gap:4px 6px;justify-content:flex-end}
+  #pa>.meta{font-size:11px;color:#4b5b72;margin:2px 0 8px}
+  #pa .mi{border:1px solid #c9d2de;border-radius:4px;padding:2px 8px;font-size:10.5px;background:#f4f7fa;white-space:nowrap}
+  #pa .mi b{color:#12284a}
+  #pa .alerts{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+  #pa .al{border-radius:4px;padding:2px 9px;font-size:10.5px;font-weight:700;border:1px solid}
+  #pa .al.bad{color:#991b1b;background:#fee2e2;border-color:#fca5a5}
+  #pa .al.warn{color:#92400e;background:#fef3c7;border-color:#fcd34d}
+  #pa .al.info{color:#12284a;background:#eef2f7;border-color:#c9d2de}
+  #pa table{width:100%;border-collapse:collapse;font-size:var(--fs)}
+  #pa thead{display:table-header-group}
+  #pa tfoot{display:table-row-group}
+  #pa tr{break-inside:avoid;page-break-inside:avoid}
+  #pa th,#pa td{border:1px solid #b7c2d0;padding:var(--pad);text-align:start;vertical-align:middle}
+  #pa th{background:#12284a;color:#fff;font-weight:700;text-align:center;line-height:1.25;border-color:#12284a}
+  #pa th small{display:block;font-weight:500;font-size:.85em;opacity:.85}
+  #pa tbody tr:nth-child(even){background:#f4f7fa}
+  #pa tbody tr.due{background:#fee2e2!important}
+  #pa td.c{text-align:center}
+  #pa td.nm{font-weight:700;color:#0b1b33;white-space:nowrap}
+  #pa td.mono{direction:ltr;text-align:left;font-family:Consolas,'Courier New',monospace;white-space:nowrap;letter-spacing:.03em}
+  #pa td.l{direction:ltr;text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
+  #pa td.num{text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
+  #pa td.ok{color:#166534;font-weight:800;text-align:center}
+  #pa td.no{color:#991b1b;font-weight:800;text-align:center}
+  #pa td.bad{color:#991b1b;font-weight:800}
+  #pa .chip{display:inline-block;border:1px solid #fca5a5;background:#fef2f2;color:#991b1b;border-radius:3px;padding:0 5px;margin:1px 2px;font-size:.9em;white-space:nowrap}
+  #pa tfoot td{background:#e3eaf2;font-weight:800;border-top:2px solid #12284a;text-align:center}
+  #pa .tag-ok{color:#166534;font-weight:700}#pa .tag-warn{color:#92400e;font-weight:700}#pa .tag-bad{color:#991b1b;font-weight:700}
+  #pa .foot{margin-top:8px;font-size:9.5px;color:#6b7a90;display:flex;justify-content:space-between}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  #pa .tag-ok{color:#166534}#pa .tag-warn{color:#92400e}#pa .tag-bad{color:#991b1b}
 }
 </style>
+<style id="pgs"></style>
 </head>
 <body>
 <div class="wrap">
@@ -212,19 +243,28 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       <label><input type="checkbox" data-col="photo"> صورة بيضاء</label>
       <label><input type="checkbox" data-col="passport-doc"> صورة جواز</label>
       <label><input type="checkbox" data-col="tajneed"> موقف التجنيد</label>
-      <label><input type="checkbox" data-col="pay" checked> 💰 السداد</label>
-      <label><input type="checkbox" data-col="missing" checked> النواقص</label>
-      <label><input type="checkbox" data-col="haspass"> 🛂 الجواز معانا؟</label>
+      <label><input type="checkbox" data-col="room"> 🛏️ نوع التسكين</label>
       <label><input type="checkbox" data-col="rno" checked> 🛏️ رقم الغرفة</label>
+      <label><input type="checkbox" data-col="fam"> 👪 عائلة</label>
       <label><input type="checkbox" data-col="bk" checked> 👥 الحجز</label>
+      <label><input type="checkbox" data-col="haspass"> 🛂 الجواز معانا؟</label>
+      <label><input type="checkbox" data-col="pay-total"> 💰 الإجمالي</label>
+      <label><input type="checkbox" data-col="pay-paid" checked> 💰 المدفوع</label>
+      <label><input type="checkbox" data-col="pay-rem" checked> 💰 المتبقي</label>
+      <label><input type="checkbox" data-col="pay-due" checked> 💰 مطلوب الآن</label>
+      <label><input type="checkbox" data-col="missing" checked> النواقص</label>
+    </div>
+    <div class="row" style="margin-bottom:8px">
+      <button class="sec" id="cp-all" style="font-size:12px;padding:4px 9px">تحديد الكل</button>
+      <button class="sec" id="cp-none" style="font-size:12px;padding:4px 9px">إلغاء الكل</button>
     </div>
     <div class="row">
       <label style="font-size:12px;color:var(--mut)">الاسم بـ:</label>
       <select id="pmode" style="font-size:12px;padding:4px 7px">
-        <option value="full">كامل مدمج</option>
+        <option value="full" selected>كامل (اللقب + الاسم)</option>
         <option value="flight">ترتيب طيران</option>
         <option value="mrz">MRZ</option>
-        <option value="cols">عمودين</option>
+        <option value="cols">عمودين (اللقب | الاسم الأول)</option>
       </select>
       <button id="prt">🖨️ طباعة</button>
       <button class="sec" id="xls">⬇️ Excel / CSV</button>
@@ -698,11 +738,11 @@ $('rml').onclick=function(){var g=grp(),m=roomMap(g),mode=$('pmode').value,keys=
     return'<tr><td>'+esc(k)+'</td><td>'+esc(roomLbl(mem[0].room)+(mem.some(function(x){return x.fam})?' (Family)':''))+'</td><td>'+mem.map(function(x){return esc(nameByMode(x,mode))+' ('+esc(x.sex||'?')+(isInf(x,g)?', Infant':'')+')'}).join('<br>')+'</td><td style="color:#991b1b">'+esc(iss)+'</td></tr>'}).join('');
   var st=roomStats(g),sum=Object.keys(st).map(function(k){return esc(roomLbl(k))+': '+st[k].r}).join(' | '),un=list().filter(function(p){return!p.rno}).length;
   $('pa').innerHTML='<h2>Rooming List — '+esc(g.name)+'</h2><div class="meta">'+esc(g.trip||'')+(g.date?' | '+fmtDate(g.date):'')+' | '+sum+(un?' | Unassigned: '+un:'')+'</div><table><thead><tr><th>Room</th><th>Type</th><th>Guests</th><th>Notes</th></tr></thead><tbody>'+rows+'</tbody></table>';
-  window.print()};
+  doPrint()};
 $('bkp').onclick=function(){var g=grp(),b=bookings(g);if(!b.length){alert('مفيش حجوزات.');return}
   var rows=b.map(function(x){return'<tr><td>'+esc(x.k)+'</td><td>'+x.mem.map(function(p){return esc(nameByMode(p,$('pmode').value))+(p.rno?' [Room '+esc(p.rno)+']':'')}).join('<br>')+'</td><td>'+x.tot+'</td><td>'+x.paid+'</td><td>'+x.rem+'</td><td'+(x.need?' style="color:#991b1b;font-weight:700"':'')+'>'+(x.need?x.need+' '+CUR:'OK')+'</td></tr>'}).join('');
   $('pa').innerHTML='<h2>Bookings — '+esc(g.name)+'</h2><div class="meta">'+esc(g.trip||'')+(g.date?' | '+fmtDate(g.date):'')+' | Min. payment: '+minPct(g)+'%</div><table><thead><tr><th>Booking</th><th>Passengers</th><th>Total</th><th>Paid</th><th>Remaining</th><th>Due now</th></tr></thead><tbody>'+rows+'</tbody></table>';
-  window.print()};
+  doPrint()};
 var payId=0;
 function curP(){return S.people.find(function(x){return x.id===payId})}
 function renderPay(){var p=curP();if(!p)return;
@@ -756,13 +796,20 @@ function getSelectedCols(){
   });
   return cols;
 }
-function colLabel(col){
-  var map={num:'#',name:'Name',pno:'Passport No.',nat:'Nationality',sex:'Sex',
-    dob:'Date of Birth',exp:'Passport Expiry','exp-status':'Status',
-    pay:'Payment',haspass:'Passport Held',rno:'Room',bk:'Booking',missing:'Missing',photo:'Photo (White BG)',  'passport-doc':'Passport Copy',tajneed:'Military Status'};
-  return map[col]||col;
-}
+var COLDEF={
+  num:['No.','م','num'],name:['Name','الاسم','nm'],pno:['Passport No.','رقم الجواز','mono'],
+  nat:['Nationality','الجنسية','c'],sex:['Sex','الجنس','c'],dob:['Date of Birth','تاريخ الميلاد','l'],
+  exp:['Passport Expiry','انتهاء الجواز','l'],'exp-status':['Passport Status','حالة الجواز','c'],
+  photo:['Photo (White BG)','صورة بيضاء','c'],'passport-doc':['Passport Copy','صورة الجواز','c'],tajneed:['Military Status','موقف التجنيد','c'],
+  room:['Room Type','نوع التسكين','c'],rno:['Room No.','رقم الغرفة','num'],fam:['Family','عائلة','c'],bk:['Booking','الحجز','c'],
+  haspass:['Passport Held','الجواز معانا؟','c'],
+  'pay-total':['Total','الإجمالي','num'],'pay-paid':['Paid','المدفوع','num'],'pay-rem':['Remaining','المتبقي','num'],'pay-due':['Due Now','مطلوب الآن','num'],
+  missing:['Missing / Notes','النواقص','']
+};
+function colLabel(col){return COLDEF[col]?COLDEF[col][0]:col}
+function isPayCol(c){return c.indexOf('pay-')===0}
 function colValue(p,col,mode,tripDate){
+  var g=grp();
   if(col==='num')return'';
   if(col==='name'){
     if(mode==='cols')return p.sur+' | '+p.giv;
@@ -774,11 +821,18 @@ function colValue(p,col,mode,tripDate){
   if(col==='dob')return fmtDate(p.dob);
   if(col==='exp')return fmtDate(p.exp);
   if(col==='exp-status'){var st=expStatus(p.exp,tripDate);return st.label.replace(/[✓✗⚠️]/g,'').trim()}
-  if(col==='pay'){var pi=payInfo(p,grp());if(pi.bk)return'حجز '+pi.bk+(pi.lead?': '+(pi.due?'مطلوب سداد — '+pi.amt+' '+CUR:'مسدد')+' (مدفوع '+pi.bpaid+' / '+pi.btot+')':' — ضمن الحجز');return pi.due?('مطلوب سداد — '+pi.amt+' '+CUR+(pi.auto?' (مدفوع '+pi.paid+' / '+pi.tot+')':'')):(pi.auto?'مسدد '+pi.paid+' / '+pi.tot:'')}
+  if(col==='room')return p.room?roomLbl(p.room):'';
+  if(col==='rno')return p.rno||'';
+  if(col==='fam')return p.fam?'✓':'';
   if(col==='bk')return p.bk||'';
-  if(col==='rno')return p.rno?(p.rno+(p.fam?' (family)':'')):'';
   if(col==='haspass')return p.hasPass?'معانا':'مع العميل';
-  if(col==='missing')return missing(p,grp()).join('، ');
+  if(col==='pay-total'){var o=payOwn(p,g);return o.auto?o.tot:''}
+  if(col==='pay-paid')return paidOf(p);
+  if(col==='pay-rem'){var o2=payOwn(p,g);return o2.auto?o2.rem:''}
+  if(col==='pay-due'){var q=payInfo(p,g);
+    if(q.due)return(q.bk&&!q.lead)?'ضمن الحجز':(q.amt?q.amt:'مطلوب');
+    return q.auto?'✓':''}
+  if(col==='missing')return missing(p,g).join('، ');
   if(col==='photo')return p.photo?'✓':'✗';
   if(col==='passport-doc')return p.passportDoc?'✓':'✗';
   if(col==='tajneed')return p.tajneed?'نعم':'لا';
@@ -788,52 +842,105 @@ function colValue(p,col,mode,tripDate){
 /* ══════════════════════════════════════════
    PRINT
 ══════════════════════════════════════════ */
+function fmtN(v){return typeof v==='number'?v.toLocaleString('en'):v}
+function doPrint(){
+  var pa=$('pa');
+  pa.querySelectorAll('td,th').forEach(function(c){if(!c.hasAttribute('dir'))c.setAttribute('dir','auto')});
+  var n=pa.querySelectorAll('thead tr:first-child th').length;
+  pa.className=n>13?'s-sm':n>9?'s-md':'';
+  $('pgs').textContent='@page{size:A4 '+(n>7?'landscape':'portrait')+';margin:10mm}';
+  var t=document.title,h=pa.querySelector('h2');if(h)document.title=h.textContent;
+  window.print();document.title=t;
+}
+function printCell(p,c,i,g,mode){
+  var v=colValue(p,c,mode,g.date),cls=COLDEF[c]?COLDEF[c][2]:'';
+  if(c==='num')return'<td class="num">'+(i+1)+'</td>';
+  if(c==='name'){
+    if(mode==='cols')return'<td class="nm">'+esc(p.sur)+'</td><td class="nm">'+esc(p.giv)+'</td>';
+    return'<td class="'+(mode==='mrz'?'mono':'nm')+'">'+esc(v)+'</td>';
+  }
+  if(c==='exp-status'){var st=expStatus(p.exp,g.date);return'<td class="c '+st.cls+'">'+esc(st.label)+'</td>'}
+  if(c==='photo'||c==='passport-doc'||c==='tajneed')return'<td class="'+(v==='✓'||v==='نعم'?'ok':'no')+'">'+esc(v)+'</td>';
+  if(c==='fam'||c==='haspass')return'<td class="'+(v?'ok':'c')+'">'+esc(v)+'</td>';
+  if(c==='missing'){var m=missing(p,g);return'<td>'+(m.length?m.map(function(x){return'<span class="chip">'+esc(x)+'</span>'}).join(''):'<span class="tag-ok">✓</span>')+'</td>'}
+  if(c==='pay-due')return'<td class="num'+(typeof v==='number'||v==='مطلوب'?' bad':'')+'">'+esc(fmtN(v))+'</td>';
+  return'<td class="'+cls+'">'+esc(fmtN(v))+'</td>';
+}
 $('prt').onclick=function(){
   var l=viewList();if(!l.length){alert('مفيش أفراد مطابقين للفلتر.');return}
   var cols=getSelectedCols(),mode=$('pmode').value,g=grp();
-  var date=new Date().toLocaleDateString('en-GB');
-  var meta='Passengers: '+l.length+($('flt').value!=='all'?' | Filter: '+$('flt').selectedOptions[0].text:'')+(g.trip?' | '+g.trip:'')+(g.date?' | Flight: '+fmtDate(g.date):'');
+  var now=new Date(),date=now.toLocaleDateString('en-GB')+' '+now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  var hasPay=cols.some(isPayCol);
 
-  // summary counts
-  var expWarn=l.filter(function(p){var s=expStatus(p.exp,g.date);return s.cls==='tag-warn'}).length;
-  var expBad=l.filter(function(p){var s=expStatus(p.exp,g.date);return s.cls==='tag-bad'}).length;
-  var noPhoto=l.filter(function(p){return!p.photo}).length;
-  var noPass=l.filter(function(p){return!p.passportDoc}).length;
-  var noTaj=l.filter(function(p){return!p.tajneed}).length;
-  var summary='';
-  if(expBad)summary+='<span style="color:#991b1b">⚠ جوازات منتهية: '+expBad+'</span> &nbsp;';
-  if(expWarn)summary+='<span style="color:#92400e">⚠ أقل من سنة: '+expWarn+'</span> &nbsp;';
-  if(cols.includes('photo'))summary+='ناقص صورة: '+noPhoto+' &nbsp;';
-  if(cols.includes('passport-doc'))summary+='ناقص جواز: '+noPass+' &nbsp;';
-  if(cols.includes('tajneed'))summary+='بدون موقف تجنيد: '+noTaj+' &nbsp;';
+  // header + meta
+  var sub=(g.trip?esc(g.trip):'')+(g.trip&&g.date?' &nbsp;·&nbsp; ':'')+(g.date?'Flight: <b>'+fmtDate(g.date)+'</b>':'');
+  var meta='<span class="mi">Passengers: <b>'+l.length+'</b></span>'
+    +($('flt').value!=='all'?'<span class="mi">Filter: <b>'+esc($('flt').selectedOptions[0].text)+'</b></span>':'')
+    +'<span class="mi">Printed: '+date+'</span>';
+
+  // alerts
+  var expWarn=l.filter(function(p){return expStatus(p.exp,g.date).cls==='tag-warn'}).length;
+  var expBad=l.filter(function(p){return expStatus(p.exp,g.date).cls==='tag-bad'}).length;
+  var al='';
+  if(expBad)al+='<span class="al bad">⚠ جوازات منتهية: '+expBad+'</span>';
+  if(expWarn)al+='<span class="al warn">⚠ أقل من سنة: '+expWarn+'</span>';
+  if(cols.includes('photo'))al+='<span class="al info">ناقص صورة: '+l.filter(function(p){return!p.photo}).length+'</span>';
+  if(cols.includes('passport-doc'))al+='<span class="al info">ناقص جواز: '+l.filter(function(p){return!p.passportDoc}).length+'</span>';
+  if(cols.includes('tajneed'))al+='<span class="al info">بدون موقف تجنيد: '+l.filter(function(p){return!p.tajneed}).length+'</span>';
   var pays=l.filter(function(p){var q=payInfo(p,g);return q.due&&(!q.bk||q.lead)}),ptot=pays.reduce(function(a,p){return a+payInfo(p,g).amt},0);
-  if(cols.includes('pay')&&pays.length)summary+='<b style="color:#991b1b">💰 مطلوب سداد: '+pays.length+(ptot?' — '+ptot+' '+CUR:'')+'</b>';
+  if(hasPay&&pays.length)al+='<span class="al bad">💰 مطلوب سداد: '+pays.length+(ptot?' — '+ptot.toLocaleString('en')+' '+CUR:'')+'</span>';
 
+  // thead
   var thead='<tr>';
   cols.forEach(function(c){
-    if(c==='name'&&mode==='cols'){thead+='<th>Surname</th><th>Given Names</th>'}
-    else thead+='<th>'+esc(colLabel(c))+'</th>';
+    if(c==='name'&&mode==='cols')thead+='<th>Surname<small>اللقب</small></th><th>Given Names<small>الاسم الأول</small></th>';
+    else thead+='<th>'+esc(colLabel(c))+(COLDEF[c]&&COLDEF[c][1]?'<small>'+COLDEF[c][1]+'</small>':'')+'</th>';
   });
   thead+='</tr>';
 
-  var tbody='';
+  // tbody + totals
+  var sums={},tbody='';
   l.forEach(function(p,i){
-    tbody+='<tr'+(payInfo(p,g).due&&cols.includes('pay')?' style="background:#fee2e2"':'')+'>';
+    tbody+='<tr'+(hasPay&&payInfo(p,g).due?' class="due"':'')+'>';
     cols.forEach(function(c){
-      if(c==='num'){tbody+='<td>'+(i+1)+'</td>'}
-      else if(c==='name'&&mode==='cols'){tbody+='<td>'+esc(p.sur)+'</td><td>'+esc(p.giv)+'</td>'}
-      else if(c==='exp-status'){var st=expStatus(p.exp,g.date);tbody+='<td class="'+st.cls+'">'+esc(st.label)+'</td>'}
-      else{tbody+='<td>'+esc(colValue(p,c,mode,g.date))+'</td>'}
+      tbody+=printCell(p,c,i,g,mode);
+      if(isPayCol(c)){var v=colValue(p,c,mode,g.date);if(typeof v==='number')sums[c]=(sums[c]||0)+v}
     });
     tbody+='</tr>';
   });
+  var tfoot='';
+  if(hasPay){
+    tfoot='<tfoot><tr>';var lab=false;
+    cols.forEach(function(c){
+      if(isPayCol(c))tfoot+='<td>'+(sums[c]!=null?sums[c].toLocaleString('en'):'')+'</td>';
+      else if(c==='name'&&mode==='cols'){tfoot+='<td colspan="2" style="text-align:start">Total / الإجمالي</td>';lab=true}
+      else if(c==='name'){tfoot+='<td style="text-align:start">Total / الإجمالي</td>';lab=true}
+      else tfoot+='<td></td>';
+    });
+    tfoot+='</tr></tfoot>';
+  }
 
-  $('pa').innerHTML='<h2>'+esc(g.name)+'</h2>'
-    +'<div class="meta">'+meta+' &nbsp;|&nbsp; Printed: '+date+'</div>'
-    +(summary?'<div style="margin-bottom:6px;font-size:11px">'+summary+'</div>':'')
-    +'<table><thead>'+thead+'</thead><tbody>'+tbody+'</tbody></table>';
-  window.print();
+  $('pa').innerHTML='<div class="ph"><div><div class="brand">Adriaska Tours · أدريسكا للسياحة</div><h2>'+esc(g.name)+'</h2>'+(sub?'<div class="sub">'+sub+'</div>':'')+'</div>'
+    +'<div class="meta">'+meta+'</div></div>'
+    +(al?'<div class="alerts">'+al+'</div>':'')
+    +'<table><thead>'+thead+'</thead><tbody>'+tbody+'</tbody>'+tfoot+'</table>'
+    +'<div class="foot"><span>Flight Manifest · كشف مجموعات الطيران</span><span>'+esc(g.name)+' · '+l.length+' pax</span></div>';
+  doPrint();
 };
+
+/* remember chosen print columns */
+(function(){
+  try{var sv=JSON.parse(localStorage.getItem('fm_cols')||'null');
+    if(sv&&sv.cols)document.querySelectorAll('#col-picks input[data-col]').forEach(function(cb){if(!cb.disabled)cb.checked=sv.cols.indexOf(cb.dataset.col)>-1});
+    }catch(e){}
+  function keep(){try{localStorage.setItem('fm_cols',JSON.stringify({cols:getSelectedCols()}))}catch(e){}}
+  $('col-picks').addEventListener('change',keep);
+  /* pmode و vmode مستقلين تماماً */
+  try{var sv2=localStorage.getItem('fm_pmode');if(sv2)$('pmode').value=sv2}catch(e){}
+  $('pmode').addEventListener('change',function(){try{localStorage.setItem('fm_pmode',this.value)}catch(e){}});
+  $('cp-all').onclick=function(){document.querySelectorAll('#col-picks input[data-col]').forEach(function(cb){cb.checked=true});keep()};
+  $('cp-none').onclick=function(){document.querySelectorAll('#col-picks input[data-col]').forEach(function(cb){if(!cb.disabled)cb.checked=(cb.dataset.col==='name')});keep()};
+})();
 
 /* ══════════════════════════════════════════
    CSV EXPORT
