@@ -79,6 +79,12 @@ kbd{background:var(--line);border-radius:4px;padding:1px 5px;font-size:11px}
 
 dialog{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;min-width:300px}
 dialog::backdrop{background:rgba(0,0,0,.4)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px 10px;margin:4px 0 8px}
+.fgrid label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--mut)}
+.fgrid input,.fgrid select{width:100%;font-size:14px;color:var(--ink)}
+.fgrid input.ltr{direction:ltr;text-align:left}
+#editdlg{width:min(560px,94vw)}
+#pay-list input{font-size:13px;padding:4px 7px}
 /* print */
 #pa{display:none}
 @media print{
@@ -128,7 +134,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 </head>
 <body>
 <div class="wrap">
-<h1>✈️ كشف مجموعات الطيران — المامون</h1>
+<h1>✈️ كشف مجموعات الطيران — أدريسكا</h1>
 
 <!-- Supabase -->
 <div class="card">
@@ -282,6 +288,27 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   <label style="font-size:12px;display:block;margin-top:6px"><input type="checkbox" id="pay-split"> توزيع الدفعة على كل ساكني الغرفة</label>
   <label style="font-size:12px;display:block;margin-top:6px">سعر خاص (طفل / خصم) <input id="pay-custom" type="number" min="0" style="width:90px"></label>
   <div class="row" style="margin-top:8px;justify-content:flex-end"><button class="sec" id="pay-close">إغلاق</button></div>
+</dialog>
+<dialog id="editdlg">
+  <h4 id="ed-ttl" style="margin:0 0 8px"></h4>
+  <div class="fgrid">
+    <label>اللقب (Surname)<input id="ed-sur" class="ltr" autocomplete="off"></label>
+    <label>الاسم الأول (Given Names)<input id="ed-giv" class="ltr" autocomplete="off"></label>
+    <label>رقم الجواز<input id="ed-pno" class="ltr" autocomplete="off"></label>
+    <label>الجنسية<input id="ed-nat" class="ltr" maxlength="3" autocomplete="off"></label>
+    <label>الجنس<select id="ed-sex"><option value="">—</option><option value="M">ذكر M</option><option value="F">أنثى F</option></select></label>
+    <label>تاريخ الميلاد<input id="ed-dob" type="date"></label>
+    <label>تاريخ انتهاء الجواز<input id="ed-exp" type="date"></label>
+    <label>نوع التسكين<select id="ed-room"></select></label>
+    <label>رقم الغرفة<input id="ed-rno" autocomplete="off"></label>
+    <label>الحجز<input id="ed-bk" list="bklist" autocomplete="off"></label>
+    <label>سعر خاص (طفل / خصم)<input id="ed-custom" type="number" min="0"></label>
+  </div>
+  <div class="row" style="margin-top:6px;justify-content:space-between">
+    <button class="sec" id="ed-mrz" style="font-size:12px;padding:4px 9px">↩ رجّع الاسم من الـ MRZ</button>
+    <span class="row"><button class="sec" id="ed-cancel">إلغاء</button><button id="ed-save">💾 حفظ التعديل</button></span>
+  </div>
+  <p class="hint" style="margin:8px 0 0">الدفعات: من زرار 💵 في الصف — تقدر تعدّل المبلغ والتاريخ أو تمسح.</p>
 </dialog>
 <div id="undo-bar" class="hide">
   <span id="undo-msg"></span>
@@ -508,7 +535,7 @@ $('sb-backup').onclick=function(){
   a.click();URL.revokeObjectURL(a.href);
   say('✓ Backup اتحمل','ok');
 };
-function idleRefresh(){var a=document.activeElement;if(document.hidden||$('paydlg').open||(a&&a!==box&&/INPUT|SELECT|TEXTAREA/.test(a.tagName)))return;sbLoad()}
+function idleRefresh(){var a=document.activeElement;if(document.hidden||$('paydlg').open||$('editdlg').open||(a&&a!==box&&/INPUT|SELECT|TEXTAREA/.test(a.tagName)))return;sbLoad()}
 setInterval(idleRefresh,30000);document.addEventListener('visibilitychange',function(){if(!document.hidden)idleRefresh()});
 
 /* ══════════════════════════════════════════
@@ -766,7 +793,7 @@ var payId=0;
 function curP(){return S.people.find(function(x){return x.id===payId})}
 function renderPay(){var p=curP();if(!p)return;
   $('pay-ttl').textContent=nameFull(p)+' — المدفوع: '+paidOf(p)+' '+CUR;
-  $('pay-list').innerHTML=(p.pays||[]).map(function(x,i){return'<div class="row" style="justify-content:space-between;margin-bottom:4px"><span>'+esc(fmtDate(x.d)||'—')+' — <b>'+x.a+'</b> '+CUR+'</span><button class="x" data-pdel="'+i+'">✕</button></div>'}).join('')||'<div class="hint">مفيش دفعات.</div>'}
+  $('pay-list').innerHTML=(p.pays||[]).map(function(x,i){return'<div class="row" style="margin-bottom:5px"><input type="date" data-pd="'+i+'" value="'+esc(x.d||'')+'" title="تاريخ الدفعة"><input type="number" min="0" data-pa="'+i+'" value="'+(+x.a||0)+'" style="width:105px" title="المبلغ"><span>'+CUR+'</span><button class="x" data-pdel="'+i+'" title="مسح الدفعة">✕</button></div>'}).join('')||'<div class="hint">مفيش دفعات.</div>'}
 $('tb').addEventListener('click',function(e){var b=e.target.closest('button[data-pay]');if(!b)return;
   payId=+b.dataset.pay;var p=curP();if(!p)return;
   if(!(p.pays&&p.pays.length)&&+p.paid>0)p.pays=[{d:'',a:+p.paid}];
@@ -779,7 +806,54 @@ $('pay-add').onclick=async function(){var p=curP(),a=+$('pay-amt').value;if(!p||
 $('pay-custom').onchange=async function(){var p=curP();if(!p)return;p.custom=this.value;save();render();renderPay();await sbSavePerson(p)};
 $('pay-list').onclick=async function(e){var b=e.target.closest('button[data-pdel]'),p=curP();if(!b||!p)return;
   p.pays.splice(+b.dataset.pdel,1);p.paid=sumPays(p);save();render();renderPay();await sbSavePerson(p)};
+$('pay-list').addEventListener('change',async function(e){var t=e.target,p=curP();if(!p||!p.pays)return;
+  var isA=t.dataset.pa!=null,i=+(isA?t.dataset.pa:t.dataset.pd);if(isNaN(i)||!p.pays[i])return;
+  if(isA){var v=+t.value;if(t.value===''||isNaN(v)||v<0){t.value=+p.pays[i].a||0;return}p.pays[i].a=v}
+  else p.pays[i].d=t.value;
+  p.paid=sumPays(p);save();render();
+  $('pay-ttl').textContent=nameFull(p)+' — المدفوع: '+paidOf(p)+' '+CUR;
+  await sbSavePerson(p)});
 $('pay-close').onclick=function(){$('paydlg').close()};
+
+/* ══════════════════════════════════════════
+   EDIT PERSON
+══════════════════════════════════════════ */
+var edId=0;
+function openEdit(id){
+  var p=S.people.find(function(x){return x.id===id});if(!p)return;edId=id;
+  $('ed-ttl').textContent='✏️ تعديل — '+nameFull(p);
+  $('ed-sur').value=p.sur||'';$('ed-giv').value=p.giv||'';$('ed-pno').value=p.pno||'';$('ed-nat').value=p.nat||'';
+  $('ed-sex').value=p.sex||'';$('ed-dob').value=p.dob||'';$('ed-exp').value=p.exp||'';
+  $('ed-room').innerHTML='<option value="">—</option>'+ROOMS.map(function(r){return'<option value="'+r[0]+'"'+(p.room===r[0]?' selected':'')+'>'+r[1]+'</option>'}).join('');
+  $('ed-rno').value=p.rno||'';$('ed-bk').value=p.bk||'';$('ed-custom').value=p.custom===''||p.custom==null?'':p.custom;
+  $('ed-mrz').style.display=p.mrz?'':'none';
+  $('editdlg').showModal();$('ed-sur').focus();
+}
+$('tb').addEventListener('click',function(e){var b=e.target.closest('button[data-e]');if(b)openEdit(+b.dataset.e)});
+$('ed-cancel').onclick=function(){$('editdlg').close()};
+$('ed-mrz').onclick=function(){
+  var p=S.people.find(function(x){return x.id===edId});if(!p||!p.mrz)return;
+  var ml=p.mrz.split('\n'),o=parse(ml[0],ml[1]);$('ed-sur').value=o.sur;$('ed-giv').value=o.giv;
+};
+$('ed-save').onclick=async function(){
+  var p=S.people.find(function(x){return x.id===edId});if(!p){$('editdlg').close();return}
+  var su=$('ed-sur').value.trim().toUpperCase(),gi=$('ed-giv').value.trim().toUpperCase(),pno=$('ed-pno').value.trim().toUpperCase();
+  if(!su&&!gi){alert('لازم اسم.');return}
+  if(!okName(su)||!okName(gi)){alert('الاسم لازم حروف إنجليزي بس (A-Z).');return}
+  if(pno){var dup=S.people.find(function(x){return x.id!==p.id&&x.pno&&x.pno===pno});
+    if(dup){alert('⚠️ رقم الجواز ده متسجل قبل كده لـ: '+nameFull(dup));return}}
+  var old=JSON.parse(JSON.stringify(p));
+  if(su!==p.sur||gi!==p.giv)p.rev=false;
+  p.sur=su;p.giv=gi;p.pno=pno;p.nat=$('ed-nat').value.trim().toUpperCase();p.sex=$('ed-sex').value;
+  p.dob=$('ed-dob').value;p.exp=$('ed-exp').value;p.room=$('ed-room').value;p.rno=$('ed-rno').value.trim();p.bk=$('ed-bk').value.trim();
+  var cv=$('ed-custom').value;p.custom=cv===''?'':+cv;
+  $('editdlg').close();save();render();say('✓ اتعدل: '+nameFull(p),'ok');
+  showUndo('تم تعديل '+nameFull(p),async function(){
+    Object.keys(p).forEach(function(k){if(!(k in old))delete p[k]});Object.assign(p,old);save();render();await sbSavePerson(p)});
+  await sbSavePerson(p);
+};
+['ed-sur','ed-giv','ed-pno','ed-nat','ed-rno','ed-bk','ed-custom'].forEach(function(id){
+  $(id).addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();$('ed-save').click()}})});
 $('autorm').onclick=async function(){
   var cand=list().filter(function(p){return p.room&&!p.rno&&!p.fam});
   if(!cand.length){alert('مفيش أفراد محتاجين غرف (لازم يكون ليهم نوع تسكين وبدون رقم غرفة، وغير عائلات).');return}
@@ -854,7 +928,7 @@ function colValue(p,col,mode,tripDate){
   if(col==='missing')return missing(p,g).join('، ');
   if(col==='photo')return p.photo?'✓':'✗';
   if(col==='passport-doc')return p.passportDoc?'✓':'✗';
-  if(col==='tajneed')return p.tajneed?'نعم':'لا';
+  if(col==='tajneed')return p.tajneed?'غير مطلوب':'مطلوب';
   return '';
 }
 
@@ -879,7 +953,7 @@ function printCell(p,c,i,g,mode){
     return'<td class="'+(mode==='mrz'?'mono':'nm')+'">'+esc(v)+'</td>';
   }
   if(c==='exp-status'){var st=expStatus(p.exp,g.date);return'<td class="c '+st.cls+'">'+esc(st.label)+'</td>'}
-  if(c==='photo'||c==='passport-doc'||c==='tajneed')return'<td class="'+(v==='✓'||v==='نعم'?'ok':'no')+'">'+esc(v)+'</td>';
+  if(c==='photo'||c==='passport-doc'||c==='tajneed')return'<td class="'+(v==='✓'||v==='غير مطلوب'?'ok':'no')+'">'+esc(v)+'</td>';
   if(c==='fam'||c==='haspass')return'<td class="'+(v?'ok':'c')+'">'+esc(v)+'</td>';
   if(c==='missing'){var m=missing(p,g);return'<td>'+(m.length?m.map(function(x){return'<span class="chip">'+esc(x)+'</span>'}).join(''):'<span class="tag-ok">✓</span>')+'</td>'}
   if(c==='pay-due')return'<td class="num'+(typeof v==='number'||v==='مطلوب'?' bad':'')+'">'+esc(fmtN(v))+'</td>';
@@ -905,7 +979,7 @@ $('prt').onclick=function(){
   if(expWarn)al+='<span class="al warn">⚠ أقل من سنة: '+expWarn+'</span>';
   if(cols.includes('photo'))al+='<span class="al info">ناقص صورة: '+l.filter(function(p){return!p.photo}).length+'</span>';
   if(cols.includes('passport-doc'))al+='<span class="al info">ناقص جواز: '+l.filter(function(p){return!p.passportDoc}).length+'</span>';
-  if(cols.includes('tajneed'))al+='<span class="al info">بدون موقف تجنيد: '+l.filter(function(p){return!p.tajneed}).length+'</span>';
+  if(cols.includes('tajneed'))al+='<span class="al info">مطلوب موقف تجنيد: '+l.filter(function(p){return!p.tajneed&&p.sex!=="F"}).length+'</span>';
   var pays=l.filter(function(p){var q=payInfo(p,g);return q.due&&(!q.bk||q.lead)}),ptot=pays.reduce(function(a,p){return a+payInfo(p,g).amt},0);
   if(hasPay&&pays.length)al+='<span class="al bad">💰 مطلوب سداد: '+pays.length+(ptot?' — '+ptot.toLocaleString('en')+' '+CUR:'')+'</span>';
 
@@ -939,7 +1013,7 @@ $('prt').onclick=function(){
     tfoot+='</tr></tfoot>';
   }
 
-  $('pa').innerHTML='<div class="ph"><div><div class="brand">Adriaska Tours · المامون للسياحة</div><h2>'+esc(g.name)+'</h2>'+(sub?'<div class="sub">'+sub+'</div>':'')+'</div>'
+  $('pa').innerHTML='<div class="ph"><div><div class="brand">Adriaska Tours · أدريسكا للسياحة</div><h2>'+esc(g.name)+'</h2>'+(sub?'<div class="sub">'+sub+'</div>':'')+'</div>'
     +'<div class="meta">'+meta+'</div></div>'
     +(al?'<div class="alerts">'+al+'</div>':'')
     +'<table><thead>'+thead+'</thead><tbody>'+tbody+'</tbody>'+tfoot+'</table>'
@@ -1034,7 +1108,7 @@ function render(){
     +'<th style="width:30px" title="الاسم اتراجع مع الجواز">🔍</th>'
     +'<th>التسكين</th><th>غرفة #</th><th>حجز</th><th>المدفوع</th><th>💰 السداد</th>'
     +'<th style="width:90px">نقل لـ</th>'
-    +'<th style="width:30px"></th>'
+    +'<th style="width:60px"></th>'
     +'</tr>';
   // tbody
   var vl=viewList();$('fltn').textContent=$('flt').value==='all'?'':vl.length+' من '+l.length;
@@ -1067,7 +1141,7 @@ function render(){
       +'<td><button class="sec" data-pay="'+p.id+'" style="padding:3px 8px;font-size:12px">💵 '+paidOf(p)+'</button></td>'
       +'<td style="font-size:12px">'+(pi.auto?(pi.due?'<b style="color:var(--bad)">💰 مطلوب '+(pi.bk&&!pi.lead?'ضمن الحجز':pi.amt+' '+CUR)+'</b>':'<b style="color:var(--ok)">✓ '+pct+'%+</b>')+'<br><span style="color:var(--mut)">'+(pi.bk?'حجز '+esc(pi.bk)+' ('+pi.n+'): المتبقي '+pi.rem+' من '+pi.btot:'المتبقي '+pi.rem)+'</span>':'<label><input type="checkbox" data-pid="'+p.id+'" data-field="payDue"'+(p.payDue?' checked':'')+'> سداد</label>'+(p.payDue?' <input type="number" min="0" class="amt" data-pid="'+p.id+'" placeholder="المبلغ" value="'+esc(p.payAmt)+'" style="width:70px;padding:3px 5px;font-size:12px">':''))+'</td>'
       +'<td><select data-m="'+p.id+'" style="font-size:11px;padding:3px 5px">'+opts.replace('value="'+p.g+'"','value="'+p.g+'" selected')+'</select></td>'
-      +'<td><button class="x" data-d="'+p.id+'">✕</button></td>'
+      +'<td style="white-space:nowrap"><button class="sec" data-e="'+p.id+'" title="تعديل البيانات" style="padding:2px 7px;font-size:13px">✏️</button><button class="x" data-d="'+p.id+'">✕</button></td>'
       +'</tr>'
   }).join('');
 }
