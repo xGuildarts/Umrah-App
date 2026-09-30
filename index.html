@@ -128,7 +128,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 </head>
 <body>
 <div class="wrap">
-<h1>✈️ كشف مجموعات الطيران — أدريسكا</h1>
+<h1>✈️ كشف مجموعات الطيران — المامون</h1>
 
 <!-- Supabase -->
 <div class="card">
@@ -137,6 +137,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <div class="row">
       <span id="sb-status" class="loading">⬤ غير متصل</span>
       <button class="sec" id="sb-refresh" style="font-size:12px;padding:5px 9px">🔄 تحديث</button>
+      <button class="sec" id="sb-backup" style="font-size:12px;padding:5px 9px" title="تحميل كل الداتا كـ JSON backup">💾 Backup</button>
       <button class="sec" id="sb-toggle" style="font-size:12px;padding:5px 9px">إعدادات</button>
     </div>
   </div>
@@ -416,6 +417,7 @@ var sbReady=false;
 $('sb-url').value=SB.url;$('sb-key').value=SB.key;
 
 var pend=0;
+var sbFailCount=0;
 async function sbFetch(path,opts){
   if(!SB.url||!SB.key)return null;
   try{
@@ -423,9 +425,13 @@ async function sbFetch(path,opts){
     var r=await fetch(SB.url+'/rest/v1/'+path,{method:opts.method,body:opts.body,headers:Object.assign({'apikey':SB.key,'Authorization':'Bearer '+SB.key,'Content-Type':'application/json','Prefer':'return=representation'},opts.headers||{})});
     if(!r.ok){var e=await r.text();throw new Error(e)}
     var txt=await r.text();
-    if(sbReady&&$('sb-status').className==='err')setSbStatus('✓ متصل','ok');
+    if(sbReady&&sbFailCount>0){sbFailCount=0;setSbStatus('✓ متصل','ok')}
     return txt?JSON.parse(txt):[];
-  }catch(e){console.error('SB',e);if(sbReady)setSbStatus('✗ الحفظ على السيرفر فشل — محفوظ محلياً بس (راجع الـ SQL)','err');return null}finally{pend--}
+  }catch(e){
+    console.error('SB',e);sbFailCount++;
+    if(sbReady)setSbStatus('⚠️ فشل الحفظ على السيرفر ('+sbFailCount+') — الداتا محفوظة محلياً','err');
+    return null;
+  }finally{pend--}
 }
 function setSbStatus(t,c){var el=$('sb-status');el.textContent='⬤ '+t;el.className=c}
 async function sbConnect(){
@@ -493,6 +499,15 @@ $('sb-clear').onclick=function(){
 };
 sbConnect();
 $('sb-refresh').onclick=function(){sbLoad()};
+$('sb-backup').onclick=function(){
+  var json=JSON.stringify(S,null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='flight-backup-'+new Date().toISOString().slice(0,16).replace('T','_').replace(':','')+'.json';
+  a.click();URL.revokeObjectURL(a.href);
+  say('✓ Backup اتحمل','ok');
+};
 function idleRefresh(){var a=document.activeElement;if(document.hidden||$('paydlg').open||(a&&a!==box&&/INPUT|SELECT|TEXTAREA/.test(a.tagName)))return;sbLoad()}
 setInterval(idleRefresh,30000);document.addEventListener('visibilitychange',function(){if(!document.hidden)idleRefresh()});
 
@@ -692,35 +707,39 @@ $('tb').onchange=async function(e){
   var s=e.target.closest('select[data-m]');
   if(s){var p=S.people.find(function(p){return p.id===+s.dataset.m});p.g=+s.value;p.rno='';p.bk='';save();render();await sbSavePerson(p);return}
 };
-// checkbox changes (photo / passportDoc / tajneed)
+// unified change handler — fixes checkbox not saving bug
 $('tb').addEventListener('change',async function(e){
-  var cb=e.target;
-  if(cb.type!=='checkbox'||!cb.dataset.pid)return;
-  var pid=+cb.dataset.pid,field=cb.dataset.field;
-  var p=S.people.find(function(x){return x.id===pid});
-  if(!p)return;
-  p[field]=cb.checked;
-  save();
-  await sbSavePerson(p);
-});
-$('tb').addEventListener('change',async function(e){
-  var cb=e.target;
-  if(cb.dataset.field==='payDue'){render();return}
-  if(cb.dataset.field==='fam'){var me=S.people.find(function(x){return x.id===+cb.dataset.pid});
-    if(me&&me.rno)S.people.forEach(function(x){if(x.g===me.g&&x.rno===me.rno&&x!==me){x.fam=cb.checked;sbSavePerson(x)}});
-    save();render();return}
-  if(cb.classList.contains('amt')){
-    var p=S.people.find(function(x){return x.id===+cb.dataset.pid});
-    if(!p)return;p.payAmt=cb.value;save();render();await sbSavePerson(p);
+  var t=e.target;
+  var pid=t.dataset.pid?+t.dataset.pid:null;
+  var field=t.dataset.field||'';
+  var p=pid?S.people.find(function(x){return x.id===pid}):null;
+
+  // checkboxes: photo, passportDoc, tajneed, hasPass, payDue, fam
+  if(t.type==='checkbox'&&p&&field){
+    p[field]=t.checked;
+    if(field==='fam'&&p.rno){
+      S.people.forEach(function(x){if(x.g===p.g&&x.rno===p.rno&&x!==p){x.fam=t.checked;sbSavePerson(x)}});
+    }
+    if(field==='payDue'){save();render();await sbSavePerson(p);return}
+    save();render();await sbSavePerson(p);return;
   }
-});
-$('tb').addEventListener('change',async function(e){
-  var t=e.target,p;
-  if(t.dataset.room)p=S.people.find(function(x){return x.id===+t.dataset.room});
-  else if((t.classList.contains('rno')||t.classList.contains('bk')))p=S.people.find(function(x){return x.id===+t.dataset.pid});
-  if(!p)return;
-  if(t.dataset.room)p.room=t.value;else if(t.classList.contains('bk'))p.bk=t.value.trim();else p.rno=t.value.trim();
-  save();render();await sbSavePerson(p);
+  // pay amount input
+  if(t.classList.contains('amt')&&p){
+    p.payAmt=t.value;save();render();await sbSavePerson(p);return;
+  }
+  // room type select
+  if(t.dataset.room){
+    var pr=S.people.find(function(x){return x.id===+t.dataset.room});
+    if(pr){pr.room=t.value;save();render();await sbSavePerson(pr);}return;
+  }
+  // room number or booking input
+  if(t.classList.contains('rno')||t.classList.contains('bk')){
+    if(p){
+      if(t.classList.contains('bk'))p.bk=t.value.trim();
+      else p.rno=t.value.trim();
+      save();render();await sbSavePerson(p);
+    }return;
+  }
 });
 $('tb').addEventListener('click',async function(e){var b=e.target.closest('button[data-sug]');if(!b)return;
   var p=S.people.find(function(x){return x.id===+b.dataset.sug});if(!p)return;
@@ -920,7 +939,7 @@ $('prt').onclick=function(){
     tfoot+='</tr></tfoot>';
   }
 
-  $('pa').innerHTML='<div class="ph"><div><div class="brand">Adriaska Tours · أدريسكا للسياحة</div><h2>'+esc(g.name)+'</h2>'+(sub?'<div class="sub">'+sub+'</div>':'')+'</div>'
+  $('pa').innerHTML='<div class="ph"><div><div class="brand">Adriaska Tours · المامون للسياحة</div><h2>'+esc(g.name)+'</h2>'+(sub?'<div class="sub">'+sub+'</div>':'')+'</div>'
     +'<div class="meta">'+meta+'</div></div>'
     +(al?'<div class="alerts">'+al+'</div>':'')
     +'<table><thead>'+thead+'</thead><tbody>'+tbody+'</tbody>'+tfoot+'</table>'
