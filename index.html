@@ -45,6 +45,17 @@ textarea{width:100%;height:56px;direction:ltr;font-family:Consolas,monospace;fon
 
 /* table */
 .tbl-wrap{overflow-x:auto}
+.main-scroll{overflow:auto;max-height:78vh}
+#main-table thead th{position:sticky;top:0;z-index:3;background:var(--bg);box-shadow:0 1px 0 var(--line)}
+#main-table th:first-child,#main-table td:first-child{position:sticky;right:0;z-index:2;min-width:38px;max-width:38px;width:38px;background-color:var(--card)}
+#main-table th:nth-child(2),#main-table td:nth-child(2){position:sticky;right:38px;z-index:2;background-color:var(--card);box-shadow:-2px 0 0 var(--line)}
+#main-table thead th:first-child,#main-table thead th:nth-child(2){z-index:4;background-color:var(--bg)}
+#main-table tr.rw-warn>td{background-image:linear-gradient(rgba(180,83,9,.07),rgba(180,83,9,.07))}
+#main-table tr.rw-due>td{background-image:linear-gradient(rgba(179,38,30,.1),rgba(179,38,30,.1))}
+#main-table tr.sel>td{background-image:linear-gradient(rgba(250,204,21,.4),rgba(250,204,21,.4))}
+#main-table tr.sel>td:first-child{box-shadow:inset -4px 0 0 #eab308}
+#main-table tbody tr{cursor:pointer}
+#ed-scan{height:46px}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;vertical-align:middle}
 th{font-size:12px;color:var(--mut);font-weight:600;background:var(--bg)}
@@ -98,46 +109,42 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   .tk-page:last-child{page-break-after:avoid}
 }
 @media print{
-  html,body{background:#fff!important;color:#000!important;margin:0!important;padding:0!important;min-width:0!important;width:auto!important}
-  .wrap,dialog,#undo-bar,.toast{display:none!important}
-  #pa{display:block;direction:ltr;color:#111;font-family:Tajawal,Tahoma,Arial,sans-serif;font-size:var(--fs,11px);line-height:1.35;width:100%;box-sizing:border-box}
-  #pa *{box-sizing:border-box}
+  html,body{background:#fff!important;color:#000!important}
+  .wrap,dialog,#undo-bar{display:none!important}
+  #pa{display:block;direction:ltr;color:#111;font-family:Tajawal,Tahoma,Arial,sans-serif;--fs:11.5px;--pad:5px 7px;line-height:1.35}
+  #pa.s-md{--fs:10.5px;--pad:4px 5px}
+  #pa.s-sm{--fs:9.5px;--pad:3px 4px}
   #pa .ph{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;border-bottom:2.5px solid #0b7a75;padding-bottom:6px;margin-bottom:8px}
-  #pa .ph>div{min-width:0}
-  #pa .brand{font-size:10px;letter-spacing:.06em;color:#0b7a75;font-weight:700;margin-bottom:2px}
+  #pa .brand{font-size:10px;letter-spacing:.08em;color:#0b7a75;font-weight:700;text-transform:uppercase;margin-bottom:2px}
   #pa h2{margin:0;font-size:20px;line-height:1.2;color:#12284a;font-weight:800}
   #pa .sub{font-size:12px;color:#4b5b72;margin-top:3px}
   #pa .ph .meta{display:flex;flex-wrap:wrap;gap:4px 6px;justify-content:flex-end}
   #pa>.meta{font-size:11px;color:#4b5b72;margin:2px 0 8px}
-  #pa .mi{border:1px solid #c9d2de;border-radius:4px;padding:2px 8px;font-size:10.5px;background:#f4f7fa}
+  #pa .mi{border:1px solid #c9d2de;border-radius:4px;padding:2px 8px;font-size:10.5px;background:#f4f7fa;white-space:nowrap}
   #pa .mi b{color:#12284a}
-  #pa .mi.sv{border-color:#d9a441;background:#fffbeb;color:#92400e}
   #pa .alerts{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
   #pa .al{border-radius:4px;padding:2px 9px;font-size:10.5px;font-weight:700;border:1px solid}
   #pa .al.bad{color:#991b1b;background:#fee2e2;border-color:#fca5a5}
   #pa .al.warn{color:#92400e;background:#fef3c7;border-color:#fcd34d}
   #pa .al.info{color:#12284a;background:#eef2f7;border-color:#c9d2de}
-  #pa table{width:100%;border-collapse:collapse;font-size:var(--fs,11px)}
-  #pa table.fx{table-layout:fixed}
+  #pa table{width:100%;border-collapse:collapse;font-size:var(--fs)}
   #pa thead{display:table-header-group}
   #pa tfoot{display:table-row-group}
   #pa tr{break-inside:avoid;page-break-inside:avoid}
-  #pa th,#pa td{border:1px solid #b7c2d0;padding:var(--py,4px) var(--px,6px);text-align:start;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;word-break:normal;overflow:hidden}
+  #pa th,#pa td{border:1px solid #b7c2d0;padding:var(--pad);text-align:start;vertical-align:middle}
   #pa th{background:#12284a;color:#fff;font-weight:700;text-align:center;line-height:1.25;border-color:#12284a}
   #pa th small{display:block;font-weight:500;font-size:.85em;opacity:.85}
   #pa tbody tr:nth-child(even){background:#f4f7fa}
   #pa tbody tr.due{background:#fee2e2!important}
-  #pa tbody tr.sup{background:#fffbeb!important}
   #pa td.c{text-align:center}
-  #pa td.nm{font-weight:700;color:#0b1b33}
-  #pa td.mono{direction:ltr;text-align:left;color:#111;white-space:normal;font-family:Consolas,'Courier New',monospace;font-size:.92em;word-break:break-all}
-  #pa td.l{direction:ltr;text-align:center;white-space:nowrap;overflow:visible;font-variant-numeric:tabular-nums}
-  #pa td.num{text-align:center;white-space:nowrap;overflow:visible;font-variant-numeric:tabular-nums}
+  #pa td.nm{font-weight:700;color:#0b1b33;white-space:nowrap}
+  #pa td.mono{direction:ltr;text-align:left;font-family:Consolas,'Courier New',monospace;white-space:nowrap;letter-spacing:.03em}
+  #pa td.l{direction:ltr;text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
+  #pa td.num{text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
   #pa td.ok{color:#166534;font-weight:800;text-align:center}
   #pa td.no{color:#991b1b;font-weight:800;text-align:center}
   #pa td.bad{color:#991b1b;font-weight:800}
-  #pa .chip{display:inline-block;border:1px solid #fca5a5;background:#fef2f2;color:#991b1b;border-radius:3px;padding:0 5px;margin:1px 2px;font-size:.9em}
-  #pa .sv{display:inline-block;margin-inline-start:6px;padding:0 6px;border:1px solid #b45309;color:#92400e;background:#fef3c7;border-radius:3px;font-size:.8em;font-weight:800;white-space:nowrap;vertical-align:middle}
+  #pa .chip{display:inline-block;border:1px solid #fca5a5;background:#fef2f2;color:#991b1b;border-radius:3px;padding:0 5px;margin:1px 2px;font-size:.9em;white-space:nowrap}
   #pa tfoot td{background:#e3eaf2;font-weight:800;border-top:2px solid #12284a;text-align:center}
   #pa .tag-ok{color:#166534;font-weight:700}#pa .tag-warn{color:#92400e;font-weight:700}#pa .tag-bad{color:#991b1b;font-weight:700}
   #pa .foot{margin-top:8px;font-size:9.5px;color:#6b7a90;display:flex;justify-content:space-between}
@@ -150,9 +157,9 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <style id="tk-airlines-css">
 .tk-cc{font-family:"Courier New",Courier,monospace;font-size:10pt;padding:6mm;white-space:pre}
-.tk-sv{zoom:.66;position:relative;width:1035px;height:1130px;overflow:hidden;font-family:'Open Sans','Segoe UI',Arial,sans-serif;color:#111;background:#fff}
+.tk-sv{zoom:.66;position:relative;width:1035px;height:1130px;margin:28px 0 0 62px;text-align:left;page-break-after:always;overflow:hidden;font-family:'Open Sans','Segoe UI',Arial,sans-serif;color:#111;background:#fff}
 .sv-a{position:absolute;white-space:nowrap;margin:0}
-.tk-eg{zoom:.88;position:relative;width:577pt;height:490pt;overflow:hidden;font-family:Arial,'Liberation Sans',Helvetica,sans-serif;color:#222;background:#fff}
+.tk-eg{zoom:.88;position:relative;width:577pt;height:490pt;margin:42pt 0 0 13.5pt;text-align:left;page-break-after:always;overflow:hidden;font-family:Arial,'Liberation Sans',Helvetica,sans-serif;color:#222;background:#fff}
 .eg-a{position:absolute;margin:0}
 </style>
 </head>
@@ -290,7 +297,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <div class="tbl-wrap" id="bkt"></div>
     <button class="sec" id="bkp" style="margin-top:6px;font-size:12px">🖨️ طباعة كشف الحجوزات</button>
   </details>
-  <div class="tbl-wrap"><table id="main-table">
+  <div class="tbl-wrap main-scroll"><table id="main-table">
     <thead id="thead-row"></thead>
     <tbody id="tb"></tbody>
   </table></div>
@@ -334,12 +341,6 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
         <option value="mrz">MRZ</option>
         <option value="cols">عمودين (اللقب | الاسم الأول)</option>
       </select>
-      <label style="font-size:12px;color:var(--mut)">الاتجاه:</label>
-      <select id="p-ori" style="font-size:12px;padding:4px 7px"><option value="auto" selected>تلقائي</option><option value="portrait">طولي</option><option value="landscape">عرضي</option></select>
-      <label style="font-size:12px;color:var(--mut)">الورق:</label>
-      <select id="p-paper" style="font-size:12px;padding:4px 7px"><option value="A4" selected>A4</option><option value="A3">A3</option></select>
-      <label style="font-size:12px;color:var(--mut)">الخط:</label>
-      <select id="p-fs" style="font-size:12px;padding:4px 7px"><option value="s">أصغر</option><option value="m" selected>تلقائي</option><option value="l">أكبر</option></select>
       <button id="prt">🖨️ طباعة</button>
       <button class="sec" id="xls">⬇️ Excel / CSV</button>
       <button class="sec" id="xls-air" title="يحمّل شيت الطيران بنفس الفورمه متملي بالأسماء">✈️ شيت الطيران (Excel)</button>
@@ -365,6 +366,8 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 </dialog>
 <dialog id="editdlg">
   <h4 id="ed-ttl" style="margin:0 0 8px"></h4>
+  <textarea id="ed-scan" placeholder="سكّن الجواز الجديد هنا — البيانات بتتحط تحت تلقائي وبعدها اضغط حفظ"></textarea>
+  <div id="ed-scanmsg" style="min-height:20px;margin-bottom:6px;font-size:13px;font-weight:700"></div>
   <div class="fgrid">
     <label>اللقب (Surname)<input id="ed-sur" class="ltr" autocomplete="off"></label>
     <label>الاسم الأول (Given Names)<input id="ed-giv" class="ltr" autocomplete="off"></label>
@@ -510,6 +513,7 @@ function expStatus(expIso,tripIso){
 var S={groups:[{id:1,name:'مجموعة 1',trip:'',date:''}],people:[],active:1,seq:2};
 try{var _r=localStorage.getItem('fm3');if(_r)S=JSON.parse(_r)}catch(e){}
 function save(){try{localStorage.setItem('fm3',JSON.stringify(S))}catch(e){}}
+var SEL={};
 function grp(){return S.groups.find(function(g){return g.id===S.active})||S.groups[0]}
 function list(){return S.people.filter(function(p){return p.g===grp().id})}
 
@@ -1007,8 +1011,8 @@ function svLeg(L,dy,idxLeg,tk,pname,etk){
   o+=svT(101,231+dy,14,'<b>PASSENGERS</b>','color:#222');
   o+='<table class="sv-a" style="left:39px;top:'+(220+dy)+'px;width:996px;table-layout:fixed;border-collapse:collapse;font-size:13px;color:#111">'
     +'<colgroup><col style="width:540px"><col></colgroup>'
-    +'<tr style="height:18px"><td style="border:1.5px solid #1a1a1a;padding:0 3px;line-height:15px"><b>Name</b></td><td style="border:1.5px solid #1a1a1a;padding:0 3px;line-height:15px"><b>eTicket Number</b></td></tr>'
-    +'<tr style="height:19px"><td style="border:1.5px solid #1a1a1a;padding:0 12px;line-height:15px;white-space:pre">'+esc(pname)+'</td><td style="border:1.5px solid #1a1a1a;padding:0 3px;line-height:15px">'+esc(etk)+'</td></tr></table>';
+    +'<tr style="height:18px"><td style="text-align:left;border:1.5px solid #1a1a1a;padding:0 3px;line-height:15px"><b>Name</b></td><td style="text-align:left;border:1.5px solid #1a1a1a;padding:0 3px;line-height:15px"><b>eTicket Number</b></td></tr>'
+    +'<tr style="height:19px"><td style="text-align:left;border:1.5px solid #1a1a1a;padding:0 12px;line-height:15px;white-space:pre">'+esc(pname)+'</td><td style="text-align:left;border:1.5px solid #1a1a1a;padding:0 3px;line-height:15px">'+esc(etk)+'</td></tr></table>';
   o+=svT(101,309+dy,13,'Class Of Service: Economy','color:#333');
   o+=svT(101,336+dy,14,'<b>AIRPORT INFO</b>','color:#222');
   var cy=352+dy;
@@ -1273,7 +1277,28 @@ $('pay-close').onclick=function(){$('paydlg').close()};
 /* ══════════════════════════════════════════
    EDIT PERSON
 ══════════════════════════════════════════ */
-var edId=0;
+var edId=0,edMrz='';
+function edScan(){
+  var raw=$('ed-scan').value;if(!raw.trim())return;
+  var ls=extractLines(raw);if(!ls)return;
+  var l2=ls.l2,m=$('ed-scanmsg');
+  if(!(chkD(l2.slice(0,9),l2[9])&&chkD(l2.slice(13,19),l2[19])&&chkD(l2.slice(21,27),l2[27])&&chkD(l2.slice(0,10)+l2.slice(13,20)+l2.slice(21,43),l2[43])&&!/\d/.test(ls.l1.slice(5)))){
+    m.style.color='var(--bad)';m.textContent='❌ القراءة فيها غلط — سكّن الجواز تاني.';$('ed-scan').value='';beep(200);return}
+  var o=parse(ls.l1,l2);
+  $('ed-sur').value=o.sur;$('ed-giv').value=o.giv;$('ed-pno').value=o.pno;$('ed-nat').value=o.nat;
+  $('ed-sex').value=o.sex;$('ed-dob').value=o.dob||'';$('ed-exp').value=o.exp||'';
+  edMrz=ls.l1+'\n'+ls.l2;$('ed-mrz').style.display='';
+  $('ed-scan').value='';m.style.color='var(--ok)';m.textContent='✓ اتقرا: '+o.sur+' '+o.giv+' — راجع واضغط حفظ';beep(880);
+}
+var edScanTimer;
+$('ed-scan').addEventListener('input',function(){clearTimeout(edScanTimer);edScanTimer=setTimeout(edScan,300)});
+$('ed-scan').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){setTimeout(function(){
+    var raw=$('ed-scan').value.trim();if(!raw)return;
+    if(extractLines(raw))edScan();
+    else{var m=$('ed-scanmsg');m.style.color='var(--bad)';m.textContent='القراءة ناقصة — سكّن الجواز تاني.';beep(200);$('ed-scan').value=''}
+  },200)}
+});
 function openEdit(id){
   var p=S.people.find(function(x){return x.id===id});if(!p)return;edId=id;
   $('ed-ttl').textContent='✏️ تعديل — '+nameFull(p);
@@ -1282,13 +1307,20 @@ function openEdit(id){
   $('ed-room').innerHTML='<option value="">—</option>'+ROOMS.map(function(r){return'<option value="'+r[0]+'"'+(p.room===r[0]?' selected':'')+'>'+r[1]+'</option>'}).join('');
   $('ed-disc').value=p.disc||'';$('ed-rno').value=p.rno||'';$('ed-bk').value=p.bk||'';$('ed-custom').value=p.custom===''||p.custom==null?'':p.custom;
   $('ed-sup').checked=!!p.sup;$('ed-mrz').style.display=p.mrz?'':'none';
-  $('editdlg').showModal();$('ed-sur').focus();
+  edMrz='';$('ed-scan').value='';$('ed-scanmsg').textContent='';
+  $('editdlg').showModal();$('ed-scan').focus();
 }
 $('tb').addEventListener('click',function(e){var b=e.target.closest('button[data-e]');if(b)openEdit(+b.dataset.e)});
+$('tb').addEventListener('click',function(e){
+  if(e.target.closest('button,input,select,textarea,a,label,span.nm'))return;
+  var tr=e.target.closest('tr[data-rid]');if(!tr)return;
+  var id=tr.dataset.rid;
+  if(SEL[id]){delete SEL[id];tr.classList.remove('sel')}else{SEL[id]=1;tr.classList.add('sel')}
+});
 $('ed-cancel').onclick=function(){$('editdlg').close()};
 $('ed-mrz').onclick=function(){
-  var p=S.people.find(function(x){return x.id===edId});if(!p||!p.mrz)return;
-  var ml=p.mrz.split('\n'),o=parse(ml[0],ml[1]);$('ed-sur').value=o.sur;$('ed-giv').value=o.giv;
+  var p=S.people.find(function(x){return x.id===edId});var mz=edMrz||(p&&p.mrz);if(!mz)return;
+  var ml=mz.split('\n'),o=parse(ml[0],ml[1]);$('ed-sur').value=o.sur;$('ed-giv').value=o.giv;
 };
 $('ed-save').onclick=async function(){
   var p=S.people.find(function(x){return x.id===edId});if(!p){$('editdlg').close();return}
@@ -1302,6 +1334,7 @@ $('ed-save').onclick=async function(){
   p.sur=su;p.giv=gi;p.pno=pno;p.nat=$('ed-nat').value.trim().toUpperCase();p.sex=$('ed-sex').value;
   p.dob=$('ed-dob').value;p.exp=$('ed-exp').value;p.room=$('ed-room').value;p.rno=$('ed-rno').value.trim();p.bk=$('ed-bk').value.trim();
   p.sup=$('ed-sup').checked;
+  if(edMrz){p.mrz=edMrz;p.rev=false;p.hasPass=true}
   var cv=$('ed-custom').value;p.custom=cv===''?'':+cv;
   var dv=$('ed-disc').value.trim().replace(/[\s,]/g,'');
   if(dv===''||dv==='0')p.disc='';
@@ -1402,38 +1435,22 @@ function colValue(p,col,mode,tripDate){
    PRINT
 ══════════════════════════════════════════ */
 function fmtN(v){return typeof v==='number'?v.toLocaleString('en'):v}
-var CW={num:3,name:25,pno:10,nat:8,sex:5,dob:10.5,exp:10.5,'exp-status':10,photo:8,'passport-doc':8,tajneed:8,room:10,rno:6,fam:6,bk:16,haspass:9,'pay-total':8,'pay-paid':8,'pay-rem':8,'pay-due':9,missing:20};
-function colWs(c,mode){if(c==='name')return mode==='cols'?[13,17]:mode==='airline'?[12,10,13]:mode==='mrz'?[32]:[25];return[CW[c]||10]}
-function getPO(){return{ori:$('p-ori').value,paper:$('p-paper').value,k:{s:.88,m:1,l:1.12}[$('p-fs').value]||1}}
-function svb(p){return p.sup?'<span class="sv">مشرف</span>':''}
 function doPrint(){
-  var pa=$('pa'),o=getPO();
+  var pa=$('pa');
   pa.querySelectorAll('td,th').forEach(function(c){if(!c.hasAttribute('dir'))c.setAttribute('dir','auto')});
-  var n=pa.querySelectorAll('thead tr:first-child th').length,ws=pa.dataset.ws?pa.dataset.ws.split(',').map(Number):null;
-  var pw=o.paper==='A3'?[275,402]:[188,275],ori=o.ori,f;
-  if(ws){
-    var T=ws.reduce(function(x,y){return x+y},0);
-    var fit=function(mm){return(mm*3.78-n)/(.6*T+1.2*n)};
-    if(ori==='auto')ori=fit(pw[0])>=9.5?'portrait':'landscape';
-    f=Math.max(6,Math.min(11.5,fit(pw[ori==='portrait'?0:1])))*o.k;
-  }else{
-    if(ori==='auto')ori=n>7?'landscape':'portrait';
-    f=(n>13?9.5:n>9?10.5:11.5)*o.k;
-  }
-  pa.style.setProperty('--fs',f.toFixed(2)+'px');
-  pa.style.setProperty('--py',(f*.42).toFixed(2)+'px');
-  pa.style.setProperty('--px',(f*.6).toFixed(2)+'px');
-  $('pgs').textContent='@page{size:'+o.paper+' '+ori+';margin:10mm 8mm 14mm;@bottom-center{content:counter(page) " / " counter(pages);font:9px Tahoma,Arial,sans-serif;color:#6b7a90}}';
+  var n=pa.querySelectorAll('thead tr:first-child th').length;
+  pa.className=n>13?'s-sm':n>9?'s-md':'';
+  $('pgs').textContent='@page{size:A4 '+(n>7?'landscape':'portrait')+';margin:10mm}';
   var t=document.title,h=pa.querySelector('h2');if(h)document.title=h.textContent;
-  window.print();document.title=t;delete pa.dataset.ws;
+  window.print();document.title=t;
 }
 function printCell(p,c,i,g,mode){
   var v=colValue(p,c,mode,g.date),cls=COLDEF[c]?COLDEF[c][2]:'';
   if(c==='num')return'<td class="num">'+(i+1)+'</td>';
   if(c==='name'){
-    if(mode==='cols')return'<td class="nm">'+esc(p.sur)+svb(p)+'</td><td class="nm">'+esc(p.giv)+'</td>';
-    if(mode==='airline'){var _ap=(p.giv||'').trim().split(/\s+/);return'<td class="nm">'+esc(p.sur)+svb(p)+'</td><td class="nm">'+esc(_ap[0]||'')+'</td><td class="nm">'+esc(_ap.slice(1).join(' '))+'</td>';}
-    return'<td class="'+(mode==='mrz'?'mono':'nm')+'">'+esc(v)+svb(p)+'</td>';
+    if(mode==='cols')return'<td class="nm">'+esc(p.sur)+'</td><td class="nm">'+esc(p.giv)+'</td>';
+    if(mode==='airline'){var _ap=(p.giv||'').trim().split(/\s+/);return'<td class="nm">'+esc(p.sur)+'</td><td class="nm">'+esc(_ap[0]||'')+'</td><td class="nm">'+esc(_ap.slice(1).join(' '))+'</td>';}
+    return'<td class="'+(mode==='mrz'?'mono':'nm')+'">'+esc(v)+'</td>';
   }
   if(c==='exp-status'){var st=expStatus(p.exp,g.date);return'<td class="c '+st.cls+'">'+esc(st.label)+'</td>'}
   if(c==='tajneed')return v?'<td class="no">'+esc(v)+'</td>':'<td></td>';
@@ -1453,25 +1470,20 @@ $('prt').onclick=function(){
   var sub=(g.trip?esc(g.trip):'')+(g.trip&&g.date?' &nbsp;·&nbsp; ':'')+(g.date?'Flight: <b>'+fmtDate(g.date)+'</b>':'');
   var meta='<span class="mi">Passengers: <b>'+l.length+'</b></span>'
     +($('flt').value!=='all'?'<span class="mi">Filter: <b>'+esc($('flt').selectedOptions[0].text)+'</b></span>':'')
-    +(l.some(function(p){return p.sup})?'<span class="mi sv">Supervisor / مشرف: <b>'+l.filter(function(p){return p.sup}).map(function(p){return esc(nameFull(p))}).join(' · ')+'</b></span>':'')
     +'<span class="mi">Printed: '+date+'</span>';
 
   // alerts
   var expWarn=l.filter(function(p){return expStatus(p.exp,g.date).cls==='tag-warn'}).length;
   var expBad=l.filter(function(p){return expStatus(p.exp,g.date).cls==='tag-bad'}).length;
   var al='';
-  if(expBad)al+='<span class="al bad">جوازات منتهية: '+expBad+'</span>';
-  if(expWarn)al+='<span class="al warn">أقل من سنة: '+expWarn+'</span>';
+  if(expBad)al+='<span class="al bad">⚠ جوازات منتهية: '+expBad+'</span>';
+  if(expWarn)al+='<span class="al warn">⚠ أقل من سنة: '+expWarn+'</span>';
   if(cols.includes('photo'))al+='<span class="al info">ناقص صورة: '+l.filter(function(p){return!p.photo}).length+'</span>';
   if(cols.includes('passport-doc'))al+='<span class="al info">ناقص جواز: '+l.filter(function(p){return!p.passportDoc}).length+'</span>';
   if(cols.includes('tajneed'))al+='<span class="al info">مطلوب موقف تجنيد: '+l.filter(function(p){return p.tajneed}).length+'</span>';
   var pays=l.filter(function(p){var q=payInfo(p,g);return q.due&&(!q.bk||q.lead)}),ptot=pays.reduce(function(a,p){return a+payInfo(p,g).amt},0);
-  if(hasPay&&pays.length)al+='<span class="al bad">مطلوب سداد: '+pays.length+(ptot?' — '+ptot.toLocaleString('en')+' '+CUR:'')+'</span>';
+  if(hasPay&&pays.length)al+='<span class="al bad">💰 مطلوب سداد: '+pays.length+(ptot?' — '+ptot.toLocaleString('en')+' '+CUR:'')+'</span>';
 
-  // column widths
-  var ws=[];cols.forEach(function(c){colWs(c,mode).forEach(function(w){ws.push(w)})});
-  var WT=ws.reduce(function(x,y){return x+y},0);
-  var cg='<colgroup>'+ws.map(function(w){return'<col style="width:'+(w/WT*100).toFixed(3)+'%">'}).join('')+'</colgroup>';
   // thead
   var thead='<tr>';
   cols.forEach(function(c){
@@ -1483,7 +1495,7 @@ $('prt').onclick=function(){
   // tbody + totals
   var sums={},tbody='';
   l.forEach(function(p,i){
-    tbody+='<tr'+(p.sup?' class="sup"':hasPay&&payInfo(p,g).due?' class="due"':'')+'>';
+    tbody+='<tr'+(hasPay&&payInfo(p,g).due?' class="due"':'')+'>';
     cols.forEach(function(c){
       tbody+=printCell(p,c,i,g,mode);
       if(isPayCol(c)){var v=colValue(p,c,mode,g.date);if(typeof v==='number')sums[c]=(sums[c]||0)+v}
@@ -1506,16 +1518,11 @@ $('prt').onclick=function(){
   $('pa').innerHTML='<div class="ph"><div><div class="brand">Adriaska Tours · أدريسكا للسياحة</div><h2>'+esc(g.name)+'</h2>'+(sub?'<div class="sub">'+sub+'</div>':'')+'</div>'
     +'<div class="meta">'+meta+'</div></div>'
     +(al?'<div class="alerts">'+al+'</div>':'')
-    +'<table class="fx">'+cg+'<thead>'+thead+'</thead><tbody>'+tbody+'</tbody>'+tfoot+'</table>'
+    +'<table><thead>'+thead+'</thead><tbody>'+tbody+'</tbody>'+tfoot+'</table>'
     +'<div class="foot"><span>Flight Manifest · كشف مجموعات الطيران</span><span>'+esc(g.name)+' · '+l.length+' pax</span></div>';
-  $('pa').dataset.ws=ws.join(',');
   doPrint();
 };
 
-(function(){var ids=['p-ori','p-paper','p-fs'];
-  try{var s=JSON.parse(localStorage.getItem('fm_popt')||'{}');ids.forEach(function(i){if(s[i])$(i).value=s[i]})}catch(e){}
-  ids.forEach(function(i){$(i).addEventListener('change',function(){try{var o={};ids.forEach(function(j){o[j]=$(j).value});localStorage.setItem('fm_popt',JSON.stringify(o))}catch(e){}})});
-})();
 /* remember chosen print columns */
 (function(){
   try{var sv=JSON.parse(localStorage.getItem('fm_cols')||'null');
@@ -1619,7 +1626,7 @@ function render(){
     var rowWarn=(st.cls==='tag-bad'||st.cls==='tag-warn')?'background:rgba(180,83,9,.07)':'';
     var ri=roomIssue(p,g),pi=payInfo(p,g),pct=(g.minPct==null?50:g.minPct);
     if(pi.due)rowWarn='background:rgba(179,38,30,.1)';
-    return'<tr style="'+rowWarn+'">'
+    return'<tr data-rid="'+p.id+'" class="'+(pi.due?'rw-due':rowWarn?'rw-warn':'')+(SEL[p.id]?' sel':'')+'">'
       +'<td style="color:var(--mut);font-size:12px">'+(i+1)+'</td>'
       +'<td class="'+(isMrz?'mono':'ltr')+'"><span class="nm" data-id="'+p.id+'" data-cp="'+esc(display)+'" title="اضغط للكوبي">'+esc(display)+'</span>'+(p.sup?' <span title="مشرف المجموعة">👑</span>':'')+'</td>'
       +(showDet
