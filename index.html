@@ -87,6 +87,16 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 #pay-list input{font-size:13px;padding:4px 7px}
 /* print */
 #pa{display:none}
+/* ticket print */
+#ticket-pages{display:none}
+@media print{
+  body{background:#fff;color:#000}
+  .wrap,.toast,#undo-bar{display:none!important}
+  #pa{display:none}
+  #ticket-pages{display:block;font-family:"Courier New",Courier,monospace;font-size:11pt;color:#000;padding:10mm;direction:ltr;white-space:pre-wrap}
+  .tk-page{page-break-after:always}
+  .tk-page:last-child{page-break-after:avoid}
+}
 @media print{
   html,body{background:#fff!important;color:#000!important}
   .wrap,dialog,#undo-bar{display:none!important}
@@ -182,6 +192,57 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       <label>رباعي <input type="number" min="0" data-room="quad" style="width:90px"></label>
       <label>خماسي <input type="number" min="0" data-room="quint" style="width:90px"></label>
       <label>الحد الأدنى % <input type="number" min="0" max="100" id="minpct" style="width:65px"></label>
+    </div>
+  </details>
+  <details style="margin-top:8px" id="ticket-details">
+    <summary style="cursor:pointer;color:var(--mut);font-size:13px">✈️ بيانات التكت (للطباعة)</summary>
+    <div style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;font-size:13px">
+      <label style="display:flex;flex-direction:column;gap:3px">شركة الطيران<input id="tk-airline" dir="ltr" placeholder="AIR CAIRO"></label>
+      <label style="display:flex;flex-direction:column;gap:3px">Booking Ref<input id="tk-ref" dir="ltr" placeholder="9R2FYZ" style="text-transform:uppercase"></label>
+      <label style="display:flex;flex-direction:column;gap:3px">مكتب الحجز<input id="tk-office" dir="ltr" placeholder="AIR CAIRO SALES OFFICE"></label>
+      <label style="display:flex;flex-direction:column;gap:3px">العنوان (سطر 2)<input id="tk-addr1" dir="ltr" placeholder="SHERATON"></label>
+      <label style="display:flex;flex-direction:column;gap:3px">العنوان (سطر 3)<input id="tk-addr2" dir="ltr" placeholder="CAIRO"></label>
+      <label style="display:flex;flex-direction:column;gap:3px">الدولة<input id="tk-country" dir="ltr" placeholder="EGYPT"></label>
+    </div>
+    <div style="margin-top:10px;background:var(--bg);border-radius:8px;padding:10px">
+      <strong style="font-size:12px;color:var(--mut)">✈️ رحلة الذهاب</strong>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:7px;font-size:13px">
+        <label style="display:flex;flex-direction:column;gap:3px">رقم الرحلة<input id="tk-dep-flt" dir="ltr" placeholder="SM 477"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">من (مدينة + كود)<input id="tk-dep-from" dir="ltr" placeholder="CAIRO, EG (CAIRO INTL)"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">Terminal المغادرة<input id="tk-dep-from-term" dir="ltr" placeholder="TERMINAL 1"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">إلى (مدينة + كود)<input id="tk-dep-to" dir="ltr" placeholder="JEDDAH, SA (KING ABDULAZIZ INTL)"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">Terminal الوصول<input id="tk-dep-to-term" dir="ltr" placeholder="TERMINAL N - NORTH TERMINAL"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">تاريخ + وقت الإقلاع<input id="tk-dep-dep" dir="ltr" placeholder="29 SEP 04:30"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">تاريخ + وقت الوصول<input id="tk-dep-arr" dir="ltr" placeholder="29 SEP 06:40"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">Flight Booking Ref<input id="tk-dep-fref" dir="ltr" placeholder="SM/9R2FYZ"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">Class<input id="tk-dep-class" dir="ltr" placeholder="ECONOMY (P)"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">Duration<input id="tk-dep-dur" dir="ltr" placeholder="02:10"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">Baggage<input id="tk-dep-bag" dir="ltr" placeholder="30K"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">Meal<input id="tk-dep-meal" dir="ltr" placeholder="SNACK"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">Aircraft<input id="tk-dep-ac" dir="ltr" placeholder="AIRBUS A320"></label>
+      </div>
+    </div>
+    <div style="margin-top:8px;background:var(--bg);border-radius:8px;padding:10px">
+      <strong style="font-size:12px;color:var(--mut)">✈️ رحلة العودة</strong>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:7px;font-size:13px">
+        <label style="display:flex;flex-direction:column;gap:3px">رقم الرحلة<input id="tk-ret-flt" dir="ltr" placeholder="SM 988"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">من (مدينة + كود)<input id="tk-ret-from" dir="ltr" placeholder="MADINAH, SA (MOHAMMAD BIN ABDULAZIZ)"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">Terminal المغادرة<input id="tk-ret-from-term" dir="ltr" placeholder="NORTH TERMINAL"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">إلى (مدينة + كود)<input id="tk-ret-to" dir="ltr" placeholder="CAIRO, EG (CAIRO INTL)"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">Terminal الوصول<input id="tk-ret-to-term" dir="ltr" placeholder="TERMINAL 1"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">تاريخ + وقت الإقلاع<input id="tk-ret-dep" dir="ltr" placeholder="13 OCT 07:55"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">تاريخ + وقت الوصول<input id="tk-ret-arr" dir="ltr" placeholder="13 OCT 09:55"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">Flight Booking Ref<input id="tk-ret-fref" dir="ltr" placeholder="SM/9R2FYZ"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">Class<input id="tk-ret-class" dir="ltr" placeholder="ECONOMY (P)"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">Duration<input id="tk-ret-dur" dir="ltr" placeholder="02:00"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">Baggage<input id="tk-ret-bag" dir="ltr" placeholder="30K"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">Meal<input id="tk-ret-meal" dir="ltr" placeholder="SNACK"></label>
+        <label style="display:flex;flex-direction:column;gap:3px">Aircraft<input id="tk-ret-ac" dir="ltr" placeholder="AIRBUS A320"></label>
+      </div>
+    </div>
+    <div style="margin-top:8px" class="row">
+      <button id="tk-save" style="font-size:13px;padding:6px 14px">💾 حفظ بيانات التكت</button>
+      <button id="tk-print" class="sec" style="font-size:13px;padding:6px 14px">🖨️ طباعة التكتات</button>
     </div>
   </details>
 </div>
@@ -718,7 +779,7 @@ function showUndo(label,fn){
 /* ══════════════════════════════════════════
    GROUPS
 ══════════════════════════════════════════ */
-$('gsel').onchange=function(){S.active=+this.value;save();render();box.focus()};
+$('gsel').onchange=function(){S.active=+this.value;save();render();tkLoad();box.focus()};
 $('gtrip').oninput=function(){grp().trip=this.value;save();sbSaveGroup(grp())};
 $('gdate').oninput=function(){grp().date=this.value;save();render();sbSaveGroup(grp())};
 $('prices').oninput=function(e){var i=e.target,g=grp();
@@ -730,7 +791,209 @@ $('sortby').onchange=function(){render()};
 $('gnew').onclick=async function(){
   var n=prompt('اسم المجموعة الجديدة:');if(!n||!n.trim())return;
   var g={id:newId(),name:n.trim(),trip:'',date:''};
-  S.groups.push(g);S.active=g.id;save();render();box.focus();
+  S.groups.push(g);S.active=g.id;save();
+/* ══════════════════════════════════════════
+   TICKET DATA SAVE / LOAD / PRINT
+══════════════════════════════════════════ */
+var TK_IDS=['tk-airline','tk-ref','tk-office','tk-addr1','tk-addr2','tk-country',
+  'tk-dep-flt','tk-dep-from','tk-dep-from-term','tk-dep-to','tk-dep-to-term',
+  'tk-dep-dep','tk-dep-arr','tk-dep-fref','tk-dep-class','tk-dep-dur','tk-dep-bag','tk-dep-meal','tk-dep-ac',
+  'tk-ret-flt','tk-ret-from','tk-ret-from-term','tk-ret-to','tk-ret-to-term',
+  'tk-ret-dep','tk-ret-arr','tk-ret-fref','tk-ret-class','tk-ret-dur','tk-ret-bag','tk-ret-meal','tk-ret-ac'];
+
+function tkVal(id){return($(''+id)?$(''+id).value.trim().toUpperCase():'');}
+function tkLoad(){
+  var g=grp();
+  if(!g.tk)return;
+  TK_IDS.forEach(function(id){if($(''+id)&&g.tk[id]!=null)$(''+id).value=g.tk[id];});
+}
+function tkSave(){
+  var g=grp(),d={};
+  TK_IDS.forEach(function(id){d[id]=$(''+id)?$(''+id).value.trim():'';});
+  g.tk=d;save();sbSaveGroup(g);
+  say('✓ بيانات التكت اتحفظت','ok');
+}
+
+function pad(s,n,right){s=String(s||'');while(s.length<n)s=right?s+' ':' '+s;return s.slice(0,n);}
+function line(n){return Array(n+1).join('-');}
+function dline(n){return Array(n+1).join('- ').slice(0,n);}
+
+function buildTicket(p,g){
+  var tk=g.tk||{};
+  var airline  = (tk['tk-airline']||'AIR CAIRO').toUpperCase();
+  var ref      = (tk['tk-ref']||'').toUpperCase();
+  var office   = (tk['tk-office']||'').toUpperCase();
+  var addr1    = (tk['tk-addr1']||'').toUpperCase();
+  var addr2    = (tk['tk-addr2']||'').toUpperCase();
+  var country  = (tk['tk-country']||'').toUpperCase();
+  var todayStr = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase().replace(/ /g,' ');
+
+  var depFlt   = (tk['tk-dep-flt']||'').toUpperCase();
+  var depFrom  = (tk['tk-dep-from']||'').toUpperCase();
+  var depFromT = (tk['tk-dep-from-term']||'').toUpperCase();
+  var depTo    = (tk['tk-dep-to']||'').toUpperCase();
+  var depToT   = (tk['tk-dep-to-term']||'').toUpperCase();
+  var depDep   = (tk['tk-dep-dep']||'').toUpperCase();
+  var depArr   = (tk['tk-dep-arr']||'').toUpperCase();
+  var depFref  = (tk['tk-dep-fref']||'').toUpperCase();
+  var depClass = (tk['tk-dep-class']||'ECONOMY').toUpperCase();
+  var depDur   = (tk['tk-dep-dur']||'').toUpperCase();
+  var depBag   = (tk['tk-dep-bag']||'30K').toUpperCase();
+  var depMeal  = (tk['tk-dep-meal']||'SNACK').toUpperCase();
+  var depAc    = (tk['tk-dep-ac']||'').toUpperCase();
+
+  var retFlt   = (tk['tk-ret-flt']||'').toUpperCase();
+  var retFrom  = (tk['tk-ret-from']||'').toUpperCase();
+  var retFromT = (tk['tk-ret-from-term']||'').toUpperCase();
+  var retTo    = (tk['tk-ret-to']||'').toUpperCase();
+  var retToT   = (tk['tk-ret-to-term']||'').toUpperCase();
+  var retDep   = (tk['tk-ret-dep']||'').toUpperCase();
+  var retArr   = (tk['tk-ret-arr']||'').toUpperCase();
+  var retFref  = (tk['tk-ret-fref']||'').toUpperCase();
+  var retClass = (tk['tk-ret-class']||'ECONOMY').toUpperCase();
+  var retDur   = (tk['tk-ret-dur']||'').toUpperCase();
+  var retBag   = (tk['tk-ret-bag']||'30K').toUpperCase();
+  var retMeal  = (tk['tk-ret-meal']||'SNACK').toUpperCase();
+  var retAc    = (tk['tk-ret-ac']||'').toUpperCase();
+
+  // passenger name  SURNAME / GIVEN
+  var pname = (p.sur||'').toUpperCase() + ' / ' + (p.giv||'').toUpperCase();
+  if(p.sex==='F') pname += ' MRS'; else if(p.sex==='M') pname += ' MR';
+
+  // ticket number placeholder (row number based)
+  var tktNum = '381 ' + String(2406820000 + (p.id||1));
+
+  var W = 72; // line width
+  var L = line(W);
+  var DL = dline(W);
+
+  var out = '';
+  // header
+  out += pad(office,38) + 'BOOKING REF: ' + ref + '
+';
+  if(addr1) out += pad(addr1,38) + 'DATE:        ' + todayStr + '
+';
+  if(addr2) out += addr2 + '
+';
+  if(country) out += country + '
+';
+  out += '
+';
+  out += pad('',38) + (g.trip||'UMRAH').toUpperCase() + '
+';
+  out += '
+';
+
+  // ─── DEPARTURE FLIGHT ───
+  out += 'FLIGHT    ' + pad(depFlt + ' - ' + airline, 40) + depDep.split(' ').slice(0,2).join(' ') + '
+';
+  out += L + '
+';
+  out += 'DEPARTURE: ' + depFrom + '
+';
+  if(depFromT) out += '          ' + depFromT + '
+';
+  out += 'ARRIVAL:   ' + depTo + '
+';
+  if(depToT) out += '          ' + depToT + '
+';
+  out += '          FLIGHT BOOKING REF: ' + depFref + '
+';
+  out += '          RESERVATION CONFIRMED, ' + depClass + (depDur ? pad('DURATION: ' + depDur, 25, false) : '') + '
+';
+  out += DL + '
+';
+  if(depDep||depArr){
+    out += '          DEPARTURE: ' + depDep + '
+';
+    out += '          ARRIVAL:   ' + depArr + '
+';
+  }
+  out += '          BAGGAGE ALLOWANCE:    ' + depBag + '
+';
+  out += '          MEAL:                 ' + depMeal + '
+';
+  out += '
+';
+  var depRoute = depFrom.split(',')[0] + ' TO ' + depTo.split(',')[0];
+  out += 'NON STOP  ' + depRoute + '
+';
+  out += '          AIRCRAFT OWNER:       ' + airline + ', ' + depFlt.split(' ')[0] + '
+';
+  out += '          EQUIPMENT:            ' + depAc + '
+';
+  out += '
+';
+
+  // ─── RETURN FLIGHT ───
+  if(retFlt){
+    out += 'FLIGHT    ' + pad(retFlt + ' - ' + airline, 40) + retDep.split(' ').slice(0,2).join(' ') + '
+';
+    out += L + '
+';
+    out += 'DEPARTURE: ' + retFrom + '
+';
+    if(retFromT) out += '          ' + retFromT + '
+';
+    out += 'ARRIVAL:   ' + retTo + '
+';
+    if(retToT) out += '          ' + retToT + '
+';
+    out += '          FLIGHT BOOKING REF: ' + retFref + '
+';
+    out += '          RESERVATION CONFIRMED, ' + retClass + (retDur ? pad('DURATION: ' + retDur, 25, false) : '') + '
+';
+    out += DL + '
+';
+    if(retDep||retArr){
+      out += '          DEPARTURE: ' + retDep + '
+';
+      out += '          ARRIVAL:   ' + retArr + '
+';
+    }
+    out += '          BAGGAGE ALLOWANCE:    ' + retBag + '
+';
+    out += '          MEAL:                 ' + retMeal + '
+';
+    out += '
+';
+    var retRoute = retFrom.split(',')[0] + ' TO ' + retTo.split(',')[0];
+    out += 'NON STOP  ' + retRoute + '
+';
+    out += '          AIRCRAFT OWNER:       ' + airline + ', ' + retFlt.split(' ')[0] + '
+';
+    out += '          EQUIPMENT:            ' + retAc + '
+';
+    out += '
+';
+  }
+
+  // ─── TICKET ───
+  out += 'FLIGHT TICKET(S)
+';
+  out += L + '
+';
+  out += 'TICKET: SM/ETKT ' + tktNum + ' FOR          ' + pname + '
+';
+
+  return out;
+}
+
+$('tk-save').onclick = function(){ tkSave(); };
+
+$('tk-print').onclick = function(){
+  var l = list();
+  if(!l.length){ alert('المجموعة فاضية.'); return; }
+  var g = grp();
+  var pages = $('ticket-pages');
+  pages.innerHTML = l.map(function(p){
+    return '<div class="tk-page">' + buildTicket(p,g) + '</div>';
+  }).join('');
+  window.print();
+  pages.innerHTML = '';
+};
+
+render();box.focus();
   await sbSaveGroup(g);
 };
 $('gren').onclick=async function(){
@@ -1271,5 +1534,6 @@ $('airline-upload').addEventListener('change', function(e){
   reader.readAsArrayBuffer(file);
 });
 </script>
+<div id="ticket-pages"></div>
 </body>
 </html>
