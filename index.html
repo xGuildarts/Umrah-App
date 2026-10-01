@@ -1241,8 +1241,8 @@ $('airline-upload').addEventListener('change', function(e){
       l.forEach(function(p, i){
         var row = startRow + i;
         var parts = (p.giv||'').trim().split(/\s+/);
-        var first = parts[0]  || '';
-        var sec   = parts.slice(1).join(' ');
+        var first = parts[0] || '';
+        var sec   = parts[1] || '';
         var dob   = p.dob ? fmtDate(p.dob) : '';
 
         ws['D'+row] = {t:'s', v: p.sur  || ''};
