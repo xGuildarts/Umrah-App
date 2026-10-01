@@ -142,6 +142,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 </style>
 <style id="pgs"></style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -339,6 +340,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       </select>
       <button id="prt">🖨️ طباعة</button>
       <button class="sec" id="xls">⬇️ Excel / CSV</button>
+      <button class="sec" id="xls-air" title="يحمّل شيت الطيران بنفس الفورمه متملي بالأسماء">✈️ شيت الطيران (Excel)</button>
       <label class="sec" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:7px 11px;border:1px solid var(--line);border-radius:8px;font-size:inherit;font-weight:500" title="ارفع شيت الطيران الفاضي وهيتملى بالأسماء تلقائي">
         📤 رفع شيت طيران
         <input type="file" id="airline-upload" accept=".xlsx" style="display:none">
@@ -869,112 +871,66 @@ function buildTicket(p,g){
 
   var out = '';
   // header
-  out += pad(office,38) + 'BOOKING REF: ' + ref + '
-';
-  if(addr1) out += pad(addr1,38) + 'DATE:        ' + todayStr + '
-';
-  if(addr2) out += addr2 + '
-';
-  if(country) out += country + '
-';
-  out += '
-';
-  out += pad('',38) + (g.trip||'UMRAH').toUpperCase() + '
-';
-  out += '
-';
+  out += pad(office,38) + 'BOOKING REF: ' + ref + '\n';
+  if(addr1) out += pad(addr1,38) + 'DATE:        ' + todayStr + '\n';
+  if(addr2) out += addr2 + '\n';
+  if(country) out += country + '\n';
+  out += '\n';
+  out += pad('',38) + (g.trip||'UMRAH').toUpperCase() + '\n';
+  out += '\n';
 
   // ─── DEPARTURE FLIGHT ───
-  out += 'FLIGHT    ' + pad(depFlt + ' - ' + airline, 40) + depDep.split(' ').slice(0,2).join(' ') + '
-';
-  out += L + '
-';
-  out += 'DEPARTURE: ' + depFrom + '
-';
-  if(depFromT) out += '          ' + depFromT + '
-';
-  out += 'ARRIVAL:   ' + depTo + '
-';
-  if(depToT) out += '          ' + depToT + '
-';
-  out += '          FLIGHT BOOKING REF: ' + depFref + '
-';
-  out += '          RESERVATION CONFIRMED, ' + depClass + (depDur ? pad('DURATION: ' + depDur, 25, false) : '') + '
-';
-  out += DL + '
-';
+  out += 'FLIGHT    ' + pad(depFlt + ' - ' + airline, 40) + depDep.split(' ').slice(0,2).join(' ') + '\n';
+  out += L + '\n';
+  out += 'DEPARTURE: ' + depFrom + '\n';
+  if(depFromT) out += '          ' + depFromT + '\n';
+  out += 'ARRIVAL:   ' + depTo + '\n';
+  if(depToT) out += '          ' + depToT + '\n';
+  out += '          FLIGHT BOOKING REF: ' + depFref + '\n';
+  out += '          RESERVATION CONFIRMED, ' + depClass + (depDur ? pad('DURATION: ' + depDur, 25, false) : '') + '\n';
+  out += DL + '\n';
   if(depDep||depArr){
-    out += '          DEPARTURE: ' + depDep + '
-';
-    out += '          ARRIVAL:   ' + depArr + '
-';
+    out += '          DEPARTURE: ' + depDep + '\n';
+    out += '          ARRIVAL:   ' + depArr + '\n';
   }
-  out += '          BAGGAGE ALLOWANCE:    ' + depBag + '
-';
-  out += '          MEAL:                 ' + depMeal + '
-';
-  out += '
-';
+  out += '          BAGGAGE ALLOWANCE:    ' + depBag + '\n';
+  out += '          MEAL:                 ' + depMeal + '\n';
+  out += '\n';
   var depRoute = depFrom.split(',')[0] + ' TO ' + depTo.split(',')[0];
-  out += 'NON STOP  ' + depRoute + '
-';
-  out += '          AIRCRAFT OWNER:       ' + airline + ', ' + depFlt.split(' ')[0] + '
-';
-  out += '          EQUIPMENT:            ' + depAc + '
-';
-  out += '
-';
+  out += 'NON STOP  ' + depRoute + '\n';
+  out += '          AIRCRAFT OWNER:       ' + airline + ', ' + depFlt.split(' ')[0] + '\n';
+  out += '          EQUIPMENT:            ' + depAc + '\n';
+  out += '\n';
 
   // ─── RETURN FLIGHT ───
   if(retFlt){
-    out += 'FLIGHT    ' + pad(retFlt + ' - ' + airline, 40) + retDep.split(' ').slice(0,2).join(' ') + '
-';
-    out += L + '
-';
-    out += 'DEPARTURE: ' + retFrom + '
-';
-    if(retFromT) out += '          ' + retFromT + '
-';
-    out += 'ARRIVAL:   ' + retTo + '
-';
-    if(retToT) out += '          ' + retToT + '
-';
-    out += '          FLIGHT BOOKING REF: ' + retFref + '
-';
-    out += '          RESERVATION CONFIRMED, ' + retClass + (retDur ? pad('DURATION: ' + retDur, 25, false) : '') + '
-';
-    out += DL + '
-';
+    out += 'FLIGHT    ' + pad(retFlt + ' - ' + airline, 40) + retDep.split(' ').slice(0,2).join(' ') + '\n';
+    out += L + '\n';
+    out += 'DEPARTURE: ' + retFrom + '\n';
+    if(retFromT) out += '          ' + retFromT + '\n';
+    out += 'ARRIVAL:   ' + retTo + '\n';
+    if(retToT) out += '          ' + retToT + '\n';
+    out += '          FLIGHT BOOKING REF: ' + retFref + '\n';
+    out += '          RESERVATION CONFIRMED, ' + retClass + (retDur ? pad('DURATION: ' + retDur, 25, false) : '') + '\n';
+    out += DL + '\n';
     if(retDep||retArr){
-      out += '          DEPARTURE: ' + retDep + '
-';
-      out += '          ARRIVAL:   ' + retArr + '
-';
+      out += '          DEPARTURE: ' + retDep + '\n';
+      out += '          ARRIVAL:   ' + retArr + '\n';
     }
-    out += '          BAGGAGE ALLOWANCE:    ' + retBag + '
-';
-    out += '          MEAL:                 ' + retMeal + '
-';
-    out += '
-';
+    out += '          BAGGAGE ALLOWANCE:    ' + retBag + '\n';
+    out += '          MEAL:                 ' + retMeal + '\n';
+    out += '\n';
     var retRoute = retFrom.split(',')[0] + ' TO ' + retTo.split(',')[0];
-    out += 'NON STOP  ' + retRoute + '
-';
-    out += '          AIRCRAFT OWNER:       ' + airline + ', ' + retFlt.split(' ')[0] + '
-';
-    out += '          EQUIPMENT:            ' + retAc + '
-';
-    out += '
-';
+    out += 'NON STOP  ' + retRoute + '\n';
+    out += '          AIRCRAFT OWNER:       ' + airline + ', ' + retFlt.split(' ')[0] + '\n';
+    out += '          EQUIPMENT:            ' + retAc + '\n';
+    out += '\n';
   }
 
   // ─── TICKET ───
-  out += 'FLIGHT TICKET(S)
-';
-  out += L + '
-';
-  out += 'TICKET: SM/ETKT ' + tktNum + ' FOR          ' + pname + '
-';
+  out += 'FLIGHT TICKET(S)\n';
+  out += L + '\n';
+  out += 'TICKET: SM/ETKT ' + tktNum + ' FOR          ' + pname + '\n';
 
   return out;
 }
@@ -1486,49 +1442,50 @@ render();box.focus();
    Template: Row4=headers, Data starts Row5
    D=Last Name, F=First Name, G=Sec Name, H=DOB
 ══════════════════════════════════════════ */
+var AIRLINE_TPL_B64 = "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";
+function b64ToBuf(b){var s=atob(b),u=new Uint8Array(s.length);for(var i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u.buffer}
+/* يملى الفورمه (بتنسيقها كامل) ويحمّلها. buf = ملف الفورمه (المدمج أو المرفوع) */
+async function fillAirlineSheet(buf){
+  var l = viewList();
+  if(!l.length){ alert('المجموعة فاضية — اسكّن الجوازات الأول.'); return; }
+  var wb = new ExcelJS.Workbook();
+  await wb.xlsx.load(buf);
+  var ws = wb.worksheets[0];
+  var startRow = 5, g = grp();
+  l.forEach(function(p, i){
+    var r = startRow + i;
+    var row = ws.getRow(r);
+    if(r > 63){ /* لو الأسماء أكتر من صفوف الفورمه: انسخ تنسيق آخر صف */
+      var src = ws.getRow(63);
+      for(var c=2;c<=8;c++){ row.getCell(c).style = JSON.parse(JSON.stringify(src.getCell(c).style||{})); }
+      row.getCell(2).value = i+1; row.getCell(3).value = 'nm1'; row.getCell(5).value = '/';
+    }
+    var parts = (p.giv||'').trim().split(/\s+/);
+    row.getCell(4).value = p.sur || '';
+    row.getCell(6).value = parts[0] || '';
+    row.getCell(7).value = parts.slice(1).join(' ');
+    row.getCell(8).value = p.dob ? fmtDate(p.dob) : '';
+    row.commit();
+  });
+  var out = await wb.xlsx.writeBuffer();
+  var blob = new Blob([out], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (g.name||'group').replace(/\s/g,'_') + '_' + (g.date||new Date().toISOString().slice(0,10)) + '_airline.xlsx';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 3000);
+  say('✓ شيت الطيران جاهز — '+l.length+' اسم','ok');
+}
+/* زرار التحميل: الفورمه المدمجة، من غير رفع */
+$('xls-air').onclick = function(){
+  fillAirlineSheet(b64ToBuf(AIRLINE_TPL_B64)).catch(function(err){console.error(err);say('✗ مشكلة: '+err.message,'err')});
+};
+/* الرفع: لو عاوز تستخدم فورمه شركة تانية */
 $('airline-upload').addEventListener('change', function(e){
-  var file = e.target.files[0];
-  if(!file) return;
-  var l = list();
-  if(!l.length){ alert('المجموعة فاضية — اسكّن الجوازات الأول.'); e.target.value=''; return; }
-
+  var file = e.target.files[0]; if(!file) return;
   var reader = new FileReader();
   reader.onload = function(ev){
-    try{
-      var data = new Uint8Array(ev.target.result);
-      var wb   = XLSX.read(data, {type:'uint8array', cellStyles:true, bookSST:true});
-      var ws   = wb.Sheets[wb.SheetNames[0]];
-
-      // Data rows start at row 5 (index 4), cols D(4) F(6) G(7) H(8)
-      var startRow = 5;
-      l.forEach(function(p, i){
-        var row = startRow + i;
-        var parts = (p.giv||'').trim().split(/\s+/);
-        var first = parts[0] || '';
-        var sec   = parts[1] || '';
-        var dob   = p.dob ? fmtDate(p.dob) : '';
-
-        ws['D'+row] = {t:'s', v: p.sur  || ''};
-        ws['F'+row] = {t:'s', v: first};
-        ws['G'+row] = {t:'s', v: sec};
-        ws['H'+row] = {t:'s', v: dob};
-      });
-
-      // Update sheet range
-      var ref = XLSX.utils.decode_range(ws['!ref']||'A1');
-      var lastRow = startRow + l.length - 1;
-      if(lastRow > ref.e.r + 1) ref.e.r = lastRow - 1;
-      ws['!ref'] = XLSX.utils.encode_range(ref);
-
-      // Download
-      var g = grp();
-      var fname = (g.name||'group').replace(/\s/g,'_') + '_' + (g.date||new Date().toISOString().slice(0,10)) + '_airline.xlsx';
-      XLSX.writeFile(wb, fname);
-      say('✓ الشيت اتملى وبيتحمل — '+l.length+' اسم','ok');
-    }catch(err){
-      console.error(err);
-      say('✗ في مشكلة في الملف: '+err.message,'err');
-    }
+    fillAirlineSheet(ev.target.result).catch(function(err){console.error(err);say('✗ في مشكلة في الملف: '+err.message,'err')});
     e.target.value='';
   };
   reader.readAsArrayBuffer(file);
