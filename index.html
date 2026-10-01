@@ -131,6 +131,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 }
 </style>
 <style id="pgs"></style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -277,6 +278,10 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       </select>
       <button id="prt">🖨️ طباعة</button>
       <button class="sec" id="xls">⬇️ Excel / CSV</button>
+      <label class="sec" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:7px 11px;border:1px solid var(--line);border-radius:8px;font-size:inherit;font-weight:500" title="ارفع شيت الطيران الفاضي وهيتملى بالأسماء تلقائي">
+        📤 رفع شيت طيران
+        <input type="file" id="airline-upload" accept=".xlsx" style="display:none">
+      </label>
       <button class="sec" id="rml">🏨 كشف تسكين للفندق</button>
     </div>
   </div>
@@ -959,6 +964,11 @@ function colValue(p,col,mode,tripDate){
   if(col==='num')return'';
   if(col==='name'){
     if(mode==='cols')return p.sur+' | '+p.giv;
+    if(mode==='airline'){
+      // split given into first + rest
+      var parts=(p.giv||'').trim().split(/\s+/);
+      return p.sur+'|||'+parts[0]+'|||'+parts.slice(1).join(' ');
+    }
     return nameByMode(p,mode);
   }
   if(col==='pno')return p.pno||'';
@@ -1003,6 +1013,7 @@ function printCell(p,c,i,g,mode){
   if(c==='num')return'<td class="num">'+(i+1)+'</td>';
   if(c==='name'){
     if(mode==='cols')return'<td class="nm">'+esc(p.sur)+'</td><td class="nm">'+esc(p.giv)+'</td>';
+    if(mode==='airline'){var _ap=(p.giv||'').trim().split(/\s+/);return'<td class="nm">'+esc(p.sur)+'</td><td class="nm">'+esc(_ap[0]||'')+'</td><td class="nm">'+esc(_ap.slice(1).join(' '))+'</td>';}
     return'<td class="'+(mode==='mrz'?'mono':'nm')+'">'+esc(v)+'</td>';
   }
   if(c==='exp-status'){var st=expStatus(p.exp,g.date);return'<td class="c '+st.cls+'">'+esc(st.label)+'</td>'}
@@ -1061,6 +1072,7 @@ $('prt').onclick=function(){
     cols.forEach(function(c){
       if(isPayCol(c))tfoot+='<td>'+(sums[c]!=null?sums[c].toLocaleString('en'):'')+'</td>';
       else if(c==='name'&&mode==='cols'){tfoot+='<td colspan="2" style="text-align:start">Total / الإجمالي</td>';lab=true}
+      else if(c==='name'&&mode==='airline'){tfoot+='<td colspan="3" style="text-align:start">Total / الإجمالي</td>';lab=true}
       else if(c==='name'){tfoot+='<td style="text-align:start">Total / الإجمالي</td>';lab=true}
       else tfoot+='<td></td>';
     });
@@ -1099,6 +1111,7 @@ $('xls').onclick=function(){
   var hdr=[];
   cols.forEach(function(c){
     if(c==='name'&&mode==='cols'){hdr.push('Surname','Given Names')}
+    else if(c==='name'&&mode==='airline'){hdr.push('Last Name','First Name','Sec Name')}
     else hdr.push(colLabel(c));
   });
   rows.push(hdr);
@@ -1107,6 +1120,10 @@ $('xls').onclick=function(){
     cols.forEach(function(c){
       if(c==='num')row.push(i+1);
       else if(c==='name'&&mode==='cols'){row.push(p.sur);row.push(p.giv)}
+      else if(c==='name'&&mode==='airline'){
+        var _ap=(p.giv||'').trim().split(/\s+/);
+        row.push(p.sur);row.push(_ap[0]||'');row.push(_ap.slice(1).join(' '));
+      }
       else row.push(colValue(p,c,mode,g.date));
     });
     rows.push(row);
@@ -1200,6 +1217,59 @@ function render(){
   }).join('');
 }
 render();box.focus();
+
+/* ══════════════════════════════════════════
+   AIRLINE SHEET FILL
+   Template: Row4=headers, Data starts Row5
+   D=Last Name, F=First Name, G=Sec Name, H=DOB
+══════════════════════════════════════════ */
+$('airline-upload').addEventListener('change', function(e){
+  var file = e.target.files[0];
+  if(!file) return;
+  var l = list();
+  if(!l.length){ alert('المجموعة فاضية — اسكّن الجوازات الأول.'); e.target.value=''; return; }
+
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      var data = new Uint8Array(ev.target.result);
+      var wb   = XLSX.read(data, {type:'uint8array', cellStyles:true, bookSST:true});
+      var ws   = wb.Sheets[wb.SheetNames[0]];
+
+      // Data rows start at row 5 (index 4), cols D(4) F(6) G(7) H(8)
+      var startRow = 5;
+      l.forEach(function(p, i){
+        var row = startRow + i;
+        var parts = (p.giv||'').trim().split(/\s+/);
+        var first = parts[0]  || '';
+        var sec   = parts.slice(1).join(' ');
+        var dob   = p.dob ? fmtDate(p.dob) : '';
+
+        ws['D'+row] = {t:'s', v: p.sur  || ''};
+        ws['F'+row] = {t:'s', v: first};
+        ws['G'+row] = {t:'s', v: sec};
+        ws['H'+row] = {t:'s', v: dob};
+      });
+
+      // Update sheet range
+      var ref = XLSX.utils.decode_range(ws['!ref']||'A1');
+      var lastRow = startRow + l.length - 1;
+      if(lastRow > ref.e.r + 1) ref.e.r = lastRow - 1;
+      ws['!ref'] = XLSX.utils.encode_range(ref);
+
+      // Download
+      var g = grp();
+      var fname = (g.name||'group').replace(/\s/g,'_') + '_' + (g.date||new Date().toISOString().slice(0,10)) + '_airline.xlsx';
+      XLSX.writeFile(wb, fname);
+      say('✓ الشيت اتملى وبيتحمل — '+l.length+' اسم','ok');
+    }catch(err){
+      console.error(err);
+      say('✗ في مشكلة في الملف: '+err.message,'err');
+    }
+    e.target.value='';
+  };
+  reader.readAsArrayBuffer(file);
+});
 </script>
 </body>
 </html>
