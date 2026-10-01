@@ -883,8 +883,9 @@ function buildTicket(p,g,idx){
 
   var base=parseInt(String(tk['tk-num']||'').replace(/\D/g,'').replace(/^381(?=\d{10}$)/,''),10);
   if(isNaN(base))base=2406820000;
-  var pname=(p.sur||'').toUpperCase()+' / '+(p.giv||'').toUpperCase();
-  if(p.sex==='F')pname+=' MRS';else if(p.sex==='M')pname+=' MR';
+  var gp=(p.giv||'').trim().split(/\s+/).filter(Boolean).slice(0,2).join(' ');
+  var pname=((p.sur||'').trim()+' / '+gp).toUpperCase();
+  if(p.sex==='F')pname+=' MS';else if(p.sex==='M')pname+=' MR';
   o+='FLIGHT TICKET(S)\n';
   o+=L+'\n';
   o+=colLine('TICKET: SM/ETKT 381 '+(base+idx)+' FOR',42,pname)+'\n';
@@ -1310,7 +1311,7 @@ $('xls').onclick=function(){
       else if(c==='name'&&mode==='cols'){row.push(p.sur);row.push(p.giv)}
       else if(c==='name'&&mode==='airline'){
         var _ap=(p.giv||'').trim().split(/\s+/);
-        row.push(p.sur);row.push(_ap[0]||'');row.push(_ap.slice(1).join(' '));
+        row.push(p.sur);row.push(_ap[0]||'');row.push(_ap[1]||'');
       }
       else row.push(colValue(p,c,mode,g.date));
     });
@@ -1432,7 +1433,7 @@ async function fillAirlineSheet(buf){
     var parts = (p.giv||'').trim().split(/\s+/);
     row.getCell(4).value = p.sur || '';
     row.getCell(6).value = parts[0] || '';
-    row.getCell(7).value = parts.slice(1).join(' ');
+    row.getCell(7).value = parts[1] || '';
     row.getCell(8).value = p.dob ? fmtDate(p.dob) : '';
     row.commit();
   });
