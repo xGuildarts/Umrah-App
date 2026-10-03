@@ -610,7 +610,9 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
       <label>ثلاثي <input type="number" min="0" data-room="triple" style="width:90px"></label>
       <label>رباعي <input type="number" min="0" data-room="quad" style="width:90px"></label>
       <label>خماسي <input type="number" min="0" data-room="quint" style="width:90px"></label>
-      <label>الحد الأدنى % <input type="number" min="0" max="100" id="minpct" style="width:65px"></label>
+      <label>المطلوب سداده <select id="minmode"><option value="pct">نسبة %</option><option value="amt">مبلغ ثابت للفرد</option></select></label>
+      <label id="minpct-l"><span>الحد الأدنى %</span> <input type="number" min="0" max="100" id="minpct" style="width:70px"></label>
+      <label id="minamt-l" style="display:none"><span>المبلغ للفرد</span> <input type="number" min="0" id="minamt" style="width:90px"></label>
     </div>
   </details>
   <details style="margin-top:8px" id="ticket-details">
@@ -700,7 +702,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
   <div id="bulkbar" style="display:none">
     <b>🟨 محدد: <span id="bn">0</span></b>
     <select id="bk-room" style="font-size:12px;padding:3px 5px"></select><button class="sec" id="bk-room-ok" style="font-size:12px;padding:3px 8px">تطبيق</button>
-    <input id="bk-bk" list="bklist" placeholder="اسم حجز" style="width:90px;font-size:12px;padding:3px 5px"><button class="sec" id="bk-bk-ok" style="font-size:12px;padding:3px 8px">تطبيق</button><button class="sec" id="bk-link" title="المحددين يتسكنوا في غرفة واحدة دايمًا" style="font-size:12px;padding:3px 8px">🔗 غرفة واحدة</button><button class="sec" id="bk-unlink" title="فك ربط الغرفة للمحددين" style="font-size:12px;padding:3px 8px">⛓️ فك</button><button class="sec" id="bk-newbk" title="اعمل حجز جديد بترقيم تلقائي وحط فيه المحددين" style="font-size:12px;padding:3px 8px">📒 حجز جديد للمحدد</button>
+    <input id="bk-bk" list="bklist" placeholder="اسم حجز" style="width:90px;font-size:12px;padding:3px 5px"><button class="sec" id="bk-bk-ok" style="font-size:12px;padding:3px 8px">تطبيق</button><button class="sec" id="bk-req" title="حدد المطلوب سداده للمحددين: نسبة (30%) أو مبلغ (2000)" style="font-size:12px;padding:3px 8px">💰 المطلوب</button><button class="sec" id="bk-link" title="المحددين يتسكنوا في غرفة واحدة دايمًا" style="font-size:12px;padding:3px 8px">🔗 غرفة واحدة</button><button class="sec" id="bk-unlink" title="فك ربط الغرفة للمحددين" style="font-size:12px;padding:3px 8px">⛓️ فك</button><button class="sec" id="bk-newbk" title="اعمل حجز جديد بترقيم تلقائي وحط فيه المحددين" style="font-size:12px;padding:3px 8px">📒 حجز جديد للمحدد</button>
     <button class="sec" id="bk-sup" style="font-size:12px;padding:3px 8px">👑 مشرف</button><button class="sec" id="bk-unsup" style="font-size:12px;padding:3px 8px">إلغاء مشرف</button>
     <select id="bk-grp" style="font-size:12px;padding:3px 5px"></select><button class="sec" id="bk-grp-ok" style="font-size:12px;padding:3px 8px">نقل</button>
     <button class="sec" id="bk-clr" style="font-size:12px;padding:3px 8px">✕ مسح التحديد</button>
@@ -775,6 +777,10 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
   <div class="row"><input id="pay-amt" type="number" placeholder="مبلغ الدفعة" style="width:110px"><input id="pay-date" type="date" style="font-size:13px"><button id="pay-add">+ إضافة</button></div>
   <label style="font-size:12px;display:block;margin-top:6px"><input type="checkbox" id="pay-split"> توزيع الدفعة على كل ساكني الغرفة</label>
   <label style="font-size:12px;display:block;margin-top:6px">سعر خاص (طفل / خصم) <input id="pay-custom" type="number" min="0" style="width:90px"></label>
+  <div style="font-size:12px;margin-top:8px;padding:6px 8px;border:1px dashed var(--line);border-radius:8px">💰 المطلوب سداده لهذا الفرد
+    <select id="pay-rm" style="font-size:12px"><option value="">زي المجموعة</option><option value="pct">نسبة %</option><option value="amt">مبلغ ثابت</option></select>
+    <input id="pay-rv" type="number" min="0" style="width:85px;display:none">
+    <div id="pay-rt" class="hint" style="margin-top:3px"></div></div>
   <label style="font-size:12px;display:block;margin-top:6px">🏷️ خصم (مبلغ) <input id="pay-disc" type="number" min="0" style="width:90px"></label>
   <div class="row" style="margin-top:8px;justify-content:flex-end"><button class="sec" id="pay-close">إغلاق</button></div>
 </dialog>
@@ -922,23 +928,28 @@ function roomIssue(p,g){
 }
 var ROOMS=[['single','سنجل'],['double','ثنائي'],['triple','ثلاثي'],['quad','رباعي'],['quint','خماسي']];
 function baseOf(p,g){return +(p.custom||(g.pr||{})[p.room]||0)}
+function pcOf(g){if(!g.pc)g.pc={mode:'pct',amt:0,per:{}};if(!g.pc.per)g.pc.per={};return g.pc}
+/* المطلوب سداده للفرد: قيمة خاصة بيه (نسبة أو مبلغ) ← أو قاعدة المجموعة (نسبة أو مبلغ ثابت) */
+function reqRule(p,g){var c=pcOf(g),o=c.per[p.id];if(o&&(o.m==='pct'||o.m==='amt')&&o.v!==''&&o.v!=null)return{m:o.m,v:+o.v,own:true};return c.mode==='amt'?{m:'amt',v:+c.amt||0,own:false}:{m:'pct',v:minPct(g),own:false}}
+function reqOf(p,g,tot){if(tot<=0)return 0;var r=reqRule(p,g);return r.m==='amt'?Math.min(tot,Math.max(0,Math.ceil(r.v))):Math.min(tot,Math.ceil(tot*r.v/100))}
+function reqTxt(p,g){var r=reqRule(p,g);return(r.m==='amt'?r.v+' '+CUR+' للفرد':r.v+'%')+(r.own?' (خاص)':'')}
 function payOwn(p,g){
   if(p.sup)return{auto:true,tot:0,paid:paidOf(p),rem:0,need:0,due:false,amt:0};
   var base=baseOf(p,g),tot=Math.max(0,base-(base>0?(+p.disc||0):0)),paid=paidOf(p),pct=(g.minPct==null||g.minPct==='')?50:+g.minPct;
-  if(base>0){var need=Math.max(0,Math.ceil(tot*pct/100-paid));return{auto:true,tot:tot,paid:paid,rem:Math.max(0,tot-paid),need:need,due:need>0,amt:need}}
+  if(base>0){var rq=reqOf(p,g,tot),need=Math.max(0,rq-paid);return{auto:true,tot:tot,req:rq,paid:paid,rem:Math.max(0,tot-paid),need:need,due:need>0,amt:need}}
   return{auto:false,tot:0,paid:paid,rem:0,need:0,due:!!p.payDue,amt:+p.payAmt||0};
 }
 function minPct(g){return(g.minPct==null||g.minPct==='')?50:+g.minPct}
 function payInfo(p,g){
   var o=payOwn(p,g);if(!p.bk)return o;
   var mem=S.people.filter(function(x){return x.g===g.id&&x.bk===p.bk});if(mem.length<2)return o;
-  var t=0,pd=0;mem.forEach(function(x){t+=payOwn(x,g).tot;pd+=paidOf(x)});if(t<=0)return o;
-  var need=Math.max(0,Math.ceil(t*minPct(g)/100-pd)),lead=mem[0]===p;
+  var t=0,pd=0,rs=0;mem.forEach(function(x){var q=payOwn(x,g);t+=q.tot;rs+=q.req||0;pd+=paidOf(x)});if(t<=0)return o;
+  var need=Math.max(0,rs-pd),lead=mem[0]===p;
   return{auto:true,bk:p.bk,lead:lead,n:mem.length,tot:o.tot,paid:o.paid,rem:Math.max(0,t-pd),btot:t,bpaid:pd,need:need,due:need>0,amt:lead?need:0};
 }
 function bookings(g){var m={};S.people.forEach(function(p){if(p.g===g.id&&p.bk)(m[p.bk]=m[p.bk]||[]).push(p)});
   return Object.keys(m).map(function(k){var t=0,pd=0;m[k].forEach(function(x){t+=payOwn(x,g).tot;pd+=paidOf(x)});
-    return{k:k,mem:m[k],tot:t,paid:pd,rem:Math.max(0,t-pd),need:t>0?Math.max(0,Math.ceil(t*minPct(g)/100-pd)):0}})}
+    var rs=0;m[k].forEach(function(x){rs+=payOwn(x,g).req||0});return{k:k,mem:m[k],tot:t,paid:pd,rem:Math.max(0,t-pd),need:t>0?Math.max(0,rs-pd):0}})}
 function missing(p,g){
   var m=[];if(!p.photo)m.push('صورة');if(!p.passportDoc)m.push('جواز');if(p.tajneed)m.push('تجنيد');
   var c=expStatus(p.exp,g.date).cls;if(c==='tag-bad')m.push('جواز منتهي');else if(c==='tag-warn')m.push('جواز أقل من سنة');
@@ -1058,7 +1069,7 @@ async function sbLoad(){
   if(!gs||!ps||pend>0)return;
   if(gs.length){
     var _og={};S.groups.forEach(function(x){_og[x.id]=x});
-    S.groups=gs.map(function(g){return{id:g.id,name:g.name,trip:g.trip||'',date:g.date||'',pr:g.prices||{},minPct:g.min_pct==null?50:+g.min_pct,tk:(g.tk&&Object.keys(g.tk).length?g.tk:(_og[g.id]||{}).tk)||{},hd:(g.tk&&g.tk.__hd)||(_og[g.id]||{}).hd}});
+    S.groups=gs.map(function(g){return{id:g.id,name:g.name,trip:g.trip||'',date:g.date||'',pr:g.prices||{},minPct:g.min_pct==null?50:+g.min_pct,tk:(g.tk&&Object.keys(g.tk).length?g.tk:(_og[g.id]||{}).tk)||{},hd:(g.tk&&g.tk.__hd)||(_og[g.id]||{}).hd,pc:(g.tk&&g.tk.__pc)||(_og[g.id]||{}).pc||{mode:'pct',amt:0,per:{}}}});
     var _old={};S.people.forEach(function(x){_old[x.id]=x});
     S.people=ps.filter(function(p){return DELQ.indexOf(p.id)<0}).map(function(p){return{
       id:p.id,ua:p.updated_at||'',g:p.group_id,sur:p.surname,giv:p.given,pno:p.pno||'',
@@ -1082,7 +1093,7 @@ async function sbSaveGroup0(g){
   if(!sbReady)return null;
   var body={id:g.id,name:g.name,trip:g.trip||'',date:g.date||null,prices:g.pr||{},min_pct:g.minPct==null?50:g.minPct};
   var opt=function(){return{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)}};
-  if(sbTk)body.tk=Object.assign({},g.tk||{},g.hd?{__hd:g.hd}:{});
+  if(sbTk)body.tk=Object.assign({},g.tk||{},g.hd?{__hd:g.hd}:{},g.pc?{__pc:g.pc}:{});
   var r=await sbFetch('fm_groups?on_conflict=id',opt());
   if(r===null&&sbTk){
     delete body.tk;
@@ -1683,7 +1694,7 @@ $('gsel').onchange=function(){S.active=+this.value;save();render();tkLoad();box.
 $('gtrip').oninput=function(){grp().trip=this.value;save();sbSaveGroup(grp())};
 $('gdate').oninput=function(){grp().date=this.value;save();render();sbSaveGroup(grp())};
 $('prices').oninput=function(e){var i=e.target,g=grp();
-  if(i.dataset.room){g.pr=g.pr||{};g.pr[i.dataset.room]=+i.value||0}else g.minPct=+i.value;
+  if(i.id==='minmode'){pcOf(g).mode=i.value}else if(i.id==='minamt'){pcOf(g).amt=+i.value||0}else if(i.dataset.room){g.pr=g.pr||{};g.pr[i.dataset.room]=+i.value||0}else g.minPct=+i.value;
   save();render()};
 $('prices').onchange=function(){sbSaveGroup(grp())};
 $('flt').onchange=function(){render()};
@@ -1799,10 +1810,12 @@ $('rml').onclick=function(){var g=grp(),m=roomMap(g),mode=$('pmode').value,keys=
   doPrint()};
 $('bkp').onclick=function(){var g=grp(),b=bookings(g);if(!b.length){alert('مفيش حجوزات.');return}
   var rows=b.map(function(x){return'<tr><td>'+esc(x.k)+'</td><td>'+x.mem.map(function(p){return esc(nameByMode(p,$('pmode').value))+(p.rno?' [Room '+esc(p.rno)+']':'')}).join('<br>')+'</td><td>'+x.tot+'</td><td>'+x.paid+'</td><td>'+x.rem+'</td><td'+(x.need?' style="color:#991b1b;font-weight:700"':'')+'>'+(x.need?x.need+' '+CUR:'OK')+'</td></tr>'}).join('');
-  $('pa').innerHTML='<h2>Bookings — '+esc(g.name)+'</h2><div class="meta">'+esc(g.trip||'')+(g.date?' | '+fmtDate(g.date):'')+' | Min. payment: '+minPct(g)+'%</div><table><thead><tr><th>Booking</th><th>Passengers</th><th>Total</th><th>Paid</th><th>Remaining</th><th>Due now</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  $('pa').innerHTML='<h2>Bookings — '+esc(g.name)+'</h2><div class="meta">'+esc(g.trip||'')+(g.date?' | '+fmtDate(g.date):'')+' | Min. payment: '+(pcOf(g).mode==='amt'?pcOf(g).amt+' per person':minPct(g)+'%')+'</div><table><thead><tr><th>Booking</th><th>Passengers</th><th>Total</th><th>Paid</th><th>Remaining</th><th>Due now</th></tr></thead><tbody>'+rows+'</tbody></table>';
   doPrint()};
 var payId=0;
 function curP(){return S.people.find(function(x){return x.id===payId})}
+function syncReq(){var p=curP();if(!p)return;var g=grp(),o=pcOf(g).per[p.id];$('pay-rm').value=o?o.m:'';$('pay-rv').style.display=o?'':'none';$('pay-rv').value=o?o.v:'';$('pay-rt').textContent='المطلوب الحالي: '+reqTxt(p,g)+' = '+reqOf(p,g,payOwn(p,g).tot)+' '+CUR}
+async function setReq(p,m,v){var g=grp(),c=pcOf(g);if(!m||v===''||v==null||isNaN(+v))delete c.per[p.id];else c.per[p.id]={m:m,v:+v}}
 function renderPay(){var p=curP();if(!p)return;
   $('pay-ttl').textContent=nameFull(p)+' — المدفوع: '+paidOf(p)+' '+CUR;
   var g0=grp(),bs=baseOf(p,g0),o0=payOwn(p,g0);
@@ -1811,7 +1824,7 @@ function renderPay(){var p=curP();if(!p)return;
 $('tb').addEventListener('click',function(e){var b=e.target.closest('button[data-pay]');if(!b)return;
   payId=+b.dataset.pay;var p=curP();if(!p)return;
   if(!(p.pays&&p.pays.length)&&+p.paid>0)p.pays=[{d:'',a:+p.paid}];
-  $('pay-date').value=new Date().toISOString().slice(0,10);$('pay-custom').value=p.custom||'';$('pay-disc').value=p.disc||'';$('pay-split').checked=false;renderPay();$('paydlg').showModal()});
+  $('pay-date').value=new Date().toISOString().slice(0,10);$('pay-custom').value=p.custom||'';$('pay-disc').value=p.disc||'';$('pay-split').checked=false;renderPay();syncReq();$('paydlg').showModal()});
 $('pay-add').onclick=async function(){var p=curP(),a=+$('pay-amt').value;if(!p||!a)return;
   var tg=[p];if($('pay-split').checked&&p.rno)tg=list().filter(function(x){return x.rno===p.rno});
   var each=Math.floor(a/tg.length),rem=a-each*tg.length;
@@ -1828,6 +1841,8 @@ $('pay-list').addEventListener('change',async function(e){var t=e.target,p=curP(
   p.paid=sumPays(p);save();render();
   renderPay();
   await sbSavePerson(p)});
+$('pay-rm').onchange=async function(){var p=curP();if(!p)return;var m=this.value;if(!m){await setReq(p,'','')}else{var d=m==='pct'?minPct(grp()):'';$('pay-rv').value=$('pay-rv').value||d;await setReq(p,m,$('pay-rv').value)}save();render();renderPay();syncReq();await sbSaveGroup(grp())};
+$('pay-rv').onchange=async function(){var p=curP();if(!p)return;await setReq(p,$('pay-rm').value,this.value);save();render();renderPay();syncReq();await sbSaveGroup(grp())};
 $('pay-close').onclick=function(){$('paydlg').close()};
 
 /* ══════════════════════════════════════════
@@ -2149,6 +2164,7 @@ function render(){
   $('roomsum').textContent=(rp.length?'🛏️ غرف — '+rp.join(' | '):'')+(nr?'  ·  بدون رقم غرفة: '+nr:'')+(nv?'  ·  🔍 لسه ماتراجعش: '+nv:'');
   document.querySelectorAll('#prices input[data-room]').forEach(function(i){if(document.activeElement!==i)i.value=(g.pr&&g.pr[i.dataset.room])||''});
   if(document.activeElement!==$('minpct'))$('minpct').value=g.minPct==null?50:g.minPct;
+  (function(){var c=pcOf(g);if(document.activeElement!==$('minmode'))$('minmode').value=c.mode;if(document.activeElement!==$('minamt'))$('minamt').value=c.amt||'';$('minpct-l').style.display=c.mode==='amt'?'none':'';$('minamt-l').style.display=c.mode==='amt'?'':'none'})();
   // badge
   var cnt=l.length,badge=$('gcnt');
   badge.textContent=cnt+'/50';
@@ -2269,6 +2285,13 @@ function rlMake(ps){
   d.links=d.links.filter(function(l){return!old.some(function(o){return o.n===l.n})});
   d.links.push({n:n,ids:merged});return n;
 }
+$('bk-req').onclick=async function(){
+  var g=grp(),ps=S.people.filter(function(p){return p.g===g.id&&SEL[p.id]});if(!ps.length){say('حدد أفراد الأول','err');return}
+  var v=prompt('المطلوب سداده للـ '+ps.length+' محدد:\n• اكتب نسبة مثل 30%\n• أو مبلغ ثابت مثل 2000\n• سيبه فاضي = ارجع لقاعدة المجموعة','');if(v===null)return;v=v.trim();
+  snapNow('قبل تعديل المطلوب');var m='',n=0;
+  if(v){var pc=/%$/.test(v);n=parseFloat(v.replace('%','').replace(/[^\d.]/g,''));if(!(n>=0)){say('قيمة غير صحيحة','err');return}m=pc?'pct':'amt';if(pc&&n>100){say('النسبة لازم تكون 100 أو أقل','err');return}}
+  ps.forEach(function(p){setReq(p,m,v?n:'')});save();render();await sbSaveGroup(g);say(v?'✓ المطلوب للمحددين: '+(m==='pct'?n+'%':n+' '+CUR+' للفرد'):'✓ رجعوا لقاعدة المجموعة','ok');
+};
 $('bk-link').onclick=async function(){
   var g=grp(),ps=S.people.filter(function(p){return p.g===g.id&&SEL[p.id]});
   snapNow('قبل الربط');var n=rlMake(ps);if(!n)return;
