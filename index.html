@@ -390,6 +390,10 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
 #hd-msg{font-size:12.5px;font-weight:700}#hd-msg.ok{color:var(--ok)}#hd-msg.err{color:var(--bad)}
 .hd-empty{text-align:center;color:var(--mut);padding:22px 8px;font-size:13px}
 .hd-sex-tab.on{background:var(--acc)!important;color:#fff!important;border-color:var(--acc)!important}
+.hd-ar{display:block;direction:rtl;text-align:right;font-weight:700;font-size:13px;color:var(--acc);margin-top:1px}
+.hd-ar i{font-style:normal;color:var(--warn);cursor:help}
+#housingdlg button.hd-ed{padding:0 5px;font-size:12px;line-height:1.4;border-color:transparent;background:transparent;color:var(--mut)}
+#ardlg input.arin{min-height:0;padding:5px 9px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink)}
 @media(max-width:760px){.hd-body{flex-direction:column}#hd-await{width:auto;max-height:42%;border-inline-start:0;border-bottom:1px solid var(--line)}}
 
 @media print{
@@ -443,6 +447,8 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
   #pa tbody.rg{break-inside:avoid;page-break-inside:avoid}
   #pa table.rooming tbody tr:nth-child(even){background:transparent}
   #pa table.rooming tr.rf td{border-top:2.5px solid #12284a}
+  #pa td.ar{direction:rtl;text-align:right;font-weight:800;font-size:1.12em;color:#0b1b33}
+  #pa th.ar{font-size:1em}
   #pa td.rno b{font-size:1.6em;color:#12284a}
   #pa table.rooming td small{font-weight:500;color:#4b5b72}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -593,6 +599,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
     <select id="sortby" style="font-size:12px;padding:4px 7px"><option value="room">ترتيب: غرفة</option><option value="bk">ترتيب: حجز</option><option value="none">ترتيب: إضافة</option></select>
     <button class="sec" id="autorm" style="font-size:12px;padding:4px 9px">🛏️ تسكين تلقائي</button>
     <button id="open-housing" style="font-size:12px;padding:4px 10px">🏨 نظام التسكين</button>
+    <button class="sec" id="open-ar" style="font-size:12px;padding:4px 10px">🔤 الأسماء بالعربي</button>
     <button class="sec" id="preflight" style="font-size:12px;padding:4px 9px">✅ فحص قبل الإرسال</button></div>
   <div id="gcard"></div>
   <div id="sumbar" style="font-size:13px;font-weight:700;margin-bottom:8px"></div>
@@ -684,6 +691,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
   <div class="fgrid">
     <label>اللقب (Surname)<input id="ed-sur" class="ltr" autocomplete="off"></label>
     <label>الاسم الأول (Given Names)<input id="ed-giv" class="ltr" autocomplete="off"></label>
+    <label style="grid-column:1/-1">الاسم بالعربي (للتسكين والفندق)<input id="ed-ar" dir="rtl" autocomplete="off" placeholder="بيتترجم تلقائي — عدّله لو محتاج"></label>
     <label>رقم الجواز<input id="ed-pno" class="ltr" autocomplete="off"></label>
     <label>الجنسية<input id="ed-nat" class="ltr" maxlength="3" autocomplete="off"></label>
     <label>الجنس<select id="ed-sex"><option value="">—</option><option value="M">ذكر M</option><option value="F">أنثى F</option></select></label>
@@ -712,6 +720,23 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
 
 
 
+<!-- ARABIC NAMES DIALOG -->
+<dialog id="ardlg" style="width:min(760px,96vw);max-height:92vh;padding:0;border:none;border-radius:14px;overflow:hidden;background:var(--card);color:var(--ink)">
+<div style="display:flex;flex-direction:column;max-height:92vh">
+  <div style="background:#12284a;color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px">
+    <strong style="font-size:16px">🔤 الأسماء بالعربي</strong><span id="ar-sum" style="font-size:12px;opacity:.9;flex:1"></span>
+    <button id="ar-close" class="sec" style="padding:5px 14px">✕ إغلاق</button>
+  </div>
+  <div style="padding:8px 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line);background:var(--bg)">
+    <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="ar-only" checked> اللي محتاج مراجعة بس</label>
+    <span style="flex:1"></span>
+    <button class="sec" id="ar-regen" style="padding:5px 12px;font-size:13px">🔄 إعادة ترجمة غير المؤكد</button>
+    <button id="ar-confirm" style="padding:5px 12px;font-size:13px">✓ تأكيد الكل</button>
+  </div>
+  <div style="font-size:12px;color:var(--mut);padding:6px 14px">الترجمة تلقائية (قاموس أسماء + قواعد). عدّل أي اسم وهيتأكد ويتحفظ — وبيظهر في كشف التسكين والفندق.</div>
+  <div style="overflow:auto;padding:0 10px 12px"><table><thead><tr><th>الاسم (English)</th><th>الاسم بالعربي</th><th>الحالة</th></tr></thead><tbody id="ar-tb"></tbody></table></div>
+</div>
+</dialog>
 <!-- HOUSING DIALOG -->
 <dialog id="housingdlg" style="width:min(1250px,98vw);max-height:96vh;padding:0;border:none;border-radius:14px;overflow:hidden;background:var(--card)">
 <div class="hd-shell">
@@ -739,6 +764,8 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
     <button id="hd-clearall" class="dng">🗑️ مسح التسكين</button>
     <span style="flex:1"></span>
     <label>الغرف <select id="hd-rf"><option value="all">الكل</option><option value="open">ناقصة</option><option value="full">كاملة</option><option value="empty">فاضية</option><option value="issue">فيها مشكلة</option></select></label>
+    <button id="hd-arbtn" title="مراجعة الأسماء العربي">🔤 الأسماء بالعربي</button>
+    <select id="hd-pl" title="لغة الأسماء في الكشف"><option value="both">كشف: عربي + English</option><option value="ar">كشف: عربي فقط</option><option value="en">كشف: English فقط</option></select>
     <button id="hd-print">🖨️ طباعة كشف التسكين</button>
   </div>
   <div class="hd-hint">اضغط على الاسم لتحديده، وحدد أكتر من واحد واضغط <b>🔗 ربط</b> (أي حد مع أي حد). اسحب أي فرد وهيجيب معاه المرتبطين بيه أوتوماتيك — <b>Shift + سحب</b> يسحبه لوحده. الضغط على رقم الغرفة بيعدّله.</div>
@@ -1156,7 +1183,7 @@ async function addPerson(p){
   var nd=(p.dob&&!dup)?S.people.find(function(x){return x.dob===p.dob&&nameFull(x)===nameFull(p)}):null;
   if(nd&&!confirm('⚠️ نفس الاسم وتاريخ الميلاد متسجل قبل كده (جواز '+(nd.pno||'؟')+'). تضيفه برضو؟')){say('اتلغى — متكرر.','warn');beep(200);return false}
   p.id=newId();p.g=grp().id;
-  S.people.push(p);save();render();
+  S.people.push(p);arAutoSet(p);save();render();arSaveSoon(grp());
   // warn expiry
   var g=grp();
   var st=expStatus(p.exp,g.date);
@@ -1730,7 +1757,7 @@ function openEdit(id){
   var p=S.people.find(function(x){return x.id===id});if(!p)return;edId=id;
   $('ed-ttl').textContent='✏️ تعديل — '+nameFull(p);
   $('ed-sur').value=p.sur||'';$('ed-giv').value=p.giv||'';$('ed-pno').value=p.pno||'';$('ed-nat').value=p.nat||'';
-  $('ed-sex').value=p.sex||'';$('ed-dob').value=p.dob||'';$('ed-exp').value=p.exp||'';
+  $('ed-ar').value=arGet(p)||arAuto(p).t;$('ed-sex').value=p.sex||'';$('ed-dob').value=p.dob||'';$('ed-exp').value=p.exp||'';
   $('ed-room').innerHTML='<option value="">—</option>'+ROOMS.map(function(r){return'<option value="'+r[0]+'"'+(p.room===r[0]?' selected':'')+'>'+r[1]+'</option>'}).join('');
   $('ed-disc').value=p.disc||'';$('ed-rno').value=p.rno||'';$('ed-bk').value=p.bk||'';$('ed-custom').value=p.custom===''||p.custom==null?'':p.custom;
   $('ed-sup').checked=!!p.sup;$('ed-mrz').style.display=p.mrz?'':'none';
@@ -1762,6 +1789,7 @@ $('ed-save').onclick=async function(){
   p.sur=su;p.giv=gi;p.pno=pno;p.nat=$('ed-nat').value.trim().toUpperCase();p.sex=$('ed-sex').value;
   p.dob=$('ed-dob').value;p.exp=$('ed-exp').value;p.room=$('ed-room').value;p.rno=$('ed-rno').value.trim();p.bk=$('ed-bk').value.trim();
   p.sup=$('ed-sup').checked;
+  (function(){var v=$('ed-ar').value.trim(),o=arGet(p);if(v&&v!==o)arSet(p,v,true);else if(!v||!arOk(p))arAutoSet(p,true);arSaveSoon(arGrp(p))})();
   if(edMrz){p.mrz=edMrz;p.rev=false;p.hasPass=true}
   var cv=$('ed-custom').value;p.custom=cv===''?'':+cv;
   var dv=$('ed-disc').value.trim().replace(/[\s,]/g,'');
@@ -2211,6 +2239,161 @@ dshow();snapDaily();
 
 
 /* ═══════════════════════════════════════════════════════════
+   ARABIC NAMES — ترجمة الأسماء للعربي
+   قاموس أسماء شائعة + قواعد (ال / عبد / أبو / الدين) + تحويل حروف احتياطي.
+   الاسم المخزّن بيتحفظ مع المجموعة (g.hd.ar) ومعاه علامة "مؤكد" (g.hd.arok).
+═══════════════════════════════════════════════════════════ */
+var AR_RAW=[
+'MOHAMED MOHAMMED MUHAMMAD MOHAMAD MOHAMMAD MOHAMMED MOHD MUHAMMED=محمد','AHMED AHMAD AHMET=أحمد','MAHMOUD MAHMOOD MAHMUD=محمود','MOSTAFA MUSTAFA MOSTAFAA MOUSTAFA MUSTAPHA=مصطفى',
+'IBRAHIM EBRAHIM IBRAHEEM=إبراهيم','ISMAIL ISMAEEL ESMAIL ESMAEL ISMAEL=إسماعيل','ISHAQ ESHAK ISHAK=إسحاق','YOUSSEF YOUSEF YUSUF YOUSSIF YOUSEF YUSSEF=يوسف','YOUNIS YOUNES YUNUS YOUNIS=يونس',
+'YAHYA YEHIA YEHYA=يحيى','ZAKARIA ZAKARIYA ZAKARIYYA ZAKARYA=زكريا','IDRIS IDRESS=إدريس','ADAM=آدم','NOUH NOH NUH=نوح','MOUSA MOSA MUSA=موسى','HAROUN HARON HARUN=هارون','DAWOUD DAWUD DAWOOD DAOUD=داود',
+'SULAIMAN SOLIMAN SOLEMAN SULEIMAN SOLIMAN SULAYMAN=سليمان','AYOUB AYOB AYYUB=أيوب','ISSA ESSA EISSA ISA=عيسى','OSAMA USAMA OSSAMA=أسامة','OMAR UMAR OMER=عمر','OTHMAN OSMAN USMAN OSMAN=عثمان',
+'ALI=علي','HASSAN HASAN=حسن','HUSSEIN HUSSAIN HOSSEIN HUSEIN HOSSAIN=حسين','HAMZA HAMZAH=حمزة','HAMDY HAMDI=حمدي','HAMED HAMID=حامد','HAMADA HAMADAH=حمادة','HAMDAN=حمدان',
+'KHALED KHALID=خالد','KHALIL KHALEEL=خليل','KAMAL KAMEL=كمال','KAREEM KARIM=كريم','KHAIRY KHEIRY KHAIRI KHEIRI=خيري','SAAD SAD=سعد','SAEED SAID SAYEED=سعيد','SAYED SAYYED SAYYID SAYD SAYYED=سيد',
+'SALAH=صلاح','SALEH SALIH=صالح','SALEM=سالم','SALIM SELIM=سليم','SAMY SAMI=سامي','SAMIR SAMEER=سمير','SAMEH SAMIH=سامح','SHERIF SHERIEF SHEREEF SHARIF SHAREEF SHAREF SHERIFF=شريف',
+'SHAWKY SHAWQI SHAWKI=شوقي','SHOKRY SHUKRI SHOKRI=شكري','SHAABAN SHABAN=شعبان','SHADY SHADI=شادي','TAREK TARIQ TAREQ=طارق','TAHA=طه','TAWFIK TAWFEEK TAWFIQ TOWFIK=توفيق','TALAAT TALAT TOLAT=طلعت','TAMER=تامر','TAMIM=تميم',
+'GAMAL JAMAL=جمال','GALAL JALAL=جلال','GABER JABER=جابر','GOUDA GODA=جودة','HANY HANI=هاني','HESHAM HISHAM=هشام','HATEM HATIM=حاتم','HAZEM HAZIM=حازم','HAITHAM HEITHAM HAYTHAM=هيثم','HELMY HILMI HELMI=حلمي','HOSNY HUSNI HOSNI=حسني',
+'HOSSAM HUSSAM HOSAM=حسام','RAGAB RAJAB=رجب','RAMADAN RAMDAN=رمضان','RAMY RAMI=رامي','RAAFAT RAFAT REFAAT=رأفت','RAGHEB RAGEB=راغب','RASHAD RESHAD=رشاد','RASHED RASHID=راشد','REDA RIDA RIDHA RIDA=رضا','RIAD RIYAD=رياض',
+'ROUSHDY RUSHDI RUSHDY=رشدي','ZAKI ZAKY=زكي','ZIAD ZIYAD ZEYAD=زياد','ZAYED ZAID=زايد','SAFWAT SAFWET=صفوت','SABRY SABRI=صبري','SABER SABIR=صابر','SOBHY SOBHI=صبحي','SOLTAN SULTAN=سلطان',
+'ABBAS=عباس','ABDO=عبده','ADEL ADIL=عادل','ADHAM=أدهم','AMR AMRO AMRU=عمرو','AMER AAMER=عامر','AMIN AMEEN=أمين','AMIR AMEER=أمير','ANAS=أنس','ANWAR=أنور','ASHRAF=أشرف','ASSEM ASEM=عاصم','ATEF ATIF=عاطف','ATIA ATEYA ATTIA=عطية',
+'AWAD AWWAD=عوض','AYMAN AIMAN AYMEN=أيمن','AZAB=عزب','AZMY AZMI=عزمي','BAKR BAKER=بكر','BASSEM BASEM=باسم','BASSIOUNY BASYOUNI BASIOUNY=بسيوني','BAHAA=بهاء','BELAL BILAL=بلال','BADR=بدر','BADRY BADRI=بدري','DIAA DIA=ضياء',
+'EMAD IMAD=عماد','ESSAM ISAM=عصام','EID EED=عيد','FADY FADI=فادي','FAEZ FAYEZ FAIZ=فايز','FAHMY FAHMI=فهمي','FAISAL FEISAL FAYSAL=فيصل','FARAG FARAJ=فرج','FARID FARED=فريد','FARES FARIS=فارس','FATHY FATHI=فتحي','FAROUK FARUQ FAROUQ=فاروق',
+'FAWZY FAWZI=فوزي','FOUAD FUAD=فؤاد','GHAREEB GHARIB=غريب','HAFEZ HAFIZ=حافظ','HAGGAG HAJJAJ=حجاج','HAKIM HAKEEM=حكيم','HAMMAD HAMAD=حماد','HARB=حرب','HASSANEIN HASANEIN=حسنين','HEGAZY HEGAZI HIJAZI=حجازي','IHAB EHAB=إيهاب','IMAM EMAM=إمام',
+'KHAMIS KHAMEES=خميس','KHATTAB KHATAB=خطاب','LABIB=لبيب','LOTFY LOTFI LUTFI=لطفي','MAGDY MAGDI MAJDI=مجدي','MAGED MAJED MAJID=ماجد','MAHER MAHIR=ماهر','MAMDOUH MAMDOH=ممدوح','MANSOUR MANSOOR=منصور','MARWAN=مروان','MAZEN=مازن',
+'MEDHAT MEDHET=مدحت','METWALLY METWALY MITWALLI MOTWALY=متولي','MOATAZ MOATAZZ MOUTAZ=معتز','MOEZ MUIZ=معز','MOHSEN MOHSIN=محسن','MOHEB MUHIB=محب','MOKHTAR MUKHTAR=مختار','MORSY MORSI=مرسي','MOUNIR MUNIR=منير','MUBARAK MOBARAK=مبارك',
+'NABIL NABEEL=نبيل','NADER NADIR=نادر','NADY NADI=نادي','NAGY NAGI NAJI=ناجي','NAGEEB NAGUIB NAJIB=نجيب','NASR=نصر','NASSER NASER=ناصر','NASHAT NESHAT=نشأت','NEMR=نمر','NOUR NOOR=نور','OMRAN=عمران','QASSEM KASSEM KASEM QASIM=قاسم',
+'QUTB KOTB=قطب','SAFWAN=صفوان','SALMAN=سلمان','SERAG SIRAJ=سراج','SHEHATA SHEHATEH=شحاتة','SOROUR SURUR=سرور','TAHER TAHIR=طاهر','TALEB TALIB=طالب','TAYEB TAYYEB=طيب','TOHAMY TOHAMI=تهامي','WAEL WAIL=وائل','WAGDY WAGDI WAJDI=وجدي',
+'WAHID WAHEED=وحيد','WALEED WALID=وليد','WALY WALI=والي','YAKOUT YAQOUT=ياقوت','YASSER YASER YASIR=ياسر','YASSIN YASEEN YASIN=ياسين','ZAHER ZAHIR=ظاهر','ZEIN ZAIN=زين','GAD JAD=جاد','FOTOUH FOTOH FUTUH=فتوح','ZEID ZAYD=زيد',
+'FATMA FATIMA FATEMA FATIMAH=فاطمة','AISHA AYSHA AYESHA AESHA AICHA=عائشة','ZEINAB ZAINAB ZAYNAB=زينب','MARIAM MARYAM MERIAM=مريم','KHADIJA KHADIGA KHADEJA KHADIJAH=خديجة','AMAL=أمل','AMINA AMINAH=أمينة','ASMAA ASMA=أسماء',
+'ABEER ABIR=عبير','AFAF=عفاف','AHLAM=أحلام','AMANY AMANI=أماني','AZZA EZZA=عزة','BASMA=بسمة','BUSHRA BOSHRA=بشرى','DALIA DALYA=داليا','DINA DEENA=دينا','DOAA DUAA=دعاء','DOHA=ضحى','EMAN IMAN=إيمان','ESRAA ISRAA=إسراء','FADIA FADYA=فادية',
+'FAIZA FAYZA=فايزة','FARIDA FAREDA=فريدة','FATHIA FATHEYA=فتحية','FAWZIA FAWZYA=فوزية','GHADA=غادة','HABIBA HABEEBA=حبيبة','HADEER HADIR=هدير','HAGER HAJAR HAGAR=هاجر','HALA=هالة','HALIMA HALEEMA=حليمة','HANAN=حنان','HANAA=هناء',
+'HEBA HIBA=هبة','HEND HIND=هند','HODA HUDA=هدى','HOSNIA HUSNIYA=حسنية','INAS=إيناس','JIHAD GIHAD=جهاد','JOMANA GOMANA JUMANA=جمانة','KARIMA KAREEMA=كريمة','KAWTHAR KAWSAR=كوثر','LAILA LEILA LAYLA=ليلى','LAMIA LAMYAA=لمياء','LOBNA LUBNA=لبنى',
+'MAHA=مها','MAHASEN MAHASIN=محاسن','MAY MAIE=مي','MARWA=مروة','MERVAT MERVET=ميرفت','MONA=منى','MONIRA MUNIRA=منيرة','MONIA MUNYA=منية','MARIA=ماريا','NADIA NADYA=نادية','NADA=ندى','NAGLAA NAGLA=نجلاء','NAGWA NAJWA=نجوى',
+'NAHED NAHID=ناهد','NAHLA=نهلة','NANCY=نانسي','NASREEN NASRIN=نسرين','NAWAL NAWWAL=نوال','NEVEEN NEVIN=نيفين','NERMEEN NERMIN=نيرمين','NESMA NASMA=نسمة','NIHAL NEHAL=نهال','NORA NOURA=نورة','NOURHAN NOURAN=نورهان','NOUHA NOHA=نهى',
+'OLA ULA=علا','RABAB=رباب','RAGHDA RAGDA=رغدة','RAHMA=رحمة','RANIA RANYA=رانيا','RASHA=رشا','RAWAN=روان','RAWDA ROUDA=روضة','RAZAN=رزان','REEM RIM=ريم','REHAM RIHAM=رهام','RIHAB=رحاب','ROQAYA RUQAYYA=رقية','SABAH=صباح',
+'SABRIN SABREEN=صابرين','SAFAA SAFA=صفاء','SAFIA SAFIYA=صفية','SAHAR=سحر','SALMA=سلمى','SALWA=سلوى','SAMAR=سمر','SAMIA SAMYA=سامية','SAMIRA SAMEERA=سميرة','SANAA SANA=سناء','SARA SARAH=سارة','SAWSAN=سوسن','SAYEDA SAYYEDA=سيدة',
+'SHAIMAA SHAYMAA SHAIMA SHEIMAA=شيماء','SHAHD=شهد','SHERIN SHEREEN SHIREEN=شيرين','SHAHIRA=شهيرة','SHOROUK SHUROUQ=شروق','SOAAD SUAD=سعاد','SOHA SUHA=سها','SOHAIR SUHAIR=سهير','SOMAYA SUMAYYA=سمية','SONDOS SUNDUS=سندس',
+'TAHANI TAHANY=تهاني','TAGHREED TAGREED=تغريد','TASNEEM TASNIM=تسنيم','WAFAA WAFA=وفاء','WARDA=وردة','YASMIN YASMEEN YASMINE=ياسمين','YOMNA YUMNA=يمنى','ZAHRA ZAHRAA=زهراء','ZEINA ZAINA=زينة','NAGAT NAGAH=نجاة','AWATEF AWATIF=عواطف',
+'SALSABEEL=سلسبيل','ROMAISA RUMAISA=رميساء','ALAA=علاء','MARAM=مرام','MALAK=ملك','JANA=جنى','LANA=لانا','LINA LEENA=لينا','LAMA=لما','MIRNA=ميرنا','MIRA=ميرا','MAYAR=ميار','MENNA MENA=منة','MENNATALLAH=منة الله','NOUR=نور',
+'SHAFEI SHAFEY SHAFAI=شافعي','BANNA=بنا','NAGGAR NAGAR=نجار','HADDAD=حداد','SHAZLY SHAZLI=شاذلي','MASRY MASRI=مصري','SHEIKH SHEKH SHAIKH=شيخ','GENDY GINDY=جندي','SAWY SAWI=صاوي','BAYOUMI BAYOUMY=بيومي','DESOUKY DESOUKI=دسوقي',
+'SEBAEI SEBAIE SEBAI=سباعي','KHOLY KHOLI=خولي','SAKA=سقا','GHONEIM GHONEM=غنيم','GOMAA GOMAH=جمعة','HAMMOUDA HAMOUDA=حمودة','KHALIFA KHALIFAH=خليفة','MAHFOUZ MAHFOUDH=محفوظ','MAKKY MAKKI=مكي','MEKAWY MEKKAWI=مكاوي',
+'NEGM NAGM=نجم','OKASHA OKASHAH=عكاشة','RADWAN RIDWAN=رضوان','SALAMA SALAMAH=سلامة','SAKR SAQR=صقر','SHAHEEN SHAHIN=شاهين','SHAKER SHAKIR=شاكر','SHARAF=شرف','ZAHRAN=زهران','ZEDAN ZIDAN=زيدان','HEFNY HEFNI=حفني','HELAL HILAL=هلال',
+'HEMEIDA HUMAIDA=حميدة','KANDIL QANDIL=قنديل','KHAFAGY KHAFAJI=خفاجي','MABROUK=مبروك','MAREI MARAI=مرعي','MATAR=مطر','MOHARRAM MUHARRAM=محرم','MOURAD MORAD=مراد','NAWAR=نوار','QENAWY KENAWY KENAWI=قناوي','SAIF SEIF SAYF=سيف',
+'SHALABY SHALABI=شلبي','SHOEIB SHUAIB=شعيب','TEMRAZ TIMRAZ=تمراز','WAHBA WAHBAH=وهبة','YOUSSRY YOUSRY YUSRI=يسري','ZEINHOM=زينهم','SHAMS=شمس','FAKHR=فخر','ZEINY ZEINI=زيني','KOMY KOMI=كومي','GHANEM GHANIM=غانم','DARWISH DARWEESH=درويش',
+'ABDELHAMID=عبد الحميد','AWAAD=عواد','SAAFAN=صفان','SHOUKRY=شكري','HASSANAIN=حسنين','ALLAM=علام','ELGAMAL=الجمال','ZAKARIAH=زكريا','BIN=بن','IBN=ابن','OUF=عوف','RAMZY RAMZI=رمزي','RAMZ=رمز','LASHIN LASHEEN=لاشين','ELWAN=علوان','ABDEEN ABIDIN=عابدين'
+];
+var AR_D={};
+AR_RAW.forEach(function(r){var a=r.split('=');a[0].split(' ').forEach(function(k){if(k)AR_D[k]=a[1]})});
+/* صفات الله الحسنى بعد "عبد" */
+var AR_DIV={};
+('RAHMAN=الرحمن|RAHMAAN=الرحمن|RAHIM=الرحيم|RAHEEM=الرحيم|AZIZ=العزيز|AZEEZ=العزيز|KARIM=الكريم|KAREEM=الكريم|HAMID=الحميد|HAMEED=الحميد|MAGID=المجيد|MAJID=المجيد|MAGEED=المجيد|GHANI=الغني|LATIF=اللطيف|LATEEF=اللطيف|'
++'HAKIM=الحكيم|HAKEEM=الحكيم|HAFEZ=الحافظ|HAFIZ=الحافظ|MONEM=المنعم|MOUNEM=المنعم|MONAEM=المنعم|MUNIM=المنعم|MONEIM=المنعم|SALAM=السلام|WAHAB=الوهاب|WAHHAB=الوهاب|BASET=الباسط|BASIT=الباسط|FATTAH=الفتاح|FATAH=الفتاح|FATAAH=الفتاح|'
++'RAZEK=الرازق|RAZEQ=الرازق|RAZZAK=الرزاق|RAZAK=الرازق|RAOUF=الرؤوف|RAUF=الرؤوف|SATTAR=الستار|SATAR=الستار|GHAFFAR=الغفار|GHAFAR=الغفار|QADER=القادر|KADER=القادر|QADIR=القادر|KADIR=القادر|NASSER=الناصر|NASER=الناصر|'
++'MOATY=المعطي|MOATI=المعطي|MOUTY=المعطي|SAMAD=الصمد|SABOUR=الصبور|SHAKOUR=الشكور|HADI=الهادي|JAWAD=الجواد|GAWAD=الجواد|NABI=النبي|RASOUL=الرسول|MAWGOUD=الموجود|MAWGOOD=الموجود|HALIM=الحليم|ALIM=العليم|ALEEM=العليم|KHALEK=الخالق|KHALIQ=الخالق|'
++'BARI=الباري|BAREE=الباري|WAHED=الواحد|WAHID=الواحد|MOUTALEB=المطلب|MOTTALEB=المطلب|MOTALEB=المطلب|MUTTALIB=المطلب|MAKSOUD=المقصود|MAQSOUD=المقصود|MEGUID=المجيد|SAYED=السيد|SAID=السعيد|BASSET=الباسط|MOHSEN=المحسن|'
++'MOEZ=المعز|MOUEZ=المعز|MOGHNI=المغني|MOUTAAL=المتعال|MOTAAL=المتعال|MAABOUD=المعبود|MAABOD=المعبود|MAOUD=المعبود|SAMEE=السميع|SAMIE=السميع|SAMI=السميع|BASSER=البصير|BASIR=البصير|ALLAH=الله|LAH=الله|ELLAH=الله|ILLAH=الله|ILAH=الإله|ELAH=الإله|'
++'KHALIL=الخليل|SALAM2=السلام|TAWAB=التواب|GHAFOUR=الغفور|GHAFOR=الغفور|MOUMEN=المؤمن|MOMEN=المؤمن|WAKIL=الوكيل|WAKEEL=الوكيل|QAYOUM=القيوم|KAYOUM=القيوم|HAQ=الحق|HAK=الحق|NOUR=النور|NOOR=النور|NABY=النبي|RAHEMAN=الرحمن|KHABIR=الخبير|KHABEER=الخبير|SHAFI=الشافي|SHAFY=الشافي|SHAKUR=الشكور')
+.split('|').forEach(function(x){var a=x.split('=');AR_DIV[a[0]]=a[1]});
+var AR_L={A:'ا',B:'ب',C:'ك',D:'د',E:'ا',F:'ف',G:'ج',H:'ه',I:'ي',J:'ج',K:'ك',L:'ل',M:'م',N:'ن',O:'و',P:'ب',Q:'ق',R:'ر',S:'س',T:'ت',U:'و',V:'ف',W:'و',X:'كس',Y:'ي',Z:'ز'};
+function arFall(t){
+  var s=t,o='',i=0,V='AEIOUY';
+  var DG={SH:'ش',KH:'خ',GH:'غ',TH:'ث',DH:'ذ',CH:'ش',OU:'و',OO:'و',EE:'ي',AA:'ا',EI:'ي',AI:'ي',AY:'ي',EY:'ي',AW:'و',OW:'و',IE:'ي',PH:'ف'};
+  while(i<s.length){
+    var d=s.substr(i,2);
+    if(DG[d]){o+=DG[d];i+=2;continue}
+    var c=s.charAt(i),first=i===0,last=i===s.length-1;
+    if(V.indexOf(c)>=0){
+      if(first)o+=(c==='O'||c==='U')?'و':'ا';
+      else if(c==='Y'||c==='W')o+=AR_L[c];
+      else if(last){o+=(c==='A')?'ا':(c==='I')?'ي':(c==='O'||c==='U')?'و':''}
+      else if(c==='I'||c==='U'||c==='O')o+=''; /* حركات قصيرة مش بتتكتب */
+    }else if(AR_L[c]){
+      o+=AR_L[c];
+    }
+    i++;
+  }
+  return o||t;
+}
+/* ترجمة كلمة واحدة → [عربي, مؤكد؟] */
+function arTok(t){
+  if(!t)return['',true];
+  if(AR_D[t])return[AR_D[t],true];
+  var m;
+  if((m=t.match(/^(.+?)(ELDIN|EDDIN|ELDEEN|EDDEEN|ELDINE|EDDINE|ALDIN|ALDEEN)$/))&&m[1].length>=3){var b=arTok(m[1]);return[b[0]+' الدين',b[1]]}
+  if((m=t.match(/^(ABDEL|ABDUL|ABDAL|ABDOL|ABDELL|ABDEL-|ABDU|ABDE|ABDL|ABD)(.+)$/))){
+    var r=m[2],r2=r.replace(/^(EL|AL|ELL|L)(?=.{3,})/,'');
+    if(AR_DIV[r])return['عبد '+AR_DIV[r],true];
+    if(AR_DIV[r2])return['عبد '+AR_DIV[r2],true];
+    if(AR_D[r2]){return['عبد '+(r!==r2?'ال':'')+AR_D[r2],true]}
+    var f=arFall(r2);return['عبد '+f,false];
+  }
+  if((m=t.match(/^(ABOU|ABO|ABU)(EL|AL)?(.{2,})$/))){
+    var x=AR_D[m[3]];if(x)return['أبو '+(m[2]?'ال':'')+x,true];
+    return['أبو '+(m[2]?'ال':'')+arFall(m[3]),false];
+  }
+  if((m=t.match(/^(EL|AL)(.{3,})$/))){
+    if(AR_D[m[2]])return['ال'+AR_D[m[2]],true];
+    var rr=arTok(m[2]);return['ال'+rr[0],false];
+  }
+  return[arFall(t),false];
+}
+/* اسم كامل بترتيب طبيعي (الأول ثم العائلة) */
+function arAuto(p){
+  var raw=((p.giv||'')+' '+(p.sur||'')).toUpperCase().replace(/[^A-Z\s\-']/g,' ').replace(/'/g,'').replace(/-/g,' ');
+  var tk=raw.split(/\s+/).filter(Boolean),out=[],ok=true;
+  for(var i=0;i<tk.length;i++){
+    var t=tk[i];
+    if((t==='EL'||t==='AL'||t==='ABD'||t==='ABDEL'||t==='ABDUL'||t==='ABOU'||t==='ABO'||t==='ABU')&&i+1<tk.length){t=t+tk[++i]}
+    if(/^(ELDIN|EDDIN|ELDEEN|EDDEEN|ALDIN)$/.test(t)&&out.length){out[out.length-1]+=' الدين';continue}
+    var r=arTok(t);out.push(r[0]);if(!r[1])ok=false;
+  }
+  return{t:out.join(' '),ok:ok};
+}
+function arGrp(p){return S.groups.find(function(g){return g.id===p.g})||grp()}
+function arStore(p){var g=arGrp(p);if(!g.hd||typeof g.hd!=='object')g.hd={};if(!g.hd.ar||typeof g.hd.ar!=='object')g.hd.ar={};if(!g.hd.arok||typeof g.hd.arok!=='object')g.hd.arok={};return g.hd}
+function arGet(p){var h=arStore(p);return h.ar[p.id]||''}
+function arOk(p){return!!arStore(p).arok[p.id]}
+function arSet(p,v,confirmed){var h=arStore(p);v=(v||'').trim();if(!v){delete h.ar[p.id];delete h.arok[p.id];return}h.ar[p.id]=v;if(confirmed)h.arok[p.id]=1;else delete h.arok[p.id]}
+/* بيولّد الاسم لو مفيش (أو لو غير مؤكد وbatch=force) — مؤكد تلقائيًا لو كل الكلمات في القاموس */
+function arAutoSet(p,force){
+  var h=arStore(p);if(h.ar[p.id]&&h.arok[p.id])return false;
+  if(h.ar[p.id]&&!force)return false;
+  var a=arAuto(p);h.ar[p.id]=a.t;if(a.ok)h.arok[p.id]=1;else delete h.arok[p.id];return true;
+}
+function arEnsureAll(ppl){var n=0;(ppl||list()).forEach(function(p){if(arAutoSet(p))n++});return n}
+var _arT=null;
+function arSaveSoon(g){save();clearTimeout(_arT);_arT=setTimeout(function(){sbSaveGroup(g||grp())},900)}
+function arText(p){return arGet(p)||arAuto(p).t}
+
+/* ── شاشة مراجعة الأسماء العربي ── */
+var ARV={only:true};
+function arOpen(){
+  arEnsureAll(list());arSaveSoon();ARV.only=true;$('ar-only').checked=true;arRender();$('ardlg').showModal();
+}
+function arRender(){
+  var l=list(),n=0,rows='';
+  l.forEach(function(p){if(!arOk(p))n++});
+  l.forEach(function(p){
+    var ok=arOk(p);if(ARV.only&&ok)return;
+    rows+='<tr><td dir="ltr" style="text-align:left;font-weight:700">'+esc(nameFlight(p))+'</td><td><input class="arin" dir="rtl" data-arp="'+p.id+'" value="'+esc(arGet(p))+'" style="width:100%;min-width:200px;font-size:15px"></td><td>'+(ok?'<span class="tag-exp tag-ok">✓ مؤكد</span>':'<span class="tag-exp tag-warn">راجعه</span>')+'</td></tr>';
+  });
+  $('ar-sum').textContent=l.length+' فرد — '+n+' محتاج مراجعة';
+  $('ar-tb').innerHTML=rows||'<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--ok)">✓ كل الأسماء مؤكدة</td></tr>';
+}
+$('open-ar').onclick=arOpen;
+$('ar-close').onclick=function(){arSaveSoon();$('ardlg').close();if($('housingdlg').open)hdRender();render()};
+$('ar-only').onchange=function(){ARV.only=this.checked;arRender()};
+$('ar-confirm').onclick=function(){var l=list();l.forEach(function(p){if(arGet(p))arStore(p).arok[p.id]=1});arSaveSoon();arRender()};
+$('ar-regen').onclick=function(){if(!confirm('إعادة الترجمة التلقائية لكل الأسماء غير المؤكدة؟'))return;list().forEach(function(p){if(!arOk(p))arAutoSet(p,true)});arSaveSoon();arRender()};
+$('ar-tb').addEventListener('change',function(e){
+  var i=e.target.closest('input[data-arp]');if(!i)return;
+  var p=S.people.find(function(x){return x.id===+i.dataset.arp});if(!p)return;
+  arSet(p,i.value,true);arSaveSoon();
+  var td=i.closest('tr').lastElementChild;td.innerHTML=i.value.trim()?'<span class="tag-exp tag-ok">✓ مؤكد</span>':'<span class="tag-exp tag-warn">راجعه</span>';
+  var l=list(),n=l.filter(function(x){return!arOk(x)}).length;$('ar-sum').textContent=l.length+' فرد — '+n+' محتاج مراجعة';
+});
+
+/* ═══════════════════════════════════════════════════════════
    HOUSING SYSTEM v2
    - الغرف كيانات مستقلة (نوع + رقم + سعة) حتى لو فاضية
    - ترابط حر بين أي أفراد (g.hd.links) — السحب بيجيب المرتبطين
@@ -2266,8 +2449,9 @@ function hdRoomInfo(r){
 }
 
 /* ── undo / snapshot ── */
-function hdSnap(){return{p:hdPeople().map(function(p){return[p.id,p.rno||'',p.room||'',!!p.fam]}),d:JSON.stringify(hdD())}}
-function hdRestore(s){var by={};s.p.forEach(function(a){by[a[0]]=a});hdPeople().forEach(function(p){var a=by[p.id];if(a){p.rno=a[1];p.room=a[2];p.fam=a[3]}});grp().hd=JSON.parse(s.d)}
+function hdCore(){var d=hdD(),c={};Object.keys(d).forEach(function(k){if(k!=='ar'&&k!=='arok')c[k]=d[k]});return JSON.stringify(c)}
+function hdSnap(){return{p:hdPeople().map(function(p){return[p.id,p.rno||'',p.room||'',!!p.fam]}),d:hdCore()}}
+function hdRestore(s){var by={};s.p.forEach(function(a){by[a[0]]=a});hdPeople().forEach(function(p){var a=by[p.id];if(a){p.rno=a[1];p.room=a[2];p.fam=a[3]}});var cur=grp().hd||{},nd=JSON.parse(s.d);nd.ar=cur.ar||{};nd.arok=cur.arok||{};grp().hd=nd}
 function hdPush(){HD.undo.push(hdSnap());if(HD.undo.length>50)HD.undo.shift()}
 function hdSay(t,c){var e=$('hd-msg');e.textContent=t;e.className=c||'';clearTimeout(hdSay._t);hdSay._t=setTimeout(function(){e.textContent=''},6000)}
 
@@ -2278,7 +2462,7 @@ $('open-housing').onclick=function(){
   document.querySelectorAll('.hd-sex-tab').forEach(function(x){x.classList.toggle('on',x.dataset.sex==='all')});
   $('hd-nt').innerHTML=ROOMS.map(function(r){return'<option value="'+r[0]+'">'+r[1]+'</option>'}).join('');
   $('hd-nt').value='quad';
-  hdClean();HD.orig=hdSnap();hdRender();$('housingdlg').showModal();
+  arEnsureAll(hdPeople());hdClean();HD.orig=hdSnap();hdRender();$('housingdlg').showModal();
 };
 function hdChanged(){var n=hdSnap();return JSON.stringify(n.p)!==JSON.stringify(HD.orig.p)||n.d!==HD.orig.d}
 $('hd-close').onclick=function(){
@@ -2296,7 +2480,8 @@ function hdPerson(p,lm,inRoom){
   var l=lm[p.id],oth=l?l.ids.filter(function(i){return i!==p.id}).map(hdById).filter(Boolean).map(hdNm).join('، '):'';
   return'<div class="hd-p'+(HD.sel[p.id]?' sel':'')+(l?' lk':'')+'" draggable="true" data-pid="'+p.id+'"'+(inRoom?' data-from="'+esc(String(p.rno))+'"':'')+(l?' style="--lc:'+hdCol(l)+'"':'')+'>'
     +hdSexIcon(p.sex)
-    +'<span class="hd-nm">'+esc(hdNm(p))+(isInf(p,grp())?' <em>(رضيع)</em>':'')+'<small>'+esc(p.pno||'')+(!inRoom&&p.room?' · '+roomLbl(p.room):'')+'</small></span>'
+    +'<span class="hd-nm">'+esc(hdNm(p))+(isInf(p,grp())?' <em>(رضيع)</em>':'')+'<span class="hd-ar">'+esc(arText(p))+(arOk(p)?'':' <i title="ترجمة تلقائية غير مؤكدة — اضغط ✏️ للمراجعة">؟</i>')+'</span><small>'+esc(p.pno||'')+(!inRoom&&p.room?' · '+roomLbl(p.room):'')+'</small></span>'
+    +'<button class="hd-ed" data-edar="'+p.id+'" title="تعديل الاسم العربي">✏️</button>'
     +(l?'<button class="hd-lkb" data-unlink="'+p.id+'" title="مرتبط مع: '+esc(oth)+' — اضغط لفك ربطه">🔗'+l.n+'</button>':'')
     +(inRoom?'<button class="hd-x" data-kick="'+p.id+'" title="إخراج من الغرفة">✕</button>':'')
   +'</div>';
@@ -2332,7 +2517,7 @@ function hdAwaitOK(p){
   if(p.rno)return false;
   if(HD.sex!=='all'&&p.sex!==HD.sex)return false;
   if(HD.type!=='all'&&(p.room||'')!==HD.type)return false;
-  if(HD.q){var q=HD.q.toLowerCase();if(hdNm(p).toLowerCase().indexOf(q)<0&&(p.pno||'').toLowerCase().indexOf(q)<0)return false}
+  if(HD.q){var q=HD.q.toLowerCase();if(hdNm(p).toLowerCase().indexOf(q)<0&&(p.pno||'').toLowerCase().indexOf(q)<0&&arText(p).indexOf(HD.q)<0)return false}
   return true;
 }
 function hdAwaitHTML(ppl,lm){
@@ -2493,6 +2678,8 @@ hdDlg.addEventListener('click',function(e){
   }
   if((b=t.closest('[data-addsel]'))){var ids=hdExpand(Object.keys(HD.sel).map(Number));if(hdPlace(ids,b.dataset.addsel))HD.sel={};return hdRender()}
   if(t.closest('[data-newroom]')){var ty=$('hd-nt').value;hdAddRooms(ty,1,'');return hdRender()}
+  if((b=t.closest('[data-edar]'))){var ep=hdById(+b.dataset.edar);if(!ep)return;var nv=prompt('الاسم بالعربي:\n'+nameFlight(ep),arText(ep));if(nv===null)return;if(nv.trim()){arSet(ep,nv,true)}else{arSet(ep,'',false);arAutoSet(ep)}arSaveSoon();return hdRender()}
+  if(t.closest('#hd-arbtn')){return arOpen()}
   if((b=t.closest('.hd-p'))){var id=+b.dataset.pid;if(HD.sel[id])delete HD.sel[id];else HD.sel[id]=true;return hdRender()}
 });
 hdDlg.addEventListener('change',function(e){
@@ -2566,10 +2753,12 @@ $('hd-save').onclick=async function(){
   for(var i=0;i<ch.length;i++)await sbSavePerson(ch[i]);
 };
 
-/* ── print: كشف التسكين ── */
+/* ── print: كشف التسكين (عربي / إنجليزي / الاتنين) ── */
 function hdPrint(){
-  var g=grp(),d=hdClean(),lm=hdLinkMap(),mode=$('pmode')?$('pmode').value:'full';
+  var g=grp(),d=hdClean(),lm=hdLinkMap(),mode=$('pmode')?$('pmode').value:'full',lang=$('hd-pl')?$('hd-pl').value:'both';
+  arEnsureAll(hdPeople());
   var nm=function(p){return mode==='flight'?nameFlight(p):nameFull(p)};
+  var en=lang!=='ar',ar=lang!=='en';
   var rooms=d.rooms.filter(function(r){return hdMem(r.no).length}),k=0,rows='',rr='',cnt={},guests=0;
   rooms.forEach(function(r){
     var I=hdRoomInfo(r),mem=I.mem.slice().sort(function(a,b){return(a.sex===b.sex?0:a.sex==='M'?-1:1)});
@@ -2577,21 +2766,25 @@ function hdPrint(){
     rr='';
     mem.forEach(function(p,i){
       guests++;var l=lm[p.id],notes=[];
-      if(l)notes.push('Linked #'+l.n);if(isInf(p,g))notes.push('Infant');
-      if(i===0){if(I.fam)notes.push('Family room');if(I.cls==='over')notes.push('OVER +'+(I.n-I.cap));else if(I.cap&&I.n<I.cap)notes.push('Incomplete '+I.n+'/'+I.cap)}
+      if(l)notes.push(ar&&!en?'مرتبط #'+l.n:'Linked #'+l.n);if(isInf(p,g))notes.push(ar&&!en?'رضيع':'Infant');
+      if(i===0){if(I.fam)notes.push(ar&&!en?'غرفة عائلة':'Family room');if(I.cls==='over')notes.push((ar&&!en?'زيادة +':'OVER +')+(I.n-I.cap));else if(I.cap&&I.n<I.cap)notes.push((ar&&!en?'ناقصة ':'Incomplete ')+I.n+'/'+I.cap)}
       rr+='<tr'+(i===0?' class="rf"':'')+'>'
         +(i===0?'<td rowspan="'+mem.length+'" class="num rno"><b>'+esc(r.no)+'</b></td><td rowspan="'+mem.length+'" class="c">'+esc(HD_EN[r.type]||'—')+'<br><small>'+esc(roomLbl(r.type))+' · '+I.n+'/'+(I.cap||'?')+'</small></td>':'')
-        +'<td class="num">'+(++k)+'</td><td class="nm">'+esc(nm(p))+'</td><td class="c">'+(p.sex==='M'?'M':p.sex==='F'?'F':'')+'</td><td class="mono">'+esc(p.pno||'')+'</td><td>'+esc(notes.join(' · '))+'</td></tr>';
+        +'<td class="num">'+(++k)+'</td>'
+        +(ar?'<td class="ar" dir="rtl">'+esc(arText(p))+'</td>':'')
+        +(en?'<td class="nm">'+esc(nm(p))+'</td>':'')
+        +'<td class="c">'+(p.sex==='M'?'M':p.sex==='F'?'F':'')+'</td><td class="mono">'+esc(p.pno||'')+'</td><td>'+esc(notes.join(' · '))+'</td></tr>';
     });
     rows+='<tbody class="rg">'+rr+'</tbody>';
   });
-  var un=hdPeople().filter(function(p){return!p.rno}),unRows=un.map(function(p,i){return'<tr><td class="num">'+(i+1)+'</td><td class="nm">'+esc(nm(p))+'</td><td class="c">'+(p.sex||'')+'</td><td class="mono">'+esc(p.pno||'')+'</td><td>'+esc(HD_EN[p.room]||'No room type')+'</td></tr>'}).join('');
+  var un=hdPeople().filter(function(p){return!p.rno}),unRows=un.map(function(p,i){return'<tr><td class="num">'+(i+1)+'</td>'+(ar?'<td class="ar" dir="rtl">'+esc(arText(p))+'</td>':'')+(en?'<td class="nm">'+esc(nm(p))+'</td>':'')+'<td class="c">'+(p.sex||'')+'</td><td class="mono">'+esc(p.pno||'')+'</td><td>'+esc(HD_EN[p.room]||'No room type')+'</td></tr>'}).join('');
   var date=new Date().toLocaleDateString('en-GB');
   var chips=Object.keys(cnt).map(function(t){return'<span class="mi"><b>'+esc(HD_EN[t]||'?')+'</b> '+cnt[t]+'</span>'}).join('');
-  $('pa').innerHTML='<div class="ph"><div><div class="brand">AL-MAAMOUN FLIGHTS</div><h2>Rooming List — '+esc(g.name)+'</h2><div class="sub">'+esc(g.trip||'')+(g.date?' · '+fmtDate(g.date):'')+'</div></div>'
+  var hN='<th class="ar">الاسم بالعربي</th>',hE='<th>Guest Name</th>';
+  $('pa').innerHTML='<div class="ph"><div><div class="brand">AL-MAAMOUN FLIGHTS</div><h2>Rooming List — '+esc(g.name)+(ar?' | كشف التسكين':'')+'</h2><div class="sub">'+esc(g.trip||'')+(g.date?' · '+fmtDate(g.date):'')+'</div></div>'
     +'<div class="meta"><span class="mi"><b>Guests</b> '+guests+'</span><span class="mi"><b>Rooms</b> '+rooms.length+'</span>'+chips+'</div></div>'
-    +(rooms.length?'<table class="rooming"><thead><tr><th>Room</th><th>Type</th><th>#</th><th>Guest Name</th><th>Sex</th><th>Passport No.</th><th>Notes</th></tr></thead>'+rows+'</table>':'<p>No rooms assigned yet.</p>')
-    +(un.length?'<h3 style="margin:14px 0 5px;font-size:13px;color:#991b1b">Unassigned guests ('+un.length+')</h3><table><thead><tr><th>#</th><th>Guest Name</th><th>Sex</th><th>Passport No.</th><th>Requested</th></tr></thead><tbody>'+unRows+'</tbody></table>':'')
+    +(rooms.length?'<table class="rooming"><thead><tr><th>Room<small>الغرفة</small></th><th>Type<small>النوع</small></th><th>#</th>'+(ar?hN:'')+(en?hE:'')+'<th>Sex</th><th>Passport No.</th><th>Notes</th></tr></thead>'+rows+'</table>':'<p>No rooms assigned yet.</p>')
+    +(un.length?'<h3 style="margin:14px 0 5px;font-size:13px;color:#991b1b">Unassigned guests / غير مسكَّنين ('+un.length+')</h3><table><thead><tr><th>#</th>'+(ar?hN:'')+(en?hE:'')+'<th>Sex</th><th>Passport No.</th><th>Requested</th></tr></thead><tbody>'+unRows+'</tbody></table>':'')
     +'<div class="foot"><span>Printed: '+date+'</span><span>'+esc(g.name)+'</span></div>';
   doPrint();
 }
