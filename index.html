@@ -395,6 +395,38 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
 #housingdlg button.hd-ed{padding:0 5px;font-size:12px;line-height:1.4;border-color:transparent;background:transparent;color:var(--mut)}
 #ardlg input.arin{min-height:0;padding:5px 9px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink)}
 @media(max-width:760px){.hd-body{flex-direction:column}#hd-await{width:auto;max-height:42%;border-inline-start:0;border-bottom:1px solid var(--line)}}
+/* ── تكبير ووضوح نظام التسكين ── */
+.hd-shell{font-size:15px;height:96vh}
+.hd-top strong{font-size:22px}
+.hd-stats span{font-size:14.5px;padding:5px 14px}
+#housingdlg button{font-size:14px;padding:7px 13px;border-radius:9px}
+#housingdlg select,#housingdlg input{font-size:14px;padding:6px 10px;border-radius:9px}
+#housingdlg button.hd-tc{min-width:160px;padding:10px 14px}
+.hd-tc .t{font-size:16.5px}.hd-tc .n{font-size:32px}.hd-tc .n small{font-size:13.5px}.hd-tc .s{font-size:13.5px}
+.hd-tools{gap:8px;padding:10px 14px}.hd-tools label{font-size:14px;color:var(--ink)}
+.hd-hint{font-size:14px;line-height:1.75;color:var(--ink)}
+#hd-await{width:380px;min-width:340px}
+.hd-aw-h div{font-size:17px!important}#hd-await-cnt{font-size:14px!important}
+.hd-p{padding:11px 13px;gap:10px;margin-bottom:9px;border-radius:12px;font-size:15px;border-width:1.5px}
+.hd-nm{display:flex;flex-direction:column;gap:3px;line-height:1.5}
+.hd-ar{order:-1;font-size:19px;font-weight:800;color:var(--ink);margin:0}
+.hd-en{font-size:13.5px;font-weight:600;color:var(--mut);direction:ltr;text-align:right;unicode-bidi:plaintext}
+.hd-nm small{font-size:12.5px;color:var(--mut)}
+.hd-ar i{background:#fde68a;color:#78350f;border-radius:8px;padding:1px 8px;font-size:12px;font-weight:800;margin-inline-start:8px}
+.hd-sx{width:26px;height:26px;font-size:15px}
+#hd-rooms{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.hd-rh{padding:11px 13px}
+#housingdlg button.hd-rn{font-size:21px}
+.hd-cap{font-size:14.5px;padding:3px 12px}
+.hd-slot{font-size:14.5px;padding:14px}
+.hd-bd{font-size:13px;padding:2px 10px}
+.hd-lg-h{font-size:14.5px}.hd-lg-h span{font-size:13px}
+.hd-foot{padding:11px 18px}#hd-open-summary{font-size:14.5px;color:var(--ink)}#hd-msg{font-size:15px}
+#housingdlg button.hd-lkb{font-size:13px;padding:2px 9px}
+#housingdlg button.hd-ed,#housingdlg button.hd-x{font-size:17px}
+.hd-empty{font-size:15.5px}
+#housingdlg button.hd-fill{width:100%;background:rgba(11,122,117,.12);border-color:var(--acc)}
+.hd-p.sel{outline:3px solid #eab308}
 
 @media print{
   body{background:#fff;color:#000}
@@ -597,6 +629,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
     <span id="fltn" class="hint" style="margin:0"></span>
     <input id="q" placeholder="🔎 بحث: اسم / جواز / حجز / غرفة" style="font-size:12px;padding:4px 8px;width:190px">
     <select id="sortby" style="font-size:12px;padding:4px 7px"><option value="room">ترتيب: غرفة</option><option value="bk">ترتيب: حجز</option><option value="none">ترتيب: إضافة</option></select>
+    <input id="cur-bk" list="bklist" placeholder="📒 الحجز الحالي" title="أي جواز جديد بتضيفه هياخد الحجز ده تلقائي — ده اللي بيربط الأفراد قبل التسكين" style="font-size:12px;padding:4px 8px;width:120px"><button class="sec" id="cur-bk-new" title="رقم حجز جديد" style="font-size:12px;padding:4px 8px">+ حجز جديد</button><select id="cur-room" title="نوع التسكين للجوازات الجديدة" style="font-size:12px;padding:4px 6px"></select>
     <button class="sec" id="autorm" style="font-size:12px;padding:4px 9px">🛏️ تسكين تلقائي</button>
     <button id="open-housing" style="font-size:12px;padding:4px 10px">🏨 نظام التسكين</button>
     <button class="sec" id="open-ar" style="font-size:12px;padding:4px 10px">🔤 الأسماء بالعربي</button>
@@ -606,7 +639,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
   <div id="bulkbar" style="display:none">
     <b>🟨 محدد: <span id="bn">0</span></b>
     <select id="bk-room" style="font-size:12px;padding:3px 5px"></select><button class="sec" id="bk-room-ok" style="font-size:12px;padding:3px 8px">تطبيق</button>
-    <input id="bk-bk" list="bklist" placeholder="اسم حجز" style="width:90px;font-size:12px;padding:3px 5px"><button class="sec" id="bk-bk-ok" style="font-size:12px;padding:3px 8px">تطبيق</button>
+    <input id="bk-bk" list="bklist" placeholder="اسم حجز" style="width:90px;font-size:12px;padding:3px 5px"><button class="sec" id="bk-bk-ok" style="font-size:12px;padding:3px 8px">تطبيق</button><button class="sec" id="bk-newbk" title="اعمل حجز جديد بترقيم تلقائي وحط فيه المحددين" style="font-size:12px;padding:3px 8px">📒 حجز جديد للمحدد</button>
     <button class="sec" id="bk-sup" style="font-size:12px;padding:3px 8px">👑 مشرف</button><button class="sec" id="bk-unsup" style="font-size:12px;padding:3px 8px">إلغاء مشرف</button>
     <select id="bk-grp" style="font-size:12px;padding:3px 5px"></select><button class="sec" id="bk-grp-ok" style="font-size:12px;padding:3px 8px">نقل</button>
     <button class="sec" id="bk-clr" style="font-size:12px;padding:3px 8px">✕ مسح التحديد</button>
@@ -738,7 +771,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
 </div>
 </dialog>
 <!-- HOUSING DIALOG -->
-<dialog id="housingdlg" style="width:min(1250px,98vw);max-height:96vh;padding:0;border:none;border-radius:14px;overflow:hidden;background:var(--card)">
+<dialog id="housingdlg" style="width:min(1650px,99vw);max-height:97vh;padding:0;border:none;border-radius:14px;overflow:hidden;background:var(--card)">
 <div class="hd-shell">
   <div class="hd-top">
     <span style="font-size:18px">🛏️</span>
@@ -755,7 +788,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
     <span class="sep"></span>
     <button id="hd-link" title="اربط المحددين ببعض">🔗 ربط المحدد (<span id="hd-sel-n">0</span>)</button>
     <button id="hd-unlink">⛓️ فك ربط المحدد</button>
-    <button id="hd-bybk" title="اعمل ربط لكل اللي ليهم نفس رقم الحجز">📒 ربط حسب الحجز</button>
+    <button id="hd-bybk" title="الأفراد اللي ليهم نفس رقم الحجز بيترابطوا تلقائي">📒 الحجوزات (تلقائي)</button>
     <button id="hd-selall">☑ تحديد كل الظاهر</button>
     <button id="hd-selnone">☐ إلغاء التحديد</button>
     <span class="sep"></span>
@@ -768,7 +801,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
     <select id="hd-pl" title="لغة الأسماء في الكشف"><option value="both">كشف: عربي + English</option><option value="ar">كشف: عربي فقط</option><option value="en">كشف: English فقط</option></select>
     <button id="hd-print">🖨️ طباعة كشف التسكين</button>
   </div>
-  <div class="hd-hint">اضغط على الاسم لتحديده، وحدد أكتر من واحد واضغط <b>🔗 ربط</b> (أي حد مع أي حد). اسحب أي فرد وهيجيب معاه المرتبطين بيه أوتوماتيك — <b>Shift + سحب</b> يسحبه لوحده. الضغط على رقم الغرفة بيعدّله.</div>
+  <div class="hd-hint">اضغط على الاسم لتحديده، وحدد أكتر من واحد واضغط <b>🔗 ربط</b> (أي حد مع أي حد). اسحب أي فرد وهيجيب معاه المرتبطين بيه أوتوماتيك — <b>Shift + سحب</b> يسحبه لوحده. الضغط على رقم الغرفة بيعدّله. <b>📒 اللي ليهم نفس رقم الحجز بيترابطوا تلقائي</b> (الحجز بيتحدد في الجدول الرئيسي قبل التسكين).</div>
   <div class="hd-body">
     <div id="hd-await">
       <div class="hd-aw-h">
@@ -1183,6 +1216,8 @@ async function addPerson(p){
   var nd=(p.dob&&!dup)?S.people.find(function(x){return x.dob===p.dob&&nameFull(x)===nameFull(p)}):null;
   if(nd&&!confirm('⚠️ نفس الاسم وتاريخ الميلاد متسجل قبل كده (جواز '+(nd.pno||'؟')+'). تضيفه برضو؟')){say('اتلغى — متكرر.','warn');beep(200);return false}
   p.id=newId();p.g=grp().id;
+  var cb=$('cur-bk')?$('cur-bk').value.trim():'';if(cb&&!p.bk)p.bk=cb;
+  var cr=$('cur-room')?$('cur-room').value:'';if(cr&&!p.room)p.room=cr;
   S.people.push(p);arAutoSet(p);save();render();arSaveSoon(grp());
   // warn expiry
   var g=grp();
@@ -2154,6 +2189,10 @@ async function bulkApply(label,fn,confirmMsg){
   for(var i=0;i<ps.length;i++)await sbSavePerson(ps[i]);
   say('✓ '+label+' — '+ps.length+' فرد','ok');
 }
+function nextBk(){var g=grp(),mx=0;S.people.forEach(function(p){if(p.g===g.id){var m=/^ح-?(\d+)$/.exec(p.bk||'');if(m&&+m[1]>mx)mx=+m[1]}});return'ح'+(mx+1)}
+$('cur-room').innerHTML='<option value="">نوع الغرفة…</option>'+ROOMS.map(function(r){return'<option value="'+r[0]+'">'+r[1]+'</option>'}).join('');
+$('cur-bk-new').onclick=function(){$('cur-bk').value=nextBk();$('cur-bk').focus()};
+$('bk-newbk').onclick=function(){var v=nextBk();bulkApply('حجز '+v,function(p){p.bk=v})};
 $('bk-room-ok').onclick=function(){var v=$('bk-room').value;if(!v){say('اختار نوع التسكين الأول','err');return}bulkApply('تسكين '+roomLbl(v),function(p){p.room=v})};
 $('bk-bk-ok').onclick=function(){var v=$('bk-bk').value.trim();if(!v){say('اكتب اسم الحجز الأول','err');return}bulkApply('حجز '+v,function(p){p.bk=v})};
 $('bk-sup').onclick=function(){bulkApply('تعيين مشرف',function(p){p.sup=true},'تعيين {n} كمشرف (تكلفتهم صفر)؟')};
@@ -2280,9 +2319,13 @@ var AR_RAW=[
 'NEGM NAGM=نجم','OKASHA OKASHAH=عكاشة','RADWAN RIDWAN=رضوان','SALAMA SALAMAH=سلامة','SAKR SAQR=صقر','SHAHEEN SHAHIN=شاهين','SHAKER SHAKIR=شاكر','SHARAF=شرف','ZAHRAN=زهران','ZEDAN ZIDAN=زيدان','HEFNY HEFNI=حفني','HELAL HILAL=هلال',
 'HEMEIDA HUMAIDA=حميدة','KANDIL QANDIL=قنديل','KHAFAGY KHAFAJI=خفاجي','MABROUK=مبروك','MAREI MARAI=مرعي','MATAR=مطر','MOHARRAM MUHARRAM=محرم','MOURAD MORAD=مراد','NAWAR=نوار','QENAWY KENAWY KENAWI=قناوي','SAIF SEIF SAYF=سيف',
 'SHALABY SHALABI=شلبي','SHOEIB SHUAIB=شعيب','TEMRAZ TIMRAZ=تمراز','WAHBA WAHBAH=وهبة','YOUSSRY YOUSRY YUSRI=يسري','ZEINHOM=زينهم','SHAMS=شمس','FAKHR=فخر','ZEINY ZEINI=زيني','KOMY KOMI=كومي','GHANEM GHANIM=غانم','DARWISH DARWEESH=درويش',
-'ABDELHAMID=عبد الحميد','AWAAD=عواد','SAAFAN=صفان','SHOUKRY=شكري','HASSANAIN=حسنين','ALLAM=علام','ELGAMAL=الجمال','ZAKARIAH=زكريا','BIN=بن','IBN=ابن','OUF=عوف','RAMZY RAMZI=رمزي','RAMZ=رمز','LASHIN LASHEEN=لاشين','ELWAN=علوان','ABDEEN ABIDIN=عابدين'
+'ABDELHAMID=عبد الحميد','AWAAD=عواد','SAAFAN=صفان','SHOUKRY=شكري','HASSANAIN=حسنين','ALLAM=علام','ELGAMAL=الجمال','ZAKARIAH=زكريا','BIN=بن','IBN=ابن','OUF=عوف','RAMZY RAMZI=رمزي','RAMZ=رمز','LASHIN LASHEEN=لاشين','ELWAN=علوان','ABDEEN ABIDIN=عابدين','EMARA AMARA OMARA=عمارة','EFAT EFFAT AFFAT=عفت','ESAWY ESSAWY EISAWY ISAWY=عيسوي','GAAFAR GAFAR JAAFAR JAFAR=جعفر',
+'ATWA ATWAH=عطوة','BAKRY BAKRI=بكري','BASHA=باشا','DEIF DAIF=ضيف','SHAHAT SHAHAT=شحات','FEKRY FIKRY FEKRI=فكري','GHALY GHALI=غالي','HASHEM HASHIM=هاشم','MOAWAD MOAWWAD=معوض',
+'MOSELHY MOSLEHY=مصلحي','NABAWY NABAWI=نبوي','NAGEH NAJEH=ناجح','RAGEH RAJEH=راجح','SHAMY SHAMI=شامي','SHARKAWY SHARKAWI=شرقاوي','SHEHAB SHIHAB=شهاب','TANTAWY TANTAWI=طنطاوي','GHAZALY GHAZALI=غزالي',
+'ABDELAZIZ=عبد العزيز','RABIE RABEA=ربيع','SOUAD=سعاد','EZZAT EZAT IZZAT=عزت','EZZ EZ IZZ=عز','ELSAYED=السيد','AWADALLAH=عوض الله','SHEIMAA=شيماء','NAGLA=نجلاء','ABDO=عبده','ENAS INAS=إيناس','EBTSAM IBTISAM=ابتسام',
+'RAGAA RAJAA=رجاء','SOLAFA=سلافة','ROFAIDA=رفيدة','AFIFI AFIFY=عفيفي','ALSAYED=السيد','ABDELNASSER=عبد الناصر','ZAKARYAA=زكريا'
 ];
-var AR_D={};
+var AR_D={};var AR_LRN={};
 AR_RAW.forEach(function(r){var a=r.split('=');a[0].split(' ').forEach(function(k){if(k)AR_D[k]=a[1]})});
 /* صفات الله الحسنى بعد "عبد" */
 var AR_DIV={};
@@ -2315,8 +2358,10 @@ function arFall(t){
   return o||t;
 }
 /* ترجمة كلمة واحدة → [عربي, مؤكد؟] */
+function arLearnMap(){var m={};S.groups.forEach(function(g){if(g.hd&&g.hd.tok)Object.keys(g.hd.tok).forEach(function(k){m[k]=g.hd.tok[k]})});return m}
 function arTok(t){
   if(!t)return['',true];
+  if(AR_LRN[t])return[AR_LRN[t],true];
   if(AR_D[t])return[AR_D[t],true];
   var m;
   if((m=t.match(/^(.+?)(ELDIN|EDDIN|ELDEEN|EDDEEN|ELDINE|EDDINE|ALDIN|ALDEEN)$/))&&m[1].length>=3){var b=arTok(m[1]);return[b[0]+' الدين',b[1]]}
@@ -2337,30 +2382,52 @@ function arTok(t){
   }
   return[arFall(t),false];
 }
-/* اسم كامل بترتيب طبيعي (الأول ثم العائلة) */
-function arAuto(p){
-  var raw=((p.giv||'')+' '+(p.sur||'')).toUpperCase().replace(/[^A-Z\s\-']/g,' ').replace(/'/g,'').replace(/-/g,' ');
-  var tk=raw.split(/\s+/).filter(Boolean),out=[],ok=true;
+/* ترتيب الاسم: جوازات مصر بتحط الاسم الأول في خانة SURNAME — فالترتيب الصح (سور ثم جيفن) */
+function arToks(p,old){
+  var a=old?(p.giv||''):(p.sur||''),b=old?(p.sur||''):(p.giv||'');
+  var raw=(a+' '+b).toUpperCase().replace(/[^A-Z\s\-']/g,' ').replace(/'/g,'').replace(/-/g,' ');
+  var tk=raw.split(/\s+/).filter(Boolean),res=[];
   for(var i=0;i<tk.length;i++){
     var t=tk[i];
     if((t==='EL'||t==='AL'||t==='ABD'||t==='ABDEL'||t==='ABDUL'||t==='ABOU'||t==='ABO'||t==='ABU')&&i+1<tk.length){t=t+tk[++i]}
-    if(/^(ELDIN|EDDIN|ELDEEN|EDDEEN|ALDIN)$/.test(t)&&out.length){out[out.length-1]+=' الدين';continue}
-    var r=arTok(t);out.push(r[0]);if(!r[1])ok=false;
+    if(/^(ELDIN|EDDIN|ELDEEN|EDDEEN|ALDIN)$/.test(t)&&res.length){res[res.length-1]+=t;continue}
+    res.push(t);
   }
+  return res;
+}
+function arAuto(p,old){
+  AR_LRN=arLearnMap();
+  var out=[],ok=true;
+  arToks(p,old).forEach(function(t){var r=arTok(t);out.push(r[0]);if(!r[1])ok=false});
   return{t:out.join(' '),ok:ok};
+}
+/* تعلّم من تصحيحاتك: كلمة اتصححت مرة → تتترجم صح في كل المجموعات */
+function arLearnFrom(p,v){
+  AR_LRN=arLearnMap();
+  var toks=arToks(p),words=(v||'').trim().split(/\s+/).filter(Boolean),auto=toks.map(arTok);
+  var k=auto.map(function(r){return r[0].split(' ').length}),sum=k.reduce(function(x,y){return x+y},0);
+  if(sum!==words.length)return;
+  var h=arStore(p);if(!h.tok)h.tok={};var i=0,n=0;
+  toks.forEach(function(t,ix){var w=words.slice(i,i+k[ix]).join(' ');i+=k[ix];if(w!==auto[ix][0]&&/^[A-Z]+$/.test(t)){h.tok[t]=w;n++}});
+  if(n)S.people.forEach(function(x){if(!arOk(x))arAutoSet(x,true)});
+}
+function arMigrate(ppl){
+  var done={};
+  (ppl||[]).forEach(function(p){var h=arStore(p);if(h.arv===2)return;var o=arAuto(p,true).t;if(h.ar[p.id]&&h.ar[p.id]===o){delete h.ar[p.id];delete h.arok[p.id]}done[p.g]=h});
+  Object.keys(done).forEach(function(k){done[k].arv=2});
 }
 function arGrp(p){return S.groups.find(function(g){return g.id===p.g})||grp()}
 function arStore(p){var g=arGrp(p);if(!g.hd||typeof g.hd!=='object')g.hd={};if(!g.hd.ar||typeof g.hd.ar!=='object')g.hd.ar={};if(!g.hd.arok||typeof g.hd.arok!=='object')g.hd.arok={};return g.hd}
 function arGet(p){var h=arStore(p);return h.ar[p.id]||''}
 function arOk(p){return!!arStore(p).arok[p.id]}
-function arSet(p,v,confirmed){var h=arStore(p);v=(v||'').trim();if(!v){delete h.ar[p.id];delete h.arok[p.id];return}h.ar[p.id]=v;if(confirmed)h.arok[p.id]=1;else delete h.arok[p.id]}
+function arSet(p,v,confirmed){var h=arStore(p);v=(v||'').trim();if(!v){delete h.ar[p.id];delete h.arok[p.id];return}h.ar[p.id]=v;if(confirmed){h.arok[p.id]=1;arLearnFrom(p,v)}else delete h.arok[p.id]}
 /* بيولّد الاسم لو مفيش (أو لو غير مؤكد وbatch=force) — مؤكد تلقائيًا لو كل الكلمات في القاموس */
 function arAutoSet(p,force){
   var h=arStore(p);if(h.ar[p.id]&&h.arok[p.id])return false;
   if(h.ar[p.id]&&!force)return false;
   var a=arAuto(p);h.ar[p.id]=a.t;if(a.ok)h.arok[p.id]=1;else delete h.arok[p.id];return true;
 }
-function arEnsureAll(ppl){var n=0;(ppl||list()).forEach(function(p){if(arAutoSet(p))n++});return n}
+function arEnsureAll(ppl){var n=0;arMigrate(ppl||list());(ppl||list()).forEach(function(p){if(arAutoSet(p))n++});return n}
 var _arT=null;
 function arSaveSoon(g){save();clearTimeout(_arT);_arT=setTimeout(function(){sbSaveGroup(g||grp())},900)}
 function arText(p){return arGet(p)||arAuto(p).t}
@@ -2428,8 +2495,21 @@ function hdClean(){
   Object.keys(HD.sel).forEach(function(k){if(!ids[k])delete HD.sel[k]});
   return d;
 }
-function hdLinkMap(){var m={};hdD().links.forEach(function(l){l.ids.forEach(function(id){m[id]=l})});return m}
-function hdLinkByN(n){return hdD().links.find(function(l){return l.n===+n})}
+function hdLinks(manualOnly){
+  var d=hdD(),ls=d.links.map(function(l){return{n:l.n,ids:l.ids.slice(),bk:[],man:true}});
+  if(manualOnly)return ls;
+  var bk={};hdPeople().forEach(function(p){if(p.bk)(bk[p.bk]=bk[p.bk]||[]).push(p.id)});
+  Object.keys(bk).sort().forEach(function(k,ix){
+    if(bk[k].length<2)return;
+    var hit=ls.filter(function(l){return l.ids.some(function(i){return bk[k].indexOf(i)>=0})});
+    if(!hit.length){ls.push({n:1000+ix,ids:bk[k].slice(),bk:[k],man:false});return}
+    var t=hit[0];bk[k].forEach(function(i){if(t.ids.indexOf(i)<0)t.ids.push(i)});t.bk.push(k);
+    hit.slice(1).forEach(function(o){o.ids.forEach(function(i){if(t.ids.indexOf(i)<0)t.ids.push(i)});o.bk.forEach(function(b){t.bk.push(b)});ls.splice(ls.indexOf(o),1)});
+  });
+  return ls;
+}
+function hdLinkMap(manualOnly){var m={};hdLinks(manualOnly).forEach(function(l){l.ids.forEach(function(id){m[id]=l})});return m}
+function hdLinkByN(n){return hdLinks().find(function(l){return String(l.n)===String(n)})}
 function hdCol(l){return HD_COL[(l.n-1)%HD_COL.length]}
 function hdUnit(p,lm){var l=(lm||hdLinkMap())[p.id];return l?l.ids.map(hdById).filter(Boolean):[p]}
 function hdExpand(ids){var lm=hdLinkMap(),out={},res=[];ids.forEach(function(id){var p=hdById(id);if(!p)return;hdUnit(p,lm).forEach(function(x){if(!out[x.id]){out[x.id]=1;res.push(x.id)}})});return res}
@@ -2449,9 +2529,9 @@ function hdRoomInfo(r){
 }
 
 /* ── undo / snapshot ── */
-function hdCore(){var d=hdD(),c={};Object.keys(d).forEach(function(k){if(k!=='ar'&&k!=='arok')c[k]=d[k]});return JSON.stringify(c)}
+function hdCore(){var d=hdD(),c={};Object.keys(d).forEach(function(k){if(k!=='ar'&&k!=='arok'&&k!=='tok'&&k!=='arv')c[k]=d[k]});return JSON.stringify(c)}
 function hdSnap(){return{p:hdPeople().map(function(p){return[p.id,p.rno||'',p.room||'',!!p.fam]}),d:hdCore()}}
-function hdRestore(s){var by={};s.p.forEach(function(a){by[a[0]]=a});hdPeople().forEach(function(p){var a=by[p.id];if(a){p.rno=a[1];p.room=a[2];p.fam=a[3]}});var cur=grp().hd||{},nd=JSON.parse(s.d);nd.ar=cur.ar||{};nd.arok=cur.arok||{};grp().hd=nd}
+function hdRestore(s){var by={};s.p.forEach(function(a){by[a[0]]=a});hdPeople().forEach(function(p){var a=by[p.id];if(a){p.rno=a[1];p.room=a[2];p.fam=a[3]}});var cur=grp().hd||{},nd=JSON.parse(s.d);nd.ar=cur.ar||{};nd.arok=cur.arok||{};nd.tok=cur.tok;nd.arv=cur.arv;grp().hd=nd}
 function hdPush(){HD.undo.push(hdSnap());if(HD.undo.length>50)HD.undo.shift()}
 function hdSay(t,c){var e=$('hd-msg');e.textContent=t;e.className=c||'';clearTimeout(hdSay._t);hdSay._t=setTimeout(function(){e.textContent=''},6000)}
 
@@ -2480,9 +2560,9 @@ function hdPerson(p,lm,inRoom){
   var l=lm[p.id],oth=l?l.ids.filter(function(i){return i!==p.id}).map(hdById).filter(Boolean).map(hdNm).join('، '):'';
   return'<div class="hd-p'+(HD.sel[p.id]?' sel':'')+(l?' lk':'')+'" draggable="true" data-pid="'+p.id+'"'+(inRoom?' data-from="'+esc(String(p.rno))+'"':'')+(l?' style="--lc:'+hdCol(l)+'"':'')+'>'
     +hdSexIcon(p.sex)
-    +'<span class="hd-nm">'+esc(hdNm(p))+(isInf(p,grp())?' <em>(رضيع)</em>':'')+'<span class="hd-ar">'+esc(arText(p))+(arOk(p)?'':' <i title="ترجمة تلقائية غير مؤكدة — اضغط ✏️ للمراجعة">؟</i>')+'</span><small>'+esc(p.pno||'')+(!inRoom&&p.room?' · '+roomLbl(p.room):'')+'</small></span>'
+    +'<span class="hd-nm">'+'<span class="hd-en">'+esc(hdNm(p))+(isInf(p,grp())?' <em>(رضيع)</em>':'')+'</span><span class="hd-ar">'+esc(arText(p))+(arOk(p)?'':' <i title="ترجمة تلقائية غير مؤكدة — اضغط ✏️ للمراجعة">راجع</i>')+'</span><small>'+esc(p.pno||'')+(p.bk?' · 📒'+esc(p.bk):'')+(!inRoom&&p.room?' · '+roomLbl(p.room):'')+'</small></span>'
     +'<button class="hd-ed" data-edar="'+p.id+'" title="تعديل الاسم العربي">✏️</button>'
-    +(l?'<button class="hd-lkb" data-unlink="'+p.id+'" title="مرتبط مع: '+esc(oth)+' — اضغط لفك ربطه">🔗'+l.n+'</button>':'')
+    +(l?'<button class="hd-lkb" data-unlink="'+p.id+'" title="مرتبط مع: '+esc(oth)+' — اضغط لفك ربطه">'+(l.bk.length?'📒':'🔗'+l.n)+'</button>':'')
     +(inRoom?'<button class="hd-x" data-kick="'+p.id+'" title="إخراج من الغرفة">✕</button>':'')
   +'</div>';
 }
@@ -2525,11 +2605,11 @@ function hdAwaitHTML(ppl,lm){
   var show=ppl.filter(hdAwaitOK);
   if(!show.length){$('hd-await-list').innerHTML='<div class="hd-empty">'+(ppl.some(function(p){return!p.rno})?'مفيش نتايج بالفلتر ده':'✅ الكل مسكَّن')+'</div>';return}
   var done={},h='';
-  hdD().links.forEach(function(l){
+  hdLinks().forEach(function(l){
     var mem=l.ids.map(hdById).filter(function(p){return p&&hdAwaitOK(p)});
     if(!mem.length)return;mem.forEach(function(p){done[p.id]=1});
     var hs=l.ids.map(hdById).filter(function(p){return p&&p.rno});
-    h+='<div class="hd-lg" style="--lc:'+hdCol(l)+'"><div class="hd-lg-h" draggable="true" data-link="'+l.n+'"><b>🔗 ر'+l.n+'</b><span>'+l.ids.length+' أفراد'+(hs.length?' · '+hs.length+' مسكَّن':'')+'</span><i></i><button data-selgrp="'+l.n+'">تحديد</button><button data-dissolve="'+l.n+'">فك</button></div>'+mem.map(function(p){return hdPerson(p,lm,false)}).join('')+'</div>';
+    h+='<div class="hd-lg" style="--lc:'+hdCol(l)+'"><div class="hd-lg-h" draggable="true" data-link="'+l.n+'"><b>'+(l.bk.length?'📒 حجز '+esc(l.bk.join('، ')):'🔗 ر'+l.n)+'</b><span>'+l.ids.length+' أفراد'+(hs.length?' · '+hs.length+' مسكَّن':'')+'</span><i></i><button data-selgrp="'+l.n+'">تحديد</button>'+(l.man?'<button data-dissolve="'+l.n+'">فك</button>':'')+'</div>'+mem.map(function(p){return hdPerson(p,lm,false)}).join('')+'</div>';
   });
   show.forEach(function(p){if(!done[p.id])h+=hdPerson(p,lm,false)});
   $('hd-await-list').innerHTML=h;
@@ -2555,6 +2635,7 @@ function hdRoomsHTML(d,lm){
       +((I.fam||I.badMix||I.cls==='over')?'<div class="hd-warns">'+(I.fam?'<span class="hd-bd">👪 عائلة / غرفة مغلقة</span>':'')+(I.badMix?'<span class="hd-bd bad">⚠️ رجال وسيدات مع بعض</span>':'')+(I.cls==='over'?'<span class="hd-bd bad">⚠️ زيادة '+(I.n-I.cap)+'</span>':'')+'</div>':'')
       +'<div class="hd-rb">'+I.mem.map(function(p){return hdPerson(p,lm,true)}).join('')+slots+'</div>'
       +(Object.keys(HD.sel).length?'<div class="hd-rf"><button data-addsel="'+esc(r.no)+'" style="width:100%">＋ إضافة المحدد ('+Object.keys(HD.sel).length+') هنا</button></div>':'')
+      +((I.cap&&I.n>0&&I.n<I.cap)?'<div class="hd-rf"><button class="hd-fill" data-fill="'+esc(r.no)+'">💡 اقترح اللي يكمّل الغرفة ('+(I.cap-I.n)+' ناقص)</button></div>':'')
     +'</div>';
   });
   h+='<div class="hd-new" id="hd-newcard" data-newroom="1">＋ غرفة جديدة</div>';
@@ -2605,7 +2686,7 @@ function hdLinkSel(){
   var ids=Object.keys(HD.sel).map(Number);
   if(ids.length<2){hdSay('حدد فردين أو أكتر الأول (اضغط على الأسماء)','err');return}
   hdPush();
-  var d=hdD(),lm=hdLinkMap(),merged=ids.slice(),old=[];
+  var d=hdD(),lm=hdLinkMap(true),merged=ids.slice(),old=[];
   ids.forEach(function(id){var l=lm[id];if(l&&old.indexOf(l)<0){old.push(l);l.ids.forEach(function(i){if(merged.indexOf(i)<0)merged.push(i)})}});
   d.links=d.links.filter(function(l){return old.indexOf(l)<0});
   d.links.push({n:old.length?old[0].n:++d.lc,ids:merged});
@@ -2614,6 +2695,7 @@ function hdLinkSel(){
 function hdUnlink(ids){
   hdPush();hdD().links.forEach(function(l){l.ids=l.ids.filter(function(i){return ids.indexOf(i)<0})});
   hdClean();hdRender();
+  var still=hdLinkMap();if(ids.some(function(i){return still[i]&&still[i].bk.length}))hdSay('📒 الربط ده جاي من رقم الحجز — عدّل الحجز من الجدول الرئيسي لو عاوز تفصلهم','err');
 }
 function hdAuto(){
   var g=grp(),d=hdClean(),lm=hdLinkMap();
@@ -2656,6 +2738,29 @@ function hdAuto(){
   hdRender();
 }
 
+function hdFill(no){
+  var r=hdD().rooms.find(function(x){return x.no===no});if(!r)return;
+  var g=grp(),I=hdRoomInfo(r),free=I.cap-I.n,sex=I.mixed?'':((I.mem[0]&&I.mem[0].sex)||'');
+  var lm=hdLinkMap(),seen={},units=[];
+  hdPeople().forEach(function(p){
+    if(p.rno||seen[p.id])return;
+    var u=hdUnit(p,lm).filter(function(x){return!x.rno});u.forEach(function(x){seen[x.id]=1});
+    if(!u.length)return;
+    var core=u.filter(function(x){return!isInf(x,g)});
+    if(!core.length||core.length>free)return;
+    if(u.some(function(x){return x.room&&x.room!==r.type}))return;
+    var sx={};u.forEach(function(x){if(x.sex)sx[x.sex]=1});var ks=Object.keys(sx);
+    if(ks.length>1)return;
+    if(sex&&ks[0]&&ks[0]!==sex)return;
+    units.push({u:u,w:core.length,same:u.some(function(x){return x.room===r.type})?1:0});
+  });
+  if(!units.length){hdSay('مفيش حد مناسب يكمّل غرفة '+no+' (نفس النوع والجنس والعدد)','err');return}
+  units.sort(function(a,b){return b.w-a.w||b.same-a.same});
+  var best=units[0],names=best.u.map(arText).join('، ');
+  if(!confirm('اقتراح لغرفة '+no+':\n'+names+(units.length>1?'\n(فيه '+(units.length-1)+' اقتراح تاني)':'')+'\n\nتضيفهم؟'))return;
+  if(hdPlace(best.u.map(function(x){return x.id}),no))hdRender();
+}
+
 /* ── events (delegated) ── */
 var hdDlg=$('housingdlg');
 hdDlg.addEventListener('click',function(e){
@@ -2676,6 +2781,7 @@ hdDlg.addEventListener('click',function(e){
     var d2=hdD();if(d2.rooms.some(function(r){return r.no===v})){alert('الرقم ده مستخدم في غرفة تانية.');return}
     hdPush();d2.rooms.find(function(r){return r.no===o}).no=v;hdMem(o).forEach(function(p){p.rno=v});return hdRender();
   }
+  if((b=t.closest('[data-fill]'))){return hdFill(b.dataset.fill)}
   if((b=t.closest('[data-addsel]'))){var ids=hdExpand(Object.keys(HD.sel).map(Number));if(hdPlace(ids,b.dataset.addsel))HD.sel={};return hdRender()}
   if(t.closest('[data-newroom]')){var ty=$('hd-nt').value;hdAddRooms(ty,1,'');return hdRender()}
   if((b=t.closest('[data-edar]'))){var ep=hdById(+b.dataset.edar);if(!ep)return;var nv=prompt('الاسم بالعربي:\n'+nameFlight(ep),arText(ep));if(nv===null)return;if(nv.trim()){arSet(ep,nv,true)}else{arSet(ep,'',false);arAutoSet(ep)}arSaveSoon();return hdRender()}
@@ -2698,15 +2804,7 @@ $('hd-link').onclick=hdLinkSel;
 $('hd-unlink').onclick=function(){var ids=Object.keys(HD.sel).map(Number);if(!ids.length){hdSay('حدد الأفراد اللي عاوز تفك ربطهم','err');return}hdUnlink(ids);HD.sel={};hdRender()};
 $('hd-selall').onclick=function(){hdPeople().filter(hdAwaitOK).forEach(function(p){HD.sel[p.id]=true});hdRender()};
 $('hd-selnone').onclick=function(){HD.sel={};hdRender()};
-$('hd-bybk').onclick=function(){
-  var bk={};hdPeople().forEach(function(p){if(p.bk)(bk[p.bk]=bk[p.bk]||[]).push(p.id)});
-  var ks=Object.keys(bk).filter(function(k){return bk[k].length>1});
-  if(!ks.length){hdSay('مفيش حجوزات فيها أكتر من فرد','err');return}
-  if(!confirm('هعمل ربط لـ '+ks.length+' حجز (كل حجز = مجموعة مرتبطة). تكمل؟'))return;
-  hdPush();var d=hdD();
-  ks.forEach(function(k){var lm=hdLinkMap(),merged=bk[k].slice(),old=[];bk[k].forEach(function(id){var l=lm[id];if(l&&old.indexOf(l)<0){old.push(l);l.ids.forEach(function(i){if(merged.indexOf(i)<0)merged.push(i)})}});d.links=d.links.filter(function(l){return old.indexOf(l)<0});d.links.push({n:old.length?old[0].n:++d.lc,ids:merged})});
-  hdSay('✓ اترابط '+ks.length+' حجز','ok');hdRender();
-};
+$('hd-bybk').onclick=function(){var bk={};hdPeople().forEach(function(p){if(p.bk)(bk[p.bk]=bk[p.bk]||[]).push(p)});var ks=Object.keys(bk).filter(function(k){return bk[k].length>1});var n=ks.reduce(function(x,k){return x+bk[k].length},0);hdSay(ks.length?'📒 '+ks.length+' حجز مترابط تلقائي ('+n+' فرد) — الربط بييجي من رقم الحجز في الجدول الرئيسي':'مفيش حجوزات فيها أكتر من فرد — اكتب نفس رقم الحجز للأفراد في الجدول الرئيسي','ok')};
 $('hd-undo').onclick=function(){if(!HD.undo.length)return;hdRestore(HD.undo.pop());hdRender();hdSay('↩ تم التراجع','ok')};
 $('hd-autohouse').onclick=hdAuto;
 $('hd-clearall').onclick=function(){
