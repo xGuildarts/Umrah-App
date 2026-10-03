@@ -427,6 +427,20 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
 .hd-empty{font-size:15.5px}
 #housingdlg button.hd-fill{width:100%;background:rgba(11,122,117,.12);border-color:var(--acc)}
 .hd-p.sel{outline:3px solid #eab308}
+.hd-nm em{font-size:13px;font-weight:700}
+#housingdlg .hd-rh select{font-size:20px;font-weight:800;padding:6px 12px;padding-inline-end:30px!important;min-width:130px;border-width:2px;border-color:var(--acc);border-radius:10px;color:var(--ink)}
+#housingdlg button.hd-rn{font-size:26px!important}
+.hd-cap{font-size:17px!important;padding:4px 14px!important}
+.hd-tc .t{font-size:22px!important}
+.hd-tc .n{font-size:36px!important}
+.hd-tc .s{font-size:14.5px!important}
+#housingdlg button.hd-tc{min-width:175px}
+.hd-ar{font-size:20px!important}
+#housingdlg #hd-nt{font-size:16px;font-weight:700}
+.hd-p.bkm{outline:2.5px dashed #0369a1;outline-offset:-2px;background:rgba(3,105,161,.07)}
+.hd-bk{background:color-mix(in srgb,var(--bc) 14%,transparent);color:var(--bc);border:1px solid var(--bc);border-radius:8px;padding:0 7px;font-size:12px;font-weight:800;direction:rtl;display:inline-block;margin-inline-end:4px}
+.hd-bkh{margin:10px 2px 6px;padding:5px 10px;border-inline-start:5px solid var(--bc);background:color-mix(in srgb,var(--bc) 9%,var(--card));border-radius:8px;font-size:14px;font-weight:800;color:var(--bc)}
+.hd-bkh span{font-weight:600;font-size:12.5px;color:var(--mut);margin-inline-start:6px}
 
 @media print{
   body{background:#fff;color:#000}
@@ -629,7 +643,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
     <span id="fltn" class="hint" style="margin:0"></span>
     <input id="q" placeholder="🔎 بحث: اسم / جواز / حجز / غرفة" style="font-size:12px;padding:4px 8px;width:190px">
     <select id="sortby" style="font-size:12px;padding:4px 7px"><option value="room">ترتيب: غرفة</option><option value="bk">ترتيب: حجز</option><option value="none">ترتيب: إضافة</option></select>
-    <input id="cur-bk" list="bklist" placeholder="📒 الحجز الحالي" title="أي جواز جديد بتضيفه هياخد الحجز ده تلقائي — ده اللي بيربط الأفراد قبل التسكين" style="font-size:12px;padding:4px 8px;width:120px"><button class="sec" id="cur-bk-new" title="رقم حجز جديد" style="font-size:12px;padding:4px 8px">+ حجز جديد</button><select id="cur-room" title="نوع التسكين للجوازات الجديدة" style="font-size:12px;padding:4px 6px"></select>
+    <input id="cur-bk" list="bklist" placeholder="📒 الحجز الحالي" title="أي جواز جديد بتضيفه هياخد الحجز ده تلقائي — ده اللي بيربط الأفراد قبل التسكين" style="font-size:12px;padding:4px 8px;width:120px"><label title="كل جواز جديد تضيفه بالحجز الحالي هيتربط مع اللي قبله في غرفة واحدة" style="font-size:12px;display:inline-flex;align-items:center;gap:3px"><input type="checkbox" id="cur-tog">🔗 غرفة واحدة</label><button class="sec" id="cur-bk-new" title="رقم حجز جديد" style="font-size:12px;padding:4px 8px">+ حجز جديد</button><select id="cur-room" title="نوع التسكين للجوازات الجديدة" style="font-size:12px;padding:4px 6px"></select>
     <button class="sec" id="autorm" style="font-size:12px;padding:4px 9px">🛏️ تسكين تلقائي</button>
     <button id="open-housing" style="font-size:12px;padding:4px 10px">🏨 نظام التسكين</button>
     <button class="sec" id="open-ar" style="font-size:12px;padding:4px 10px">🔤 الأسماء بالعربي</button>
@@ -639,7 +653,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
   <div id="bulkbar" style="display:none">
     <b>🟨 محدد: <span id="bn">0</span></b>
     <select id="bk-room" style="font-size:12px;padding:3px 5px"></select><button class="sec" id="bk-room-ok" style="font-size:12px;padding:3px 8px">تطبيق</button>
-    <input id="bk-bk" list="bklist" placeholder="اسم حجز" style="width:90px;font-size:12px;padding:3px 5px"><button class="sec" id="bk-bk-ok" style="font-size:12px;padding:3px 8px">تطبيق</button><button class="sec" id="bk-newbk" title="اعمل حجز جديد بترقيم تلقائي وحط فيه المحددين" style="font-size:12px;padding:3px 8px">📒 حجز جديد للمحدد</button>
+    <input id="bk-bk" list="bklist" placeholder="اسم حجز" style="width:90px;font-size:12px;padding:3px 5px"><button class="sec" id="bk-bk-ok" style="font-size:12px;padding:3px 8px">تطبيق</button><button class="sec" id="bk-link" title="المحددين يتسكنوا في غرفة واحدة دايمًا" style="font-size:12px;padding:3px 8px">🔗 غرفة واحدة</button><button class="sec" id="bk-unlink" title="فك ربط الغرفة للمحددين" style="font-size:12px;padding:3px 8px">⛓️ فك</button><button class="sec" id="bk-newbk" title="اعمل حجز جديد بترقيم تلقائي وحط فيه المحددين" style="font-size:12px;padding:3px 8px">📒 حجز جديد للمحدد</button>
     <button class="sec" id="bk-sup" style="font-size:12px;padding:3px 8px">👑 مشرف</button><button class="sec" id="bk-unsup" style="font-size:12px;padding:3px 8px">إلغاء مشرف</button>
     <select id="bk-grp" style="font-size:12px;padding:3px 5px"></select><button class="sec" id="bk-grp-ok" style="font-size:12px;padding:3px 8px">نقل</button>
     <button class="sec" id="bk-clr" style="font-size:12px;padding:3px 8px">✕ مسح التحديد</button>
@@ -788,7 +802,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
     <span class="sep"></span>
     <button id="hd-link" title="اربط المحددين ببعض">🔗 ربط المحدد (<span id="hd-sel-n">0</span>)</button>
     <button id="hd-unlink">⛓️ فك ربط المحدد</button>
-    <button id="hd-bybk" title="الأفراد اللي ليهم نفس رقم الحجز بيترابطوا تلقائي">📒 الحجوزات (تلقائي)</button>
+    <button id="hd-bybk" title="رتّب قايمة اللي لم يُسكَّنوا حسب الحجز">📒 ترتيب حسب الحجز</button>
     <button id="hd-selall">☑ تحديد كل الظاهر</button>
     <button id="hd-selnone">☐ إلغاء التحديد</button>
     <span class="sep"></span>
@@ -801,7 +815,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
     <select id="hd-pl" title="لغة الأسماء في الكشف"><option value="both">كشف: عربي + English</option><option value="ar">كشف: عربي فقط</option><option value="en">كشف: English فقط</option></select>
     <button id="hd-print">🖨️ طباعة كشف التسكين</button>
   </div>
-  <div class="hd-hint">اضغط على الاسم لتحديده، وحدد أكتر من واحد واضغط <b>🔗 ربط</b> (أي حد مع أي حد). اسحب أي فرد وهيجيب معاه المرتبطين بيه أوتوماتيك — <b>Shift + سحب</b> يسحبه لوحده. الضغط على رقم الغرفة بيعدّله. <b>📒 اللي ليهم نفس رقم الحجز بيترابطوا تلقائي</b> (الحجز بيتحدد في الجدول الرئيسي قبل التسكين).</div>
+  <div class="hd-hint"><b>🔗 غرفة واحدة</b> (زوج/زوجة، أخ/أخ، أم/بنت…): بيتسكنوا مع بعض دايمًا — بتتعمل من الجدول الرئيسي وقت الحجز، أو من هنا بتحديد الأسماء ثم 🔗 ربط. &nbsp; <b>📒 نفس الحجز</b>: مجرد ملف واحد، من غير إجبار على غرفة واحدة — لما تحدد فرد بتتعلّم باقي حجزه بإطار منقّط. &nbsp; اسحب أي فرد وهيجيب معاه المربوطين بيه — <b>Shift + سحب</b> يسحبه لوحده.</div>
   <div class="hd-body">
     <div id="hd-await">
       <div class="hd-aw-h">
@@ -1218,7 +1232,10 @@ async function addPerson(p){
   p.id=newId();p.g=grp().id;
   var cb=$('cur-bk')?$('cur-bk').value.trim():'';if(cb&&!p.bk)p.bk=cb;
   var cr=$('cur-room')?$('cur-room').value:'';if(cr&&!p.room)p.room=cr;
-  S.people.push(p);arAutoSet(p);save();render();arSaveSoon(grp());
+  var _lk=!!($('cur-tog')&&$('cur-tog').checked&&cb);
+  S.people.push(p);arAutoSet(p);
+  if(_lk){if(!window._curL||window._curL.bk!==cb||window._curL.g!==p.g)window._curL={bk:cb,g:p.g,ids:[]};window._curL.ids.push(p.id);if(window._curL.ids.length>1){var _ps=window._curL.ids.map(function(i){return S.people.find(function(x){return x.id===i})}).filter(Boolean);rlMake(_ps)}}
+  save();render();arSaveSoon(grp());
   // warn expiry
   var g=grp();
   var st=expStatus(p.exp,g.date);
@@ -2135,7 +2152,7 @@ function render(){
       +'<td class="chk"><input type="checkbox" data-pid="'+p.id+'" data-field="rev"'+(p.rev?' checked':'')+'></td>'
       +'<td><select data-room="'+p.id+'" style="font-size:12px;padding:3px 5px"><option value="">—</option>'+ROOMS.map(function(r){return'<option value="'+r[0]+'"'+(p.room===r[0]?' selected':'')+'>'+r[1]+((g.pr&&g.pr[r[0]])?' ('+g.pr[r[0]]+')':'')+'</option>'}).join('')+'</select></td>'
       +'<td><input class="rno" data-pid="'+p.id+'" value="'+esc(p.rno)+'" style="width:46px;padding:3px 5px;font-size:12px"> <label title="عائلة / غرفة مغلقة"><input type="checkbox" data-pid="'+p.id+'" data-field="fam"'+(p.fam?' checked':'')+'>👪</label>'+(p.room&&!p.rno?' <button class="sec" data-sug="'+p.id+'" title="اقتراح غرفة" style="padding:1px 5px;font-size:12px">💡</button>':'')+(ri?' <span title="'+esc(ri)+'" style="cursor:help">⚠️</span>':'')+'</td>'
-      +'<td><input class="bk" list="bklist" data-pid="'+p.id+'" value="'+esc(p.bk)+'" placeholder="—" style="width:80px;padding:3px 5px;font-size:12px"></td>'
+      +'<td><input class="bk" list="bklist" data-pid="'+p.id+'" value="'+esc(p.bk)+'" placeholder="—" style="width:80px;padding:3px 5px;font-size:12px">'+rlBadge(p)+'</td>'
       +'<td><button class="sec" data-pay="'+p.id+'" style="padding:3px 8px;font-size:12px">💵 '+paidOf(p)+'</button>'+(+p.disc>0?'<div style="font-size:11px;color:var(--warn)">🏷️ خصم '+p.disc+'</div>':'')+'</td>'
       +'<td style="font-size:12px">'+(p.sup?'<b style="color:var(--ok)">👑 مشرف — بدون تكلفة</b>':pi.auto?(pi.due?'<b style="color:var(--bad)">💰 مطلوب '+(pi.bk&&!pi.lead?'ضمن الحجز':pi.amt+' '+CUR)+'</b>':'<b style="color:var(--ok)">✓ '+pct+'%+</b>')+'<br><span style="color:var(--mut)">'+(pi.bk?'حجز '+esc(pi.bk)+' ('+pi.n+'): المتبقي '+pi.rem+' من '+pi.btot:'المتبقي '+pi.rem)+'</span>':'<label><input type="checkbox" data-pid="'+p.id+'" data-field="payDue"'+(p.payDue?' checked':'')+'> سداد</label>'+(p.payDue?' <input type="number" min="0" class="amt" data-pid="'+p.id+'" placeholder="المبلغ" value="'+esc(p.payAmt)+'" style="width:70px;padding:3px 5px;font-size:12px">':''))+'</td>'
       +'<td><select data-m="'+p.id+'" style="font-size:11px;padding:3px 5px">'+opts.replace('value="'+p.g+'"','value="'+p.g+'" selected')+'</select></td>'
@@ -2189,9 +2206,36 @@ async function bulkApply(label,fn,confirmMsg){
   for(var i=0;i<ps.length;i++)await sbSavePerson(ps[i]);
   say('✓ '+label+' — '+ps.length+' فرد','ok');
 }
+var _rlHex=['#8b5cf6','#f59e0b','#0ea5e9','#ec4899','#10b981','#ef4444','#6366f1','#14b8a6','#a16207','#64748b'];
+function rlBadge(p){try{var l=hdLinkMap()[p.id];if(!l)return'';var mates=l.ids.filter(function(i){return i!==p.id}).map(function(i){var q=S.people.find(function(x){return x.id===i});return q?nameFlight(q):''}).join('، ');var c=_rlHex[(l.n-1)%10];return'<div style="margin-top:3px"><span title="لازم يتسكن في غرفة واحدة مع: '+esc(mates)+'" style="background:'+c+';color:#fff;border-radius:9px;padding:1px 8px;font-size:11.5px;font-weight:700;white-space:nowrap">🔗 غرفة واحدة ر'+l.n+' ('+l.ids.length+')</span></div>'}catch(e){return''}}
+function rlMake(ps){
+  var g=grp();if(ps.length<2){say('حدد فردين أو أكتر الأول','err');return false}
+  var types={};ps.forEach(function(p){if(p.room)types[p.room]=1});var ks=Object.keys(types);
+  if(ks.length>1){var t0=ps.filter(function(p){return p.room})[0].room;if(!confirm('نوع التسكين مختلف بين المحددين ('+ks.map(roomLbl).join(' / ')+').\nأوحّد الكل على: '+roomLbl(t0)+' ؟'))return false;ps.forEach(function(p){p.room=t0})}
+  else if(ks.length===1)ps.forEach(function(p){p.room=ks[0]});
+  var d=hdD(),lm=hdLinkMap(),merged=ps.map(function(p){return p.id}),old=[];
+  merged.slice().forEach(function(id){var l=lm[id];if(l&&old.indexOf(l)<0){old.push(l);l.ids.forEach(function(i){if(merged.indexOf(i)<0)merged.push(i)})}});
+  var n=old.length?old[0].n:++d.lc;
+  d.links=d.links.filter(function(l){return!old.some(function(o){return o.n===l.n})});
+  d.links.push({n:n,ids:merged});return n;
+}
+$('bk-link').onclick=async function(){
+  var g=grp(),ps=S.people.filter(function(p){return p.g===g.id&&SEL[p.id]});
+  snapNow('قبل الربط');var n=rlMake(ps);if(!n)return;
+  var sx={};ps.forEach(function(p){if(p.sex)sx[p.sex]=1});
+  save();render();await sbSaveGroup(g);for(var i=0;i<ps.length;i++)await sbSavePerson(ps[i]);
+  say('✓ اترابط '+ps.length+' في غرفة واحدة'+(sx.M&&sx.F?' — (رجال وسيدات → غرفة مغلقة)':''),'ok');
+};
+$('bk-unlink').onclick=async function(){
+  var g=grp(),ids=S.people.filter(function(p){return p.g===g.id&&SEL[p.id]}).map(function(p){return p.id});
+  if(!ids.length)return;snapNow('قبل فك الربط');
+  hdD().links.forEach(function(l){l.ids=l.ids.filter(function(i){return ids.indexOf(i)<0})});hdClean();
+  save();render();await sbSaveGroup(g);say('✓ اتفك ربط الغرفة','ok');
+};
 function nextBk(){var g=grp(),mx=0;S.people.forEach(function(p){if(p.g===g.id){var m=/^ح-?(\d+)$/.exec(p.bk||'');if(m&&+m[1]>mx)mx=+m[1]}});return'ح'+(mx+1)}
 $('cur-room').innerHTML='<option value="">نوع الغرفة…</option>'+ROOMS.map(function(r){return'<option value="'+r[0]+'">'+r[1]+'</option>'}).join('');
-$('cur-bk-new').onclick=function(){$('cur-bk').value=nextBk();$('cur-bk').focus()};
+$('cur-bk').oninput=function(){window._curL=null};$('cur-tog').onchange=function(){window._curL=null};
+$('cur-bk-new').onclick=function(){window._curL=null;$('cur-bk').value=nextBk();$('cur-bk').focus()};
 $('bk-newbk').onclick=function(){var v=nextBk();bulkApply('حجز '+v,function(p){p.bk=v})};
 $('bk-room-ok').onclick=function(){var v=$('bk-room').value;if(!v){say('اختار نوع التسكين الأول','err');return}bulkApply('تسكين '+roomLbl(v),function(p){p.room=v})};
 $('bk-bk-ok').onclick=function(){var v=$('bk-bk').value.trim();if(!v){say('اكتب اسم الحجز الأول','err');return}bulkApply('حجز '+v,function(p){p.bk=v})};
@@ -2383,8 +2427,9 @@ function arTok(t){
   return[arFall(t),false];
 }
 /* ترتيب الاسم: جوازات مصر بتحط الاسم الأول في خانة SURNAME — فالترتيب الصح (سور ثم جيفن) */
-function arToks(p,old){
-  var a=old?(p.giv||''):(p.sur||''),b=old?(p.sur||''):(p.giv||'');
+function arToks(p,rev){
+  /* الترتيب الطبيعي: الاسم الأول ← التاني ← التالت ← اسم العيلة. rev=الترتيب المعكوس (للتنضيف بس) */
+  var a=rev?(p.sur||''):(p.giv||''),b=rev?(p.giv||''):(p.sur||'');
   var raw=(a+' '+b).toUpperCase().replace(/[^A-Z\s\-']/g,' ').replace(/'/g,'').replace(/-/g,' ');
   var tk=raw.split(/\s+/).filter(Boolean),res=[];
   for(var i=0;i<tk.length;i++){
@@ -2395,10 +2440,10 @@ function arToks(p,old){
   }
   return res;
 }
-function arAuto(p,old){
+function arAuto(p,rev){
   AR_LRN=arLearnMap();
   var out=[],ok=true;
-  arToks(p,old).forEach(function(t){var r=arTok(t);out.push(r[0]);if(!r[1])ok=false});
+  arToks(p,rev).forEach(function(t){var r=arTok(t);out.push(r[0]);if(!r[1])ok=false});
   return{t:out.join(' '),ok:ok};
 }
 /* تعلّم من تصحيحاتك: كلمة اتصححت مرة → تتترجم صح في كل المجموعات */
@@ -2413,8 +2458,11 @@ function arLearnFrom(p,v){
 }
 function arMigrate(ppl){
   var done={};
-  (ppl||[]).forEach(function(p){var h=arStore(p);if(h.arv===2)return;var o=arAuto(p,true).t;if(h.ar[p.id]&&h.ar[p.id]===o){delete h.ar[p.id];delete h.arok[p.id]}done[p.g]=h});
-  Object.keys(done).forEach(function(k){done[k].arv=2});
+  (ppl||[]).forEach(function(p){var h=arStore(p);if(h.arv===3)return;
+    var bad=arAuto(p,true).t,cur=h.ar[p.id];
+    if(cur&&cur===bad){delete h.ar[p.id];delete h.arok[p.id]}   /* اسم اتولّد بالترتيب المعكوس → يتولّد تاني صح */
+    done[p.g]=h});
+  Object.keys(done).forEach(function(k){done[k].arv=3});
 }
 function arGrp(p){return S.groups.find(function(g){return g.id===p.g})||grp()}
 function arStore(p){var g=arGrp(p);if(!g.hd||typeof g.hd!=='object')g.hd={};if(!g.hd.ar||typeof g.hd.ar!=='object')g.hd.ar={};if(!g.hd.arok||typeof g.hd.arok!=='object')g.hd.arok={};return g.hd}
@@ -2495,19 +2543,7 @@ function hdClean(){
   Object.keys(HD.sel).forEach(function(k){if(!ids[k])delete HD.sel[k]});
   return d;
 }
-function hdLinks(manualOnly){
-  var d=hdD(),ls=d.links.map(function(l){return{n:l.n,ids:l.ids.slice(),bk:[],man:true}});
-  if(manualOnly)return ls;
-  var bk={};hdPeople().forEach(function(p){if(p.bk)(bk[p.bk]=bk[p.bk]||[]).push(p.id)});
-  Object.keys(bk).sort().forEach(function(k,ix){
-    if(bk[k].length<2)return;
-    var hit=ls.filter(function(l){return l.ids.some(function(i){return bk[k].indexOf(i)>=0})});
-    if(!hit.length){ls.push({n:1000+ix,ids:bk[k].slice(),bk:[k],man:false});return}
-    var t=hit[0];bk[k].forEach(function(i){if(t.ids.indexOf(i)<0)t.ids.push(i)});t.bk.push(k);
-    hit.slice(1).forEach(function(o){o.ids.forEach(function(i){if(t.ids.indexOf(i)<0)t.ids.push(i)});o.bk.forEach(function(b){t.bk.push(b)});ls.splice(ls.indexOf(o),1)});
-  });
-  return ls;
-}
+function hdLinks(){return hdD().links.map(function(l){return{n:l.n,ids:l.ids.slice(),bk:[],man:true}})}
 function hdLinkMap(manualOnly){var m={};hdLinks(manualOnly).forEach(function(l){l.ids.forEach(function(id){m[id]=l})});return m}
 function hdLinkByN(n){return hdLinks().find(function(l){return String(l.n)===String(n)})}
 function hdCol(l){return HD_COL[(l.n-1)%HD_COL.length]}
@@ -2555,12 +2591,15 @@ $('housingdlg').addEventListener('keydown',function(e){
 });
 
 /* ── render ── */
+var HD_BKC=['#0369a1','#b45309','#7c3aed','#be185d','#047857','#b91c1c','#4338ca','#0f766e','#a16207','#475569'];
+function hdBkCol(k){var h=0;for(var i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;return HD_BKC[h%HD_BKC.length]}
 function hdSexIcon(s){return'<span class="hd-sx '+(s==='M'||s==='F'?s:'U')+'">'+(s==='M'?'♂':s==='F'?'♀':'?')+'</span>'}
 function hdPerson(p,lm,inRoom){
-  var l=lm[p.id],oth=l?l.ids.filter(function(i){return i!==p.id}).map(hdById).filter(Boolean).map(hdNm).join('، '):'';
-  return'<div class="hd-p'+(HD.sel[p.id]?' sel':'')+(l?' lk':'')+'" draggable="true" data-pid="'+p.id+'"'+(inRoom?' data-from="'+esc(String(p.rno))+'"':'')+(l?' style="--lc:'+hdCol(l)+'"':'')+'>'
+  var l=lm[p.id],oth=l?l.ids.filter(function(i){return i!==p.id}).map(hdById).filter(Boolean).map(arText).join('، '):'';
+  var bkm=p.bk&&!HD.sel[p.id]&&HD.selBk&&HD.selBk[p.bk];
+  return'<div class="hd-p'+(HD.sel[p.id]?' sel':'')+(bkm?' bkm':'')+(l?' lk':'')+'" draggable="true" data-pid="'+p.id+'"'+(inRoom?' data-from="'+esc(String(p.rno))+'"':'')+(l?' style="--lc:'+hdCol(l)+'"':'')+'>'
     +hdSexIcon(p.sex)
-    +'<span class="hd-nm">'+'<span class="hd-en">'+esc(hdNm(p))+(isInf(p,grp())?' <em>(رضيع)</em>':'')+'</span><span class="hd-ar">'+esc(arText(p))+(arOk(p)?'':' <i title="ترجمة تلقائية غير مؤكدة — اضغط ✏️ للمراجعة">راجع</i>')+'</span><small>'+esc(p.pno||'')+(p.bk?' · 📒'+esc(p.bk):'')+(!inRoom&&p.room?' · '+roomLbl(p.room):'')+'</small></span>'
+    +'<span class="hd-nm">'+(inRoom?'':'<span class="hd-en">'+esc(nameFlight(p))+'</span>')+'<span class="hd-ar">'+esc(arText(p))+(isInf(p,grp())?' <em>(رضيع)</em>':'')+(arOk(p)?'':' <i title="ترجمة تلقائية غير مؤكدة — اضغط ✏️ للمراجعة">راجع</i>')+'</span><small>'+(p.bk?'<b class="hd-bk" style="--bc:'+hdBkCol(p.bk)+'" title="نفس ملف الحجز — مش لازم نفس الغرفة">📒 '+esc(p.bk)+'</b> ':'')+esc(p.pno||'')+(!inRoom&&p.room?' · '+roomLbl(p.room):'')+'</small></span>'
     +'<button class="hd-ed" data-edar="'+p.id+'" title="تعديل الاسم العربي">✏️</button>'
     +(l?'<button class="hd-lkb" data-unlink="'+p.id+'" title="مرتبط مع: '+esc(oth)+' — اضغط لفك ربطه">'+(l.bk.length?'📒':'🔗'+l.n)+'</button>':'')
     +(inRoom?'<button class="hd-x" data-kick="'+p.id+'" title="إخراج من الغرفة">✕</button>':'')
@@ -2569,6 +2608,7 @@ function hdPerson(p,lm,inRoom){
 function hdRender(){
   var _a=$('hd-await-list'),_r=$('hd-rooms-wrap'),_sa=_a.scrollTop,_sr=_r.scrollTop;
   var g=grp(),d=hdClean(),lm=hdLinkMap(),ppl=hdPeople();
+  HD.selBk={};Object.keys(HD.sel).forEach(function(k){var q=hdById(+k);if(q&&q.bk)HD.selBk[q.bk]=1});
   $('hd-ttl').textContent='نظام التسكين — '+g.name;
   var housed=ppl.filter(function(p){return p.rno}).length;
   $('hd-stats').innerHTML='<span>👥 '+ppl.length+' فرد</span><span>♂ '+ppl.filter(function(p){return p.sex==='M'}).length+'</span><span>♀ '+ppl.filter(function(p){return p.sex==='F'}).length+'</span><span>🛏️ مسكَّن '+housed+'</span><span class="w">⏳ متبقي '+(ppl.length-housed)+'</span><span>🚪 '+d.rooms.length+' غرفة</span>';
@@ -2609,9 +2649,12 @@ function hdAwaitHTML(ppl,lm){
     var mem=l.ids.map(hdById).filter(function(p){return p&&hdAwaitOK(p)});
     if(!mem.length)return;mem.forEach(function(p){done[p.id]=1});
     var hs=l.ids.map(hdById).filter(function(p){return p&&p.rno});
-    h+='<div class="hd-lg" style="--lc:'+hdCol(l)+'"><div class="hd-lg-h" draggable="true" data-link="'+l.n+'"><b>'+(l.bk.length?'📒 حجز '+esc(l.bk.join('، ')):'🔗 ر'+l.n)+'</b><span>'+l.ids.length+' أفراد'+(hs.length?' · '+hs.length+' مسكَّن':'')+'</span><i></i><button data-selgrp="'+l.n+'">تحديد</button>'+(l.man?'<button data-dissolve="'+l.n+'">فك</button>':'')+'</div>'+mem.map(function(p){return hdPerson(p,lm,false)}).join('')+'</div>';
+    h+='<div class="hd-lg" style="--lc:'+hdCol(l)+'"><div class="hd-lg-h" draggable="true" data-link="'+l.n+'"><b>🔗 غرفة واحدة · ر'+l.n+'</b><span>'+l.ids.length+' أفراد'+(hs.length?' · '+hs.length+' مسكَّن':'')+'</span><i></i><button data-selgrp="'+l.n+'">تحديد</button>'+(l.man?'<button data-dissolve="'+l.n+'">فك</button>':'')+'</div>'+mem.map(function(p){return hdPerson(p,lm,false)}).join('')+'</div>';
   });
-  show.forEach(function(p){if(!done[p.id])h+=hdPerson(p,lm,false)});
+  var rest=show.filter(function(p){return!done[p.id]});
+  if(HD.byBk!==false)rest.sort(function(x,y){var a=x.bk||'\uffff',b=y.bk||'\uffff';return a<b?-1:a>b?1:0});
+  var lastBk=null;
+  rest.forEach(function(p){if(HD.byBk!==false&&p.bk&&p.bk!==lastBk){var cnt=rest.filter(function(z){return z.bk===p.bk}).length;if(cnt>1)h+='<div class="hd-bkh" style="--bc:'+hdBkCol(p.bk)+'">📒 حجز '+esc(p.bk)+' <span>'+cnt+' أفراد · نفس الملف</span></div>'}lastBk=p.bk;h+=hdPerson(p,lm,false)});
   $('hd-await-list').innerHTML=h;
 }
 function hdRoomsHTML(d,lm){
@@ -2804,7 +2847,7 @@ $('hd-link').onclick=hdLinkSel;
 $('hd-unlink').onclick=function(){var ids=Object.keys(HD.sel).map(Number);if(!ids.length){hdSay('حدد الأفراد اللي عاوز تفك ربطهم','err');return}hdUnlink(ids);HD.sel={};hdRender()};
 $('hd-selall').onclick=function(){hdPeople().filter(hdAwaitOK).forEach(function(p){HD.sel[p.id]=true});hdRender()};
 $('hd-selnone').onclick=function(){HD.sel={};hdRender()};
-$('hd-bybk').onclick=function(){var bk={};hdPeople().forEach(function(p){if(p.bk)(bk[p.bk]=bk[p.bk]||[]).push(p)});var ks=Object.keys(bk).filter(function(k){return bk[k].length>1});var n=ks.reduce(function(x,k){return x+bk[k].length},0);hdSay(ks.length?'📒 '+ks.length+' حجز مترابط تلقائي ('+n+' فرد) — الربط بييجي من رقم الحجز في الجدول الرئيسي':'مفيش حجوزات فيها أكتر من فرد — اكتب نفس رقم الحجز للأفراد في الجدول الرئيسي','ok')};
+$('hd-bybk').onclick=function(){HD.byBk=HD.byBk===false;this.classList.toggle('pri',HD.byBk!==false);hdRender()};
 $('hd-undo').onclick=function(){if(!HD.undo.length)return;hdRestore(HD.undo.pop());hdRender();hdSay('↩ تم التراجع','ok')};
 $('hd-autohouse').onclick=hdAuto;
 $('hd-clearall').onclick=function(){
