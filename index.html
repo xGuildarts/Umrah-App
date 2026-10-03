@@ -316,52 +316,81 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
 /* ticket print */
 #ticket-pages{display:none}
 
-/* ═══ HOUSING DIALOG ═══ */
+/* ═══ HOUSING DIALOG v2 ═══ */
 #housingdlg::backdrop{background:rgba(0,0,0,.55)}
-.hd-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;user-select:none;background:var(--card);border:1px solid var(--line);transition:background .15s,border-color .15s}
-.hd-pill:hover{border-color:var(--acc)}
-.hd-pill.active{background:var(--acc);color:#fff;border-color:var(--acc)}
-.hd-pill.warn{border-color:var(--warn)}
-.hd-pill.ok{border-color:var(--ok)}
-
-/* awaiting list item */
-.aw-item{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;cursor:grab;background:var(--card);border:1px solid var(--line);margin-bottom:5px;font-size:12px;transition:box-shadow .15s,opacity .15s;user-select:none}
-.aw-item:active{cursor:grabbing}
-.aw-item.dragging{opacity:.4}
-.aw-item.selected{background:rgba(11,122,117,.12);border-color:var(--acc)}
-.aw-item .aw-sex{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
-.aw-item .aw-sex.M{background:#dbeafe;color:#1e40af}
-.aw-item .aw-sex.F{background:#fce7f3;color:#9d174d}
-.aw-item .aw-name{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.aw-item .aw-tag{font-size:10px;color:var(--mut);background:var(--bg);padding:1px 5px;border-radius:4px}
-
-/* room card */
-.rm-card{background:var(--card);border:2px solid var(--line);border-radius:10px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
-.rm-card.drag-over{border-color:var(--acc);box-shadow:0 0 0 3px rgba(11,122,117,.2)}
-.rm-card.full{border-color:var(--ok)}
-.rm-card.overfull{border-color:var(--bad)}
-.rm-card.linked-hi{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.2)}
-.rm-hdr{display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--bg);border-bottom:1px solid var(--line)}
-.rm-num{font-weight:800;font-size:14px}
-.rm-cap{font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--line);color:var(--ink)}
-.rm-cap.full{background:#dcfce7;color:#166534}
-.rm-cap.over{background:#fee2e2;color:#991b1b}
-.rm-cap.part{background:#fef3c7;color:#92400e}
-.rm-cap.empty{background:var(--line);color:var(--mut)}
-.rm-body{padding:6px;min-height:48px}
-.rm-member{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;font-size:12px;margin-bottom:3px;background:var(--bg);cursor:grab;transition:background .12s}
-.rm-member:hover{background:var(--line)}
-.rm-member:active{cursor:grabbing}
-.rm-member.dragging{opacity:.35}
-.rm-member .rm-sex{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
-.rm-member .rm-sex.M{background:#dbeafe;color:#1e40af}
-.rm-member .rm-sex.F{background:#fce7f3;color:#9d174d}
-.rm-member .rm-linked{font-size:10px;color:#8b5cf6}
-.rm-drop-zone{min-height:36px;border:2px dashed var(--line);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--mut);margin:4px 0;transition:background .15s,border-color .15s}
-.rm-drop-zone.drag-over{background:rgba(11,122,117,.08);border-color:var(--acc);color:var(--acc)}
-.rm-footer{padding:4px 8px 7px;display:flex;gap:4px;align-items:center}
-.rm-link-badge{font-size:10px;padding:1px 6px;border-radius:8px;background:#ede9fe;color:#6d28d9;font-weight:600}
-.hd-sex-tab.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+#housingdlg button{min-height:0;box-shadow:none;transform:none;padding:4px 9px;border-radius:7px;font-weight:700;font-size:12px;cursor:pointer;background:var(--card);color:var(--ink);border:1px solid var(--line)}
+#housingdlg button:hover:not(:disabled){transform:none;box-shadow:none;background:rgba(11,122,117,.12);border-color:var(--acc);color:var(--ink)}
+#housingdlg button:disabled{opacity:.4;cursor:not-allowed}
+#housingdlg button.pri{background:var(--acc);color:#fff;border-color:var(--acc)}
+#housingdlg button.pri:hover:not(:disabled){background:var(--acc);filter:brightness(.92);color:#fff}
+#housingdlg button.dng{color:var(--bad)}
+#housingdlg select,#housingdlg input{min-height:0;padding:4px 8px;font-size:12px;border-radius:7px;min-width:0;background-color:var(--card);color:var(--ink);border:1px solid var(--line)}
+#housingdlg select{padding-inline-end:24px!important}
+.hd-shell{display:flex;flex-direction:column;height:94vh;font-size:13px;color:var(--ink)}
+.hd-top{background:#12284a;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0}
+.hd-top strong{font-size:16px}
+.hd-stats{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.hd-stats span{background:rgba(255,255,255,.14);padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700}
+.hd-stats span.w{background:#fbbf24;color:#3b2a00}
+#housingdlg .hd-top button{background:rgba(255,255,255,.16);color:#fff;border-color:transparent}
+.hd-types{display:flex;gap:8px;padding:9px 12px;overflow-x:auto;background:var(--bg);border-bottom:1px solid var(--line);flex-shrink:0}
+#housingdlg button.hd-tc{flex:0 0 auto;min-width:122px;text-align:right;padding:7px 11px;background:var(--card);color:var(--ink);border:1.5px solid var(--line);border-radius:11px;display:flex;flex-direction:column;gap:1px;font-weight:600}
+#housingdlg button.hd-tc.on{border-color:var(--acc);background:rgba(11,122,117,.13)}
+#housingdlg button.hd-tc.nt{border-style:dashed}
+.hd-tc .t{font-weight:800;font-size:13px}
+.hd-tc .n{font-size:24px;font-weight:800;line-height:1.1;color:var(--acc)}
+.hd-tc .n small{font-size:11px;font-weight:600;color:var(--mut)}
+.hd-tc .s{font-size:11px;color:var(--mut)}
+.hd-tc .s.w{color:var(--warn);font-weight:700}
+.hd-tc .s.g{color:var(--ok);font-weight:700}
+.hd-tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:8px 12px;background:var(--card);border-bottom:1px solid var(--line);flex-shrink:0}
+.hd-tools .sep{width:1px;align-self:stretch;background:var(--line);margin:0 3px}
+.hd-tools label{font-size:12px;color:var(--mut);display:flex;align-items:center;gap:4px}
+.hd-hint{font-size:11.5px;color:var(--mut);padding:5px 12px;background:var(--bg);border-bottom:1px solid var(--line);flex-shrink:0}
+.hd-body{display:flex;flex:1;overflow:hidden;min-height:0}
+#hd-await{width:290px;min-width:250px;border-inline-start:1px solid var(--line);display:flex;flex-direction:column;flex-shrink:0;transition:background .15s}
+#hd-await.over{background:rgba(180,83,9,.08)}
+.hd-aw-h{padding:8px 10px;border-bottom:1px solid var(--line);background:var(--bg)}
+#hd-await-list{overflow-y:auto;flex:1;padding:6px}
+#hd-rooms-wrap{flex:1;overflow-y:auto;padding:12px;min-width:0}
+#hd-rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;align-items:start}
+.hd-p{display:flex;align-items:flex-start;gap:6px;padding:6px 8px;border-radius:8px;background:var(--card);border:1px solid var(--line);margin-bottom:5px;cursor:grab;user-select:none;font-size:12.5px}
+.hd-p:hover{border-color:var(--acc)}
+.hd-p.sel{background:rgba(250,204,21,.28);border-color:#eab308}
+.hd-p.lk{border-inline-start:4px solid var(--lc)}
+.hd-p.dragging{opacity:.35}
+.hd-nm{flex:1;min-width:0;font-weight:700;line-height:1.35;white-space:normal;word-break:break-word}
+.hd-nm small{display:block;font-weight:500;font-size:10.5px;color:var(--mut);direction:ltr;text-align:right}
+.hd-nm em{font-style:normal;font-size:10px;color:var(--warn)}
+.hd-sx{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-top:1px}
+.hd-sx.M{background:#dbeafe;color:#1e40af}.hd-sx.F{background:#fce7f3;color:#9d174d}.hd-sx.U{background:var(--line);color:var(--mut)}
+#housingdlg button.hd-lkb{padding:1px 6px;font-size:10.5px;border-radius:9px;background:var(--lc);color:#fff;border-color:var(--lc);flex-shrink:0}
+#housingdlg button.hd-lkb:hover:not(:disabled){background:var(--lc);color:#fff;filter:brightness(.88);border-color:var(--lc)}
+#housingdlg button.hd-x{padding:0 5px;font-size:13px;line-height:1.4;border-color:transparent;background:transparent;color:var(--mut)}
+.hd-lg{border:2px solid var(--lc);border-radius:10px;padding:5px;margin-bottom:8px;background:color-mix(in srgb,var(--lc) 7%,var(--card))}
+.hd-lg-h{display:flex;align-items:center;gap:6px;padding:2px 4px 6px;cursor:grab;font-size:12px}
+.hd-lg-h b{color:var(--lc)}.hd-lg-h span{color:var(--mut);font-size:11px}.hd-lg-h i{flex:1}
+.hd-lg .hd-p{margin-bottom:4px}
+.hd-room{background:var(--card);border:2px solid var(--line);border-radius:12px;overflow:hidden;transition:border-color .15s,box-shadow .15s}
+.hd-room.full{border-color:var(--ok)}.hd-room.over{border-color:var(--bad)}.hd-room.part{border-color:#eab308}
+.hd-room.dover{border-color:var(--acc);box-shadow:0 0 0 4px rgba(11,122,117,.22)}
+.hd-rh{display:flex;align-items:center;gap:6px;padding:7px 9px;background:var(--bg);border-bottom:1px solid var(--line);flex-wrap:wrap}
+#housingdlg button.hd-rn{font-size:15px;font-weight:800;padding:1px 6px;background:transparent;border-color:transparent;color:var(--ink)}
+.hd-cap{font-size:11.5px;font-weight:800;padding:2px 8px;border-radius:10px;background:var(--line);color:var(--ink)}
+.hd-cap.full{background:#dcfce7;color:#166534}.hd-cap.over{background:#fee2e2;color:#991b1b}.hd-cap.part{background:#fef3c7;color:#92400e}
+.hd-warns{padding:3px 9px 0;display:flex;gap:5px;flex-wrap:wrap}
+.hd-bd{font-size:10.5px;padding:1px 7px;border-radius:9px;font-weight:700;background:#ede9fe;color:#6d28d9}
+.hd-bd.bad{background:#fee2e2;color:#991b1b}
+.hd-rb{padding:7px}
+.hd-slot{border:2px dashed var(--line);border-radius:8px;padding:8px;text-align:center;color:var(--mut);font-size:11.5px;margin-bottom:5px}
+.hd-rf{padding:0 7px 7px}
+.hd-new{border:2px dashed var(--line);border-radius:12px;min-height:90px;display:flex;align-items:center;justify-content:center;color:var(--mut);cursor:pointer;font-weight:700}
+.hd-foot{border-top:1px solid var(--line);padding:8px 14px;display:flex;gap:10px;align-items:center;flex-shrink:0;background:var(--bg)}
+#hd-open-summary{flex:1;font-size:12px;color:var(--mut)}
+#hd-msg{font-size:12.5px;font-weight:700}#hd-msg.ok{color:var(--ok)}#hd-msg.err{color:var(--bad)}
+.hd-empty{text-align:center;color:var(--mut);padding:22px 8px;font-size:13px}
+.hd-sex-tab.on{background:var(--acc)!important;color:#fff!important;border-color:var(--acc)!important}
+@media(max-width:760px){.hd-body{flex-direction:column}#hd-await{width:auto;max-height:42%;border-inline-start:0;border-bottom:1px solid var(--line)}}
 
 @media print{
   body{background:#fff;color:#000}
@@ -411,6 +440,11 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
   #pa tfoot td{background:#e3eaf2;font-weight:800;border-top:2px solid #12284a;text-align:center}
   #pa .tag-ok{color:#166534;font-weight:700}#pa .tag-warn{color:#92400e;font-weight:700}#pa .tag-bad{color:#991b1b;font-weight:700}
   #pa .foot{margin-top:8px;font-size:9.5px;color:#6b7a90;display:flex;justify-content:space-between}
+  #pa tbody.rg{break-inside:avoid;page-break-inside:avoid}
+  #pa table.rooming tbody tr:nth-child(even){background:transparent}
+  #pa table.rooming tr.rf td{border-top:2.5px solid #12284a}
+  #pa td.rno b{font-size:1.6em;color:#12284a}
+  #pa table.rooming td small{font-weight:500;color:#4b5b72}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
@@ -679,42 +713,54 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
 
 
 <!-- HOUSING DIALOG -->
-<dialog id="housingdlg" style="width:min(1100px,97vw);max-height:94vh;padding:0;border:none;border-radius:14px;overflow:hidden;background:var(--card)">
-<div style="display:flex;flex-direction:column;height:94vh">
-  <div style="background:var(--ink);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0">
+<dialog id="housingdlg" style="width:min(1250px,98vw);max-height:96vh;padding:0;border:none;border-radius:14px;overflow:hidden;background:var(--card)">
+<div class="hd-shell">
+  <div class="hd-top">
     <span style="font-size:18px">🛏️</span>
-    <strong style="font-size:16px" id="hd-ttl">نظام التسكين</strong>
-    <div style="flex:1"></div>
-    <div id="hd-stats" style="display:flex;gap:10px;font-size:12px;opacity:.9"></div>
-    <button id="hd-close" style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:5px 12px;border-radius:7px;cursor:pointer;font-size:13px">✕ إغلاق</button>
+    <strong id="hd-ttl">نظام التسكين</strong>
+    <div class="hd-stats" id="hd-stats"></div>
+    <button id="hd-close">✕ إغلاق</button>
   </div>
-  <div style="background:var(--bg);padding:8px 12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line);flex-shrink:0">
-    <div id="hd-type-tabs" style="display:flex;gap:4px"></div>
-    <div style="flex:1"></div>
-    <button id="hd-addroom" class="sec" style="font-size:12px;padding:5px 10px">+ إضافة غرفة</button>
-    <button id="hd-autohouse" style="font-size:12px;padding:5px 10px">⚡ تسكين تلقائي</button>
-    <button id="hd-clearall" class="sec" style="font-size:12px;padding:5px 10px;color:var(--bad)">🗑️ مسح الكل</button>
+  <div class="hd-types" id="hd-types"></div>
+  <div class="hd-tools">
+    <label>نوع <select id="hd-nt"></select></label>
+    <label>عدد <input id="hd-nq" type="number" min="1" max="200" value="1" style="width:56px"></label>
+    <label>يبدأ من <input id="hd-ns" type="text" placeholder="تلقائي" style="width:70px"></label>
+    <button id="hd-addroom" class="pri">+ إضافة غرف</button>
+    <span class="sep"></span>
+    <button id="hd-link" title="اربط المحددين ببعض">🔗 ربط المحدد (<span id="hd-sel-n">0</span>)</button>
+    <button id="hd-unlink">⛓️ فك ربط المحدد</button>
+    <button id="hd-bybk" title="اعمل ربط لكل اللي ليهم نفس رقم الحجز">📒 ربط حسب الحجز</button>
+    <button id="hd-selall">☑ تحديد كل الظاهر</button>
+    <button id="hd-selnone">☐ إلغاء التحديد</button>
+    <span class="sep"></span>
+    <button id="hd-autohouse" class="pri">⚡ تسكين تلقائي</button>
+    <button id="hd-undo">↩ تراجع</button>
+    <button id="hd-clearall" class="dng">🗑️ مسح التسكين</button>
+    <span style="flex:1"></span>
+    <label>الغرف <select id="hd-rf"><option value="all">الكل</option><option value="open">ناقصة</option><option value="full">كاملة</option><option value="empty">فاضية</option><option value="issue">فيها مشكلة</option></select></label>
+    <button id="hd-print">🖨️ طباعة كشف التسكين</button>
   </div>
-  <div style="display:flex;flex:1;overflow:hidden;gap:0">
-    <div style="width:230px;min-width:200px;border-left:1px solid var(--line);display:flex;flex-direction:column;flex-shrink:0">
-      <div style="padding:8px 10px;border-bottom:1px solid var(--line);background:var(--bg)">
-        <div style="font-weight:700;font-size:13px;margin-bottom:6px">⏳ لم يُسكَّن <span id="hd-await-cnt" style="background:var(--bad);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px">0</span></div>
+  <div class="hd-hint">اضغط على الاسم لتحديده، وحدد أكتر من واحد واضغط <b>🔗 ربط</b> (أي حد مع أي حد). اسحب أي فرد وهيجيب معاه المرتبطين بيه أوتوماتيك — <b>Shift + سحب</b> يسحبه لوحده. الضغط على رقم الغرفة بيعدّله.</div>
+  <div class="hd-body">
+    <div id="hd-await">
+      <div class="hd-aw-h">
+        <div style="font-weight:800;font-size:13px;margin-bottom:6px">⏳ لم يُسكَّن <span id="hd-await-cnt" style="background:var(--bad);color:#fff;border-radius:10px;padding:1px 8px;font-size:11px">0</span></div>
         <div style="display:flex;gap:4px;margin-bottom:6px">
-          <button class="hd-sex-tab sec" data-sex="all" style="flex:1;font-size:12px;padding:3px 0">الكل</button>
-          <button class="hd-sex-tab sec" data-sex="M" style="flex:1;font-size:12px;padding:3px 0">رجال</button>
-          <button class="hd-sex-tab sec" data-sex="F" style="flex:1;font-size:12px;padding:3px 0">سيدات</button>
+          <button class="hd-sex-tab on" data-sex="all" style="flex:1">الكل</button>
+          <button class="hd-sex-tab" data-sex="M" style="flex:1">رجال</button>
+          <button class="hd-sex-tab" data-sex="F" style="flex:1">سيدات</button>
         </div>
-        <input id="hd-search" placeholder="🔎 بحث" style="width:100%;font-size:12px;padding:5px 8px;box-sizing:border-box">
+        <input id="hd-search" placeholder="🔎 بحث بالاسم أو الجواز" style="width:100%;box-sizing:border-box">
       </div>
-      <div id="hd-await-list" style="overflow-y:auto;flex:1;padding:6px"></div>
+      <div id="hd-await-list"></div>
     </div>
-    <div style="flex:1;overflow-y:auto;padding:12px" id="hd-rooms-wrap">
-      <div id="hd-rooms" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px"></div>
-    </div>
+    <div id="hd-rooms-wrap"><div id="hd-rooms"></div></div>
   </div>
-  <div style="border-top:1px solid var(--line);padding:8px 14px;display:flex;gap:8px;align-items:center;flex-shrink:0;background:var(--bg)">
-    <div id="hd-open-summary" style="font-size:12px;color:var(--mut);flex:1"></div>
-    <button id="hd-save" style="padding:7px 20px">💾 حفظ التسكين</button>
+  <div class="hd-foot">
+    <div id="hd-open-summary"></div>
+    <span id="hd-msg"></span>
+    <button id="hd-save" class="pri" style="padding:8px 22px;font-size:13px">💾 حفظ التسكين</button>
   </div>
 </div>
 </dialog>
@@ -888,7 +934,7 @@ async function sbLoad(){
   if(!gs||!ps||pend>0)return;
   if(gs.length){
     var _og={};S.groups.forEach(function(x){_og[x.id]=x});
-    S.groups=gs.map(function(g){return{id:g.id,name:g.name,trip:g.trip||'',date:g.date||'',pr:g.prices||{},minPct:g.min_pct==null?50:+g.min_pct,tk:(g.tk&&Object.keys(g.tk).length?g.tk:(_og[g.id]||{}).tk)||{}}});
+    S.groups=gs.map(function(g){return{id:g.id,name:g.name,trip:g.trip||'',date:g.date||'',pr:g.prices||{},minPct:g.min_pct==null?50:+g.min_pct,tk:(g.tk&&Object.keys(g.tk).length?g.tk:(_og[g.id]||{}).tk)||{},hd:(g.tk&&g.tk.__hd)||(_og[g.id]||{}).hd}});
     var _old={};S.people.forEach(function(x){_old[x.id]=x});
     S.people=ps.filter(function(p){return DELQ.indexOf(p.id)<0}).map(function(p){return{
       id:p.id,ua:p.updated_at||'',g:p.group_id,sur:p.surname,giv:p.given,pno:p.pno||'',
@@ -912,7 +958,7 @@ async function sbSaveGroup0(g){
   if(!sbReady)return null;
   var body={id:g.id,name:g.name,trip:g.trip||'',date:g.date||null,prices:g.pr||{},min_pct:g.minPct==null?50:g.minPct};
   var opt=function(){return{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)}};
-  if(sbTk)body.tk=g.tk||{};
+  if(sbTk)body.tk=Object.assign({},g.tk||{},g.hd?{__hd:g.hd}:{});
   var r=await sbFetch('fm_groups?on_conflict=id',opt());
   if(r===null&&sbTk){
     delete body.tk;
@@ -2165,384 +2211,393 @@ dshow();snapDaily();
 
 
 /* ═══════════════════════════════════════════════════════════
-   HOUSING SYSTEM
-   - drag & drop pilgrims → rooms
-   - link groups (family / linked travel)
-   - open/closed/full room tracking
-   - auto-house by sex + room type
+   HOUSING SYSTEM v2
+   - الغرف كيانات مستقلة (نوع + رقم + سعة) حتى لو فاضية
+   - ترابط حر بين أي أفراد (g.hd.links) — السحب بيجيب المرتبطين
+   - تسكين تلقائي بيحترم الترابط والجنس والسعة
+   - تراجع حقيقي + إغلاق بدون حفظ بيرجّع الأصل
+   - طباعة كشف تسكين احترافي بالأسماء الكاملة
 ═══════════════════════════════════════════════════════════ */
-var HD={
-  sexFilter:'all', typeFilter:'all',
-  search:'', dragging:null, dragSrc:null,
-  // local working copy while dialog is open
-  snap:null
-};
+var HD={sex:'all',type:'all',rf:'all',q:'',drag:null,sel:{},undo:[],orig:null};
+var HD_COL=['#8b5cf6','#f59e0b','#0ea5e9','#ec4899','#10b981','#ef4444','#6366f1','#14b8a6','#a16207','#64748b'];
+var HD_EN={single:'Single',double:'Double',triple:'Triple',quad:'Quad',quint:'Quint'};
 
-/* ── open ── */
-$('open-housing').onclick = function(){
-  HD.snap = S.people.map(function(p){ return Object.assign({},p) }); // snapshot
-  hdRender();
-  $('housingdlg').showModal();
+/* ── data helpers ── */
+function hdNm(p){return(((p.sur||'')+' '+(p.giv||'')).trim())||'—'}
+function hdById(id){return S.people.find(function(x){return x.id===id})}
+function hdPeople(){return list()}
+function hdMem(no){return hdPeople().filter(function(p){return String(p.rno||'')===no})}
+function hdN(mem){var g=grp();return mem.filter(function(p){return!isInf(p,g)}).length}
+function hdD(){var g=grp();if(!g.hd||typeof g.hd!=='object')g.hd={};if(!Array.isArray(g.hd.rooms))g.hd.rooms=[];if(!Array.isArray(g.hd.links))g.hd.links=[];g.hd.lc=+g.hd.lc||0;return g.hd}
+function hdClean(){
+  var d=hdD(),ids={};hdPeople().forEach(function(p){ids[p.id]=1});
+  var seen={};
+  d.links.forEach(function(l){l.ids=(l.ids||[]).filter(function(i){if(!ids[i]||seen[i])return false;seen[i]=1;return true})});
+  d.links=d.links.filter(function(l){return l.ids.length>1});
+  d.links.forEach(function(l){if(l.n>d.lc)d.lc=l.n});
+  var have={};d.rooms.forEach(function(r){have[r.no]=r});
+  hdPeople().forEach(function(p){
+    if(!p.rno)return;var no=String(p.rno);
+    if(!have[no]){var r={no:no,type:p.room||''};d.rooms.push(r);have[no]=r}
+    else if(!have[no].type&&p.room)have[no].type=p.room;
+  });
+  d.rooms.sort(function(a,b){var x=parseInt(a.no),y=parseInt(b.no);x=isNaN(x)?1e9:x;y=isNaN(y)?1e9:y;return x-y||(a.no>b.no?1:a.no<b.no?-1:0)});
+  Object.keys(HD.sel).forEach(function(k){if(!ids[k])delete HD.sel[k]});
+  return d;
+}
+function hdLinkMap(){var m={};hdD().links.forEach(function(l){l.ids.forEach(function(id){m[id]=l})});return m}
+function hdLinkByN(n){return hdD().links.find(function(l){return l.n===+n})}
+function hdCol(l){return HD_COL[(l.n-1)%HD_COL.length]}
+function hdUnit(p,lm){var l=(lm||hdLinkMap())[p.id];return l?l.ids.map(hdById).filter(Boolean):[p]}
+function hdExpand(ids){var lm=hdLinkMap(),out={},res=[];ids.forEach(function(id){var p=hdById(id);if(!p)return;hdUnit(p,lm).forEach(function(x){if(!out[x.id]){out[x.id]=1;res.push(x.id)}})});return res}
+function hdNextNo(){var mx=0;hdD().rooms.forEach(function(r){var n=parseInt(r.no);if(n>mx)mx=n});return mx+1}
+function hdFamOK(mem){var lm=hdLinkMap();return mem.length>1&&mem.every(function(p){var l=lm[p.id];return l&&l.ids.some(function(i){return i!==p.id&&mem.some(function(x){return x.id===i})})})}
+function hdSyncFam(no){
+  var mem=hdMem(no);if(!mem.length)return;
+  var sx={};mem.forEach(function(p){if(p.sex)sx[p.sex]=1});
+  if(sx.M&&sx.F){var f=hdFamOK(mem);mem.forEach(function(p){p.fam=f})}
+}
+function hdRoomInfo(r){
+  var mem=hdMem(r.no),n=hdN(mem),cap=CAP[r.type]||0,sx={};
+  mem.forEach(function(p){if(p.sex)sx[p.sex]=1});
+  var mixed=!!(sx.M&&sx.F),fam=mixed&&mem.every(function(p){return p.fam})&&hdFamOK(mem);
+  var cls=!cap?'':n>cap?'over':n===cap?'full':n===0?'':'part';
+  return{mem:mem,n:n,cap:cap,cls:cls,mixed:mixed,fam:fam,badMix:mixed&&!fam&&!mem.some(function(p){return p.fam})};
+}
+
+/* ── undo / snapshot ── */
+function hdSnap(){return{p:hdPeople().map(function(p){return[p.id,p.rno||'',p.room||'',!!p.fam]}),d:JSON.stringify(hdD())}}
+function hdRestore(s){var by={};s.p.forEach(function(a){by[a[0]]=a});hdPeople().forEach(function(p){var a=by[p.id];if(a){p.rno=a[1];p.room=a[2];p.fam=a[3]}});grp().hd=JSON.parse(s.d)}
+function hdPush(){HD.undo.push(hdSnap());if(HD.undo.length>50)HD.undo.shift()}
+function hdSay(t,c){var e=$('hd-msg');e.textContent=t;e.className=c||'';clearTimeout(hdSay._t);hdSay._t=setTimeout(function(){e.textContent=''},6000)}
+
+/* ── open / close ── */
+$('open-housing').onclick=function(){
+  HD.sex='all';HD.type='all';HD.rf='all';HD.q='';HD.sel={};HD.undo=[];
+  $('hd-search').value='';$('hd-rf').value='all';
+  document.querySelectorAll('.hd-sex-tab').forEach(function(x){x.classList.toggle('on',x.dataset.sex==='all')});
+  $('hd-nt').innerHTML=ROOMS.map(function(r){return'<option value="'+r[0]+'">'+r[1]+'</option>'}).join('');
+  $('hd-nt').value='quad';
+  hdClean();HD.orig=hdSnap();hdRender();$('housingdlg').showModal();
 };
-$('hd-close').onclick = function(){
-  if(confirm('إغلاق بدون حفظ؟')){ $('housingdlg').close(); }
+function hdChanged(){var n=hdSnap();return JSON.stringify(n.p)!==JSON.stringify(HD.orig.p)||n.d!==HD.orig.d}
+$('hd-close').onclick=function(){
+  if(hdChanged()){if(!confirm('فيه تعديلات ماتحفظتش — تقفل وتتجاهلها؟'))return;hdRestore(HD.orig);render()}
+  $('housingdlg').close();
 };
 $('housingdlg').addEventListener('keydown',function(e){
-  if(e.key==='Escape'){ e.preventDefault(); $('hd-close').click(); }
+  if(e.key==='Escape'){e.preventDefault();$('hd-close').click()}
+  else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!/INPUT|SELECT/.test(e.target.tagName)){e.preventDefault();$('hd-undo').click()}
 });
 
-/* ── helpers ── */
-function hdList(){ return list(); } // people in active group
-function hdRoomMap(){
-  var m={};
-  hdList().forEach(function(p){ if(p.rno)(m[p.rno]=m[p.rno]||[]).push(p); });
-  return m;
+/* ── render ── */
+function hdSexIcon(s){return'<span class="hd-sx '+(s==='M'||s==='F'?s:'U')+'">'+(s==='M'?'♂':s==='F'?'♀':'?')+'</span>'}
+function hdPerson(p,lm,inRoom){
+  var l=lm[p.id],oth=l?l.ids.filter(function(i){return i!==p.id}).map(hdById).filter(Boolean).map(hdNm).join('، '):'';
+  return'<div class="hd-p'+(HD.sel[p.id]?' sel':'')+(l?' lk':'')+'" draggable="true" data-pid="'+p.id+'"'+(inRoom?' data-from="'+esc(String(p.rno))+'"':'')+(l?' style="--lc:'+hdCol(l)+'"':'')+'>'
+    +hdSexIcon(p.sex)
+    +'<span class="hd-nm">'+esc(hdNm(p))+(isInf(p,grp())?' <em>(رضيع)</em>':'')+'<small>'+esc(p.pno||'')+(!inRoom&&p.room?' · '+roomLbl(p.room):'')+'</small></span>'
+    +(l?'<button class="hd-lkb" data-unlink="'+p.id+'" title="مرتبط مع: '+esc(oth)+' — اضغط لفك ربطه">🔗'+l.n+'</button>':'')
+    +(inRoom?'<button class="hd-x" data-kick="'+p.id+'" title="إخراج من الغرفة">✕</button>':'')
+  +'</div>';
 }
-function hdAwait(){
-  var l=hdList().filter(function(p){
-    if(p.rno) return false;
-    if(HD.sexFilter!=='all'&&p.sex!==HD.sexFilter) return false;
-    if(HD.search){
-      var q=HD.search.toLowerCase();
-      var n=(p.sur+' '+p.giv).toLowerCase();
-      if(!n.includes(q)&&!(p.pno||'').toLowerCase().includes(q)) return false;
-    }
-    return true;
+function hdRender(){
+  var _a=$('hd-await-list'),_r=$('hd-rooms-wrap'),_sa=_a.scrollTop,_sr=_r.scrollTop;
+  var g=grp(),d=hdClean(),lm=hdLinkMap(),ppl=hdPeople();
+  $('hd-ttl').textContent='نظام التسكين — '+g.name;
+  var housed=ppl.filter(function(p){return p.rno}).length;
+  $('hd-stats').innerHTML='<span>👥 '+ppl.length+' فرد</span><span>♂ '+ppl.filter(function(p){return p.sex==='M'}).length+'</span><span>♀ '+ppl.filter(function(p){return p.sex==='F'}).length+'</span><span>🛏️ مسكَّن '+housed+'</span><span class="w">⏳ متبقي '+(ppl.length-housed)+'</span><span>🚪 '+d.rooms.length+' غرفة</span>';
+  hdTypeCards(ppl,d);hdAwaitHTML(ppl,lm);hdRoomsHTML(d,lm);
+  $('hd-sel-n').textContent=Object.keys(HD.sel).length;
+  $('hd-undo').disabled=!HD.undo.length;
+  $('hd-open-summary').textContent=hdSummary(d);
+  _a.scrollTop=_sa;_r.scrollTop=_sr;
+}
+function hdTypeCards(ppl,d){
+  var g=grp(),un=ppl.filter(function(p){return!p.rno}).length;
+  var h='<button class="hd-tc'+(HD.type==='all'?' on':'')+'" data-tp="all"><span class="t">الكل</span><span class="n">'+ppl.length+' <small>فرد</small></span><span class="s">'+d.rooms.length+' غرفة</span><span class="s '+(un?'w':'g')+'">'+(un?'⏳ '+un+' لم يُسكَّنوا':'✓ الكل مسكَّن')+'</span></button>';
+  ROOMS.concat([['','بدون نوع']]).forEach(function(rt){
+    var t=rt[0],cap=CAP[t]||0,dem=ppl.filter(function(p){return(p.room||'')===t});
+    if(t===''&&!dem.length)return;
+    var rs=d.rooms.filter(function(r){return(r.type||'')===t}),inc=rs.filter(function(r){return cap&&hdN(hdMem(r.no))<cap}).length;
+    var u=dem.filter(function(p){return!p.rno}),un2=u.filter(function(p){return!isInf(p,g)}).length,need=cap?Math.ceil(un2/cap):0;
+    h+='<button class="hd-tc'+(HD.type===t?' on':'')+(t===''?' nt':'')+'" data-tp="'+t+'"><span class="t">'+rt[1]+'</span><span class="n">'+dem.length+' <small>فرد</small></span>'
+      +'<span class="s">'+rs.length+' غرفة'+(inc?' ('+inc+' ناقصة)':'')+'</span>'
+      +(u.length?'<span class="s w">⏳ '+u.length+' لم يُسكَّنوا'+(need?' ← '+need+' غرفة':'')+'</span>':(dem.length?'<span class="s g">✓ مسكَّنين</span>':'<span class="s">—</span>'))
+    +'</button>';
   });
-  return l;
+  $('hd-types').innerHTML=h;
 }
-function hdCapOf(rno){
-  var mem=(hdRoomMap()[rno]||[]);
-  var ty=mem.length?mem[0].room:'';
-  return CAP[ty]||0;
+function hdAwaitOK(p){
+  if(p.rno)return false;
+  if(HD.sex!=='all'&&p.sex!==HD.sex)return false;
+  if(HD.type!=='all'&&(p.room||'')!==HD.type)return false;
+  if(HD.q){var q=HD.q.toLowerCase();if(hdNm(p).toLowerCase().indexOf(q)<0&&(p.pno||'').toLowerCase().indexOf(q)<0)return false}
+  return true;
 }
-function hdCapLabel(rno){
-  var mem=hdRoomMap()[rno]||[];
-  var cap=hdCapOf(rno);
-  var real=mem.filter(function(p){return!isInf(p,grp())}).length;
-  return {n:real,cap:cap,cls:cap===0?'empty':real>cap?'over':real===cap?'full':'part'};
-}
-function hdAllRooms(){
-  var m=hdRoomMap(), rooms=[];
-  Object.keys(m).sort(function(a,b){ return parseInt(a)-parseInt(b); }).forEach(function(rno){
-    rooms.push(rno);
+function hdAwaitHTML(ppl,lm){
+  $('hd-await-cnt').textContent=ppl.filter(function(p){return!p.rno}).length;
+  var show=ppl.filter(hdAwaitOK);
+  if(!show.length){$('hd-await-list').innerHTML='<div class="hd-empty">'+(ppl.some(function(p){return!p.rno})?'مفيش نتايج بالفلتر ده':'✅ الكل مسكَّن')+'</div>';return}
+  var done={},h='';
+  hdD().links.forEach(function(l){
+    var mem=l.ids.map(hdById).filter(function(p){return p&&hdAwaitOK(p)});
+    if(!mem.length)return;mem.forEach(function(p){done[p.id]=1});
+    var hs=l.ids.map(hdById).filter(function(p){return p&&p.rno});
+    h+='<div class="hd-lg" style="--lc:'+hdCol(l)+'"><div class="hd-lg-h" draggable="true" data-link="'+l.n+'"><b>🔗 ر'+l.n+'</b><span>'+l.ids.length+' أفراد'+(hs.length?' · '+hs.length+' مسكَّن':'')+'</span><i></i><button data-selgrp="'+l.n+'">تحديد</button><button data-dissolve="'+l.n+'">فك</button></div>'+mem.map(function(p){return hdPerson(p,lm,false)}).join('')+'</div>';
   });
-  return rooms;
+  show.forEach(function(p){if(!done[p.id])h+=hdPerson(p,lm,false)});
+  $('hd-await-list').innerHTML=h;
 }
-function hdSexIcon(sex){
-  return '<span class="rm-sex '+(sex||'?')+'">'+(sex==='M'?'♂':sex==='F'?'♀':'?')+'</span>';
-}
-function hdLinkedWith(p){
-  // returns all people in same link group (same bk if bk set, or same fam+rno)
-  if(!p.bk&&!p.fam) return [];
-  return hdList().filter(function(x){
-    if(x.id===p.id) return false;
-    if(p.bk&&x.bk===p.bk) return true;
-    return false;
+function hdRoomsHTML(d,lm){
+  var h='';
+  d.rooms.forEach(function(r){
+    var t=r.type||'';
+    if(HD.type!=='all'&&t!==HD.type)return;
+    var I=hdRoomInfo(r);
+    if(HD.rf==='open'&&!(I.cap&&I.n<I.cap))return;
+    if(HD.rf==='full'&&I.cls!=='full')return;
+    if(HD.rf==='empty'&&I.mem.length)return;
+    if(HD.rf==='issue'&&!(I.cls==='over'||I.badMix))return;
+    var free=I.cap>I.n?I.cap-I.n:0,slots='';
+    for(var i=0;i<free;i++)slots+='<div class="hd-slot">سرير فاضي — اسحب هنا</div>';
+    if(!I.cap&&!I.mem.length)slots='<div class="hd-slot">اختار نوع الغرفة واسحب هنا</div>';
+    h+='<div class="hd-room '+I.cls+'" data-room="'+esc(r.no)+'">'
+      +'<div class="hd-rh"><button class="hd-rn" data-renroom="'+esc(r.no)+'" title="تعديل رقم الغرفة">🚪 '+esc(r.no)+'</button>'
+      +'<select data-rtype="'+esc(r.no)+'"><option value="">— نوع —</option>'+ROOMS.map(function(x){return'<option value="'+x[0]+'"'+(t===x[0]?' selected':'')+'>'+x[1]+'</option>'}).join('')+'</select>'
+      +'<span style="flex:1"></span><span class="hd-cap '+I.cls+'">'+I.n+'/'+(I.cap||'؟')+'</span>'
+      +'<button class="hd-x" data-rmroom="'+esc(r.no)+'" title="حذف الغرفة">🗑️</button></div>'
+      +((I.fam||I.badMix||I.cls==='over')?'<div class="hd-warns">'+(I.fam?'<span class="hd-bd">👪 عائلة / غرفة مغلقة</span>':'')+(I.badMix?'<span class="hd-bd bad">⚠️ رجال وسيدات مع بعض</span>':'')+(I.cls==='over'?'<span class="hd-bd bad">⚠️ زيادة '+(I.n-I.cap)+'</span>':'')+'</div>':'')
+      +'<div class="hd-rb">'+I.mem.map(function(p){return hdPerson(p,lm,true)}).join('')+slots+'</div>'
+      +(Object.keys(HD.sel).length?'<div class="hd-rf"><button data-addsel="'+esc(r.no)+'" style="width:100%">＋ إضافة المحدد ('+Object.keys(HD.sel).length+') هنا</button></div>':'')
+    +'</div>';
   });
+  h+='<div class="hd-new" id="hd-newcard" data-newroom="1">＋ غرفة جديدة</div>';
+  $('hd-rooms').innerHTML=h;
 }
-function hdOpenSummary(){
-  var m=hdRoomMap(), parts=[];
-  var mOpen={M:0,F:0,'?':0}, mNeed={M:0,F:0,'?':0};
-  Object.keys(m).forEach(function(rno){
-    var mem=m[rno], cl=hdCapLabel(rno);
-    if(cl.cls==='part'){
-      var sx=mem[0].sex||'?';
-      mOpen[sx]=(mOpen[sx]||0)+1;
-      mNeed[sx]=(mNeed[sx]||0)+(cl.cap-cl.n);
-    }
-  });
-  if(mNeed.M) parts.push('محتاج '+mNeed.M+' رجل لإغلاق '+mOpen.M+' غرفة');
-  if(mNeed.F) parts.push('محتاج '+mNeed.F+' سيدة لإغلاق '+mOpen.F+' غرفة');
-  var unhoused=hdList().filter(function(p){return!p.rno}).length;
-  if(unhoused) parts.push(unhoused+' فرد لم يُسكَّن بعد');
+function hdSummary(d){
+  var parts=[],need={M:0,F:0},rooms={M:0,F:0};
+  d.rooms.forEach(function(r){var I=hdRoomInfo(r);if(I.cap&&I.n>0&&I.n<I.cap&&!I.mixed){var s=I.mem[0].sex;if(s==='M'||s==='F'){need[s]+=I.cap-I.n;rooms[s]++}}});
+  if(need.M)parts.push('ناقص '+need.M+' رجل لإقفال '+rooms.M+' غرفة');
+  if(need.F)parts.push('ناقص '+need.F+' سيدة لإقفال '+rooms.F+' غرفة');
+  var emp=d.rooms.filter(function(r){return!hdMem(r.no).length}).length;if(emp)parts.push(emp+' غرفة فاضية');
+  var nt=hdPeople().filter(function(p){return!p.rno&&!p.room}).length;if(nt)parts.push(nt+' فرد بدون نوع تسكين');
   return parts.join('  ·  ');
 }
 
-/* ── render ── */
-function hdRender(){
-  var g=grp(), l=hdList(), m=hdRoomMap();
-
-  // title + stats
-  $('hd-ttl').textContent='🛏️ نظام التسكين — '+g.name;
-  var housed=l.filter(function(p){return!!p.rno}).length;
-  $('hd-stats').innerHTML=
-    '<span>👥 '+l.length+' فرد</span>'+
-    '<span>♂ '+l.filter(function(p){return p.sex==='M'}).length+'</span>'+
-    '<span>♀ '+l.filter(function(p){return p.sex==='F'}).length+'</span>'+
-    '<span>🛏️ '+housed+' مسكَّن</span>'+
-    '<span style="color:#fbbf24">⏳ '+(l.length-housed)+' متبقي</span>';
-
-  // type filter tabs
-  var types=['all'].concat(ROOMS.map(function(r){return r[0]}));
-  $('hd-type-tabs').innerHTML=types.map(function(t){
-    var lbl=t==='all'?'الكل':roomLbl(t);
-    var cnt=t==='all'?Object.keys(m).length:Object.keys(m).filter(function(rno){return(m[rno][0]||{}).room===t}).length;
-    return'<button class="hd-pill'+(HD.typeFilter===t?' active':'')+'" data-tp="'+t+'">'+lbl+' <small>'+cnt+'</small></button>';
-  }).join('');
-
-  // await count
-  var aw=hdList().filter(function(p){return!p.rno});
-  $('hd-await-cnt').textContent=aw.length;
-
-  // awaiting list
-  var awShow=hdAwait();
-  $('hd-await-list').innerHTML=awShow.length?awShow.map(function(p){
-    var linked=hdLinkedWith(p);
-    return'<div class="aw-item" draggable="true" data-pid="'+p.id+'" title="'+(linked.length?'مرتبط مع '+linked.length+' آخرين':'')+'">'
-      +hdSexIcon(p.sex)
-      +'<span class="aw-name">'+(p.sur||'?')+'</span>'
-      +(p.room?'<span class="aw-tag">'+roomLbl(p.room)+'</span>':'')
-      +(linked.length?'<span class="rm-linked" title="مجموعة مرتبطة">🔗'+linked.length+'</span>':'')
-      +'</div>';
-  }).join(''):'<div style="text-align:center;color:var(--mut);padding:20px;font-size:13px">✅ الكل مسكَّن</div>';
-
-  // rooms
-  var allRooms=hdAllRooms();
-  if(HD.typeFilter!=='all') allRooms=allRooms.filter(function(rno){return(m[rno][0]||{}).room===HD.typeFilter});
-
-  $('hd-rooms').innerHTML=allRooms.map(function(rno){
-    var mem=m[rno]||[];
-    var cl=hdCapLabel(rno);
-    var ty=mem.length?mem[0].room:'';
-    var hasFam=mem.some(function(x){return x.fam});
-    var mixedSex=new Set(mem.map(function(x){return x.sex})).size>1&&!hasFam;
-    return'<div class="rm-card'+(cl.cls==='full'?' full':cl.cls==='over'?' overfull':'')+'" data-rno="'+rno+'">'
-      +'<div class="rm-hdr">'
-        +'<span class="rm-num">غرفة '+rno+'</span>'
-        +(hasFam?'<span class="rm-link-badge">👪 عائلة</span>':'')
-        +(mixedSex?'<span style="font-size:11px;color:var(--bad)">⚠️ مختلط</span>':'')
-        +'<span style="flex:1"></span>'
-        +'<span class="rm-cap '+cl.cls+'">'+cl.n+'/'+cl.cap+'</span>'
-        +'<span style="font-size:11px;color:var(--mut);margin-right:4px">'+roomLbl(ty)+'</span>'
-        +'<button data-rmroom="'+rno+'" title="إزالة الغرفة" style="background:none;border:none;color:var(--mut);cursor:pointer;font-size:13px;padding:0 2px">🗑️</button>'
-      +'</div>'
-      +'<div class="rm-body" data-dropzone="'+rno+'">'
-        +mem.map(function(p){
-          var linked=hdLinkedWith(p);
-          return'<div class="rm-member" draggable="true" data-pid="'+p.id+'" data-fromrno="'+rno+'">'
-            +hdSexIcon(p.sex)
-            +'<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">'+esc(p.sur||'?')+'</span>'
-            +(linked.length?'<span class="rm-linked">🔗</span>':'')
-            +'<button data-kick="'+p.id+'" title="إخراج من الغرفة" style="background:none;border:none;color:var(--mut);cursor:pointer;font-size:12px;line-height:1">✕</button>'
-          +'</div>';
-        }).join('')
-        +'<div class="rm-drop-zone">اسحب هنا</div>'
-      +'</div>'
-      +(mem.some(function(x){return x.bk})?'<div class="rm-footer"><span class="rm-link-badge">'+esc(mem.find(function(x){return x.bk})||{bk:''}).bk+'</span></div>':'')
-    +'</div>';
-  }).join('')
-  + '<div class="rm-card" id="hd-new-room-card" style="border-style:dashed;display:flex;align-items:center;justify-content:center;min-height:80px;cursor:pointer;color:var(--mut)">'
-    +'<div style="text-align:center"><div style="font-size:24px">+</div><div style="font-size:13px">غرفة جديدة</div></div>'
-  +'</div>';
-
-  // open rooms summary
-  $('hd-open-summary').textContent = hdOpenSummary();
-
-  hdBindEvents();
+/* ── actions ── */
+function hdEject(ids){
+  var olds={};
+  ids.forEach(function(id){var p=hdById(id);if(!p||!p.rno)return;olds[String(p.rno)]=1;p.rno='';p.fam=false});
+  Object.keys(olds).forEach(hdSyncFam);
 }
-
-/* ── drag & drop ── */
-function hdBindEvents(){
-  // type tabs
-  document.querySelectorAll('[data-tp]').forEach(function(b){
-    b.onclick=function(){HD.typeFilter=this.dataset.tp;hdRender()};
-  });
-  // sex tabs
-  document.querySelectorAll('.hd-sex-tab').forEach(function(b){
-    b.onclick=function(){
-      HD.sexFilter=this.dataset.sex;
-      document.querySelectorAll('.hd-sex-tab').forEach(function(x){x.classList.remove('active')});
-      b.classList.add('active');
-      hdRender();
-    };
-  });
-  // search
-  $('hd-search').oninput=function(){HD.search=this.value;hdRender()};
-  // kick out of room
-  document.querySelectorAll('[data-kick]').forEach(function(b){
-    b.onclick=function(){
-      var p=S.people.find(function(x){return x.id===+b.dataset.kick});
-      if(!p)return;
-      // if linked group, ask
-      var linked=hdLinkedWith(p);
-      if(linked.length){
-        if(!confirm('الفرد ده مرتبط مع '+linked.length+' آخرين. تخرجهم كلهم؟'))return;
-        linked.forEach(function(x){x.rno='';x.fam=false});
+function hdPlace(ids,no){
+  var r=hdD().rooms.find(function(x){return x.no===no});if(!r)return false;
+  var g=grp(),ppl=ids.map(hdById).filter(Boolean);if(!ppl.length)return false;
+  var rest=hdMem(no).filter(function(p){return ids.indexOf(p.id)<0}),all=rest.concat(ppl);
+  var cap=CAP[r.type]||0,n=hdN(all);
+  if(cap&&n>cap&&!confirm('غرفة '+no+' ('+roomLbl(r.type)+') هتبقى '+n+'/'+cap+' — زيادة عن السعة. تكمل؟'))return false;
+  var sx={};all.forEach(function(p){if(p.sex)sx[p.sex]=1});
+  if(sx.M&&sx.F&&!hdFamOK(all)&&!confirm('غرفة '+no+' هيبقى فيها رجال وسيدات مع بعض (ومش مرتبطين ببعض). تكمل؟'))return false;
+  hdPush();
+  var olds={},chg=0;
+  ppl.forEach(function(p){if(p.rno&&String(p.rno)!==no)olds[String(p.rno)]=1;p.rno=no;if(r.type&&p.room!==r.type){p.room=r.type;chg++}});
+  hdSyncFam(no);Object.keys(olds).forEach(hdSyncFam);
+  hdSay('✓ اتسكّن '+ppl.length+' في غرفة '+no+(chg?' — اتغير نوع تسكين '+chg+' فرد لـ '+roomLbl(r.type):''),'ok');
+  return true;
+}
+function hdAddRooms(type,qty,start){
+  var d=hdD(),no=start?parseInt(start):hdNextNo(),made=0;
+  if(start&&isNaN(no)){hdSay('رقم البداية لازم يكون رقم','err');return}
+  hdPush();
+  for(var i=0;i<qty;i++){
+    while(d.rooms.some(function(r){return r.no===String(no)}))no++;
+    d.rooms.push({no:String(no),type:type});no++;made++;
+  }
+  hdSay('✓ اتضافت '+made+' غرفة '+roomLbl(type),'ok');
+}
+function hdLinkSel(){
+  var ids=Object.keys(HD.sel).map(Number);
+  if(ids.length<2){hdSay('حدد فردين أو أكتر الأول (اضغط على الأسماء)','err');return}
+  hdPush();
+  var d=hdD(),lm=hdLinkMap(),merged=ids.slice(),old=[];
+  ids.forEach(function(id){var l=lm[id];if(l&&old.indexOf(l)<0){old.push(l);l.ids.forEach(function(i){if(merged.indexOf(i)<0)merged.push(i)})}});
+  d.links=d.links.filter(function(l){return old.indexOf(l)<0});
+  d.links.push({n:old.length?old[0].n:++d.lc,ids:merged});
+  HD.sel={};hdSay('✓ اترابط '+merged.length+' أفراد','ok');hdRender();
+}
+function hdUnlink(ids){
+  hdPush();hdD().links.forEach(function(l){l.ids=l.ids.filter(function(i){return ids.indexOf(i)<0})});
+  hdClean();hdRender();
+}
+function hdAuto(){
+  var g=grp(),d=hdClean(),lm=hdLinkMap();
+  var un=hdPeople().filter(function(p){return!p.rno&&p.room}),skipped=hdPeople().filter(function(p){return!p.rno&&!p.room}).length;
+  if(!un.length){alert('مفيش أفراد لسه ماتسكنوش ولهم نوع تسكين.'+(skipped?'\n('+skipped+' فرد من غير نوع تسكين — حدد نوعهم الأول)':''));return}
+  if(!confirm('تسكين تلقائي لـ '+un.length+' فرد؟\n• المرتبطين بيتسكنوا مع بعض\n• سيدات مع سيدات ورجال مع رجال\n• بيكمّل الغرف الناقصة الأول وبعدين يفتح غرف جديدة'+(skipped?'\n(هيتجاهل '+skipped+' فرد من غير نوع تسكين)':'')))return;
+  hdPush();
+  var placed=0,newRooms=0,touched={};
+  ROOMS.forEach(function(rt){
+    var t=rt[0],cap=CAP[t],pp=un.filter(function(p){return p.room===t&&!p.rno});if(!pp.length)return;
+    var used={},units=[];
+    pp.forEach(function(p){
+      if(used[p.id])return;var l=lm[p.id];
+      var mem=l?l.ids.map(hdById).filter(function(x){return x&&!x.rno&&x.room===t}):[p];if(!mem.length)mem=[p];
+      mem.forEach(function(x){used[x.id]=1});
+      var core=mem.filter(function(x){return!isInf(x,g)}),inf=mem.filter(function(x){return isInf(x,g)});
+      if(core.length<=cap){units.push({m:mem,w:core.length,mate:l?l.ids:null});return}
+      for(var i=0;i<core.length;i+=cap){var ch=core.slice(i,i+cap);if(i===0)ch=ch.concat(inf);units.push({m:ch,w:Math.min(cap,core.length-i),mate:l?l.ids:null})}
+    });
+    units.sort(function(a,b){return b.w-a.w});
+    var R=d.rooms.filter(function(r){return r.type===t}).map(function(r){
+      var I=hdRoomInfo(r),k=null;if(I.mem.length)k=I.mixed?'MF':(I.mem[0].sex||'');
+      return{r:r,used:I.n,key:k}
+    });
+    units.forEach(function(u){
+      var sx={};u.m.forEach(function(p){sx[p.sex||'']=1});var ks=Object.keys(sx).sort(),uk=ks.length>1?'MF':ks[0];
+      var tgt=null;
+      if(u.mate){ // لو حد من المرتبطين متسكّن في غرفة من نفس النوع وفيها مكان
+        u.mate.map(hdById).some(function(x){if(x&&x.rno){var c=R.find(function(z){return z.r.no===String(x.rno)});if(c&&c.used+u.w<=cap&&(c.key===uk||c.key===null)){tgt=c;return true}}return false});
       }
-      p.rno='';p.fam=false;
-      hdRender();
-    };
-  });
-  // remove room
-  document.querySelectorAll('[data-rmroom]').forEach(function(b){
-    b.onclick=function(e){
-      e.stopPropagation();
-      var rno=b.dataset.rmroom;
-      var mem=hdRoomMap()[rno]||[];
-      if(mem.length&&!confirm('إزالة غرفة '+rno+' وإخراج '+mem.length+' فرد؟'))return;
-      mem.forEach(function(p){p.rno='';p.fam=false});
-      hdRender();
-    };
-  });
-  // new room card click
-  var newCard=$('hd-new-room-card');
-  if(newCard) newCard.onclick=function(){hdAddRoom();};
-
-  // ── draggable: awaiting items ──
-  document.querySelectorAll('.aw-item[draggable]').forEach(function(el){
-    el.addEventListener('dragstart',function(e){
-      HD.dragging={pid:+el.dataset.pid, src:'await'};
-      el.classList.add('dragging');
-      e.dataTransfer.effectAllowed='move';
-    });
-    el.addEventListener('dragend',function(){el.classList.remove('dragging')});
-  });
-
-  // ── draggable: room members ──
-  document.querySelectorAll('.rm-member[draggable]').forEach(function(el){
-    el.addEventListener('dragstart',function(e){
-      HD.dragging={pid:+el.dataset.pid, src:'room', fromRno:el.dataset.fromrno};
-      el.classList.add('dragging');
-      e.dataTransfer.effectAllowed='move';
-    });
-    el.addEventListener('dragend',function(){el.classList.remove('dragging')});
-  });
-
-  // ── drop zones (room bodies) ──
-  document.querySelectorAll('[data-dropzone]').forEach(function(zone){
-    zone.addEventListener('dragover',function(e){
-      e.preventDefault();e.dataTransfer.dropEffect='move';
-      zone.classList.add('drag-over');
-    });
-    zone.addEventListener('dragleave',function(){zone.classList.remove('drag-over')});
-    zone.addEventListener('drop',function(e){
-      e.preventDefault();zone.classList.remove('drag-over');
-      if(!HD.dragging)return;
-      hdDropOnRoom(HD.dragging, zone.dataset.dropzone);
-      HD.dragging=null;
+      if(!tgt)tgt=R.find(function(c){return c.used+u.w<=cap&&(uk==='MF'?c.key===null&&c.used===0:(c.key===null||c.key===uk))});
+      if(!tgt){var nr={no:String(hdNextNo()),type:t};d.rooms.push(nr);tgt={r:nr,used:0,key:null};R.push(tgt);newRooms++}
+      u.m.forEach(function(p){p.rno=tgt.r.no;placed++});
+      tgt.used+=u.w;if(tgt.key===null)tgt.key=uk;else if(tgt.key!==uk)tgt.key='MF';
+      touched[tgt.r.no]=1;
     });
   });
-
-  // ── drop on awaiting list (eject) ──
-  var awList=$('hd-await-list');
-  awList.addEventListener('dragover',function(e){e.preventDefault()});
-  awList.addEventListener('drop',function(e){
-    e.preventDefault();
-    if(!HD.dragging||HD.dragging.src!=='room')return;
-    var p=S.people.find(function(x){return x.id===HD.dragging.pid});
-    if(p){p.rno='';p.fam=false;}
-    HD.dragging=null;hdRender();
-  });
-}
-
-function hdDropOnRoom(drag, toRno){
-  var p=S.people.find(function(x){return x.id===drag.pid});
-  if(!p)return;
-
-  // collect who moves: if linked, move all linked too
-  var movers=[p];
-  var linked=hdLinkedWith(p);
-  if(linked.length){
-    // check if they should all go together
-    var allUnhoused=linked.every(function(x){return!x.rno||x.rno===drag.fromRno});
-    if(allUnhoused) movers=movers.concat(linked);
-    else if(!confirm('بعض المرتبطين مسكَّنين في أماكن أخرى — تنقل الكل لنفس الغرفة؟')){
-      movers=[p]; // move only this person
-    } else {
-      movers=movers.concat(linked);
-    }
-  }
-
-  // check capacity
-  var m=hdRoomMap();
-  var currentInRoom=(m[toRno]||[]).length;
-  var cap=CAP[(m[toRno]||[{room:''}])[0].room]||99;
-  var newCount=currentInRoom+movers.filter(function(x){return x.rno!==toRno}).length;
-
-  if(newCount>cap){
-    if(!confirm('الغرفة '+toRno+' هتبقى فيها '+newCount+'/'+cap+' — زيادة عن الطاقة. تكمل؟'))return;
-  }
-
-  // check mixed sex
-  var roomSex=new Set((m[toRno]||[]).map(function(x){return x.sex}));
-  movers.forEach(function(mv){roomSex.add(mv.sex)});
-  if(roomSex.size>1&&roomSex.has('M')&&roomSex.has('F')){
-    if(!confirm('الغرفة '+toRno+' فيها رجال وسيدات مع بعض — تكمل؟'))return;
-  }
-
-  movers.forEach(function(mv){
-    mv.rno=toRno;
-    if(movers.length>1) mv.fam=true; // mark as linked family
-  });
+  Object.keys(touched).forEach(hdSyncFam);
+  hdSay('✓ اتسكّن '+placed+' فرد'+(newRooms?' — فتح '+newRooms+' غرفة جديدة':'')+(skipped?' — '+skipped+' بدون نوع':''),'ok');
   hdRender();
 }
 
-function hdAddRoom(){
-  var mx=0;
-  hdList().forEach(function(p){var n=parseInt(p.rno);if(n>mx)mx=n});
-  // also check rooms that exist but might have higher numbers
-  Object.keys(hdRoomMap()).forEach(function(rno){var n=parseInt(rno);if(n>mx)mx=n});
-  var newRno=String(mx+1);
-  // pick room type: ask
-  var types=ROOMS.map(function(r,i){return(i+1)+'. '+r[1]}).join('\n');
-  var ans=prompt('نوع الغرفة الجديدة:\n'+types+'\n(اكتب رقم أو اسم)');
-  if(!ans)return;
-  var ty=null;
-  ROOMS.forEach(function(r,i){if(ans.trim()===String(i+1)||ans.toLowerCase()===r[0]||ans===r[1])ty=r[0]});
-  if(!ty){alert('نوع غير معروف');return}
-  // create a dummy placeholder person? No — just reserve the room number
-  // We need at least one person to show the room. Use a ghost approach:
-  // Actually just store pending room in HD and show it
-  if(!HD.pendingRooms) HD.pendingRooms=[];
-  HD.pendingRooms.push({rno:newRno,room:ty});
-  // assign to first matching unhoused person
-  var cand=hdList().find(function(p){return!p.rno&&p.room===ty});
-  if(cand){cand.rno=newRno;}
-  else{
-    // create empty room marker — we'll track it separately
-    // For now show a toast and let user drag
-    say('غرفة '+newRno+' ('+roomLbl(ty)+') جاهزة — اسحب أفراد عليها','ok');
-    // We need to store empty rooms; add a special marker
-    if(!grp()._emptyRooms) grp()._emptyRooms={};
-    grp()._emptyRooms[newRno]=ty;
+/* ── events (delegated) ── */
+var hdDlg=$('housingdlg');
+hdDlg.addEventListener('click',function(e){
+  var t=e.target,b;
+  if((b=t.closest('[data-tp]'))){HD.type=b.dataset.tp;return hdRender()}
+  if((b=t.closest('.hd-sex-tab'))){HD.sex=b.dataset.sex;document.querySelectorAll('.hd-sex-tab').forEach(function(x){x.classList.toggle('on',x===b)});return hdRender()}
+  if((b=t.closest('[data-kick]'))){hdPush();hdEject([+b.dataset.kick]);return hdRender()}
+  if((b=t.closest('[data-unlink]'))){return hdUnlink([+b.dataset.unlink])}
+  if((b=t.closest('[data-dissolve]'))){var l=hdLinkByN(b.dataset.dissolve);if(l){if(!confirm('فك ربط المجموعة ر'+l.n+' ('+l.ids.length+' أفراد)؟'))return;hdUnlink(l.ids.slice())}return}
+  if((b=t.closest('[data-selgrp]'))){var l2=hdLinkByN(b.dataset.selgrp);if(l2){l2.ids.forEach(function(i){var p=hdById(i);if(p&&!p.rno)HD.sel[i]=true})}return hdRender()}
+  if((b=t.closest('[data-rmroom]'))){
+    var no=b.dataset.rmroom,mem=hdMem(no);
+    if(mem.length&&!confirm('حذف غرفة '+no+' وإخراج '+mem.length+' فرد منها؟'))return;
+    hdPush();hdEject(mem.map(function(p){return p.id}));var d=hdD();d.rooms=d.rooms.filter(function(r){return r.no!==no});return hdRender();
   }
-  hdRender();
-}
-
-/* ── auto house ── */
-$('hd-autohouse').onclick=function(){
-  var cand=hdList().filter(function(p){return!p.rno&&p.room});
-  if(!cand.length){alert('مفيش أفراد لسه ماتسكنوش ولهم نوع تسكين.');return}
-  if(!confirm('تسكين تلقائي لـ '+cand.length+' فرد؟\n(سيدات مع بعض — رجال مع بعض)'))return;
-  var mx=0;
-  hdList().forEach(function(p){var n=parseInt(p.rno);if(n>mx)mx=n});
-  // group by room type + sex
-  var bk={};
-  cand.forEach(function(p){var k=p.room+'|'+(p.sex||'?');(bk[k]=bk[k]||[]).push(p)});
-  var ch=[];
-  Object.keys(bk).forEach(function(k){
-    var cap=CAP[k.split('|')[0]]||1;
-    for(var i=0;i<bk[k].length;i+=cap){mx++;bk[k].slice(i,i+cap).forEach(function(p){p.rno=String(mx);ch.push(p)})}
-  });
-  hdRender();
+  if((b=t.closest('[data-renroom]'))){
+    var o=b.dataset.renroom,v=prompt('رقم الغرفة الجديد:',o);if(v===null)return;v=v.trim();if(!v||v===o)return;
+    var d2=hdD();if(d2.rooms.some(function(r){return r.no===v})){alert('الرقم ده مستخدم في غرفة تانية.');return}
+    hdPush();d2.rooms.find(function(r){return r.no===o}).no=v;hdMem(o).forEach(function(p){p.rno=v});return hdRender();
+  }
+  if((b=t.closest('[data-addsel]'))){var ids=hdExpand(Object.keys(HD.sel).map(Number));if(hdPlace(ids,b.dataset.addsel))HD.sel={};return hdRender()}
+  if(t.closest('[data-newroom]')){var ty=$('hd-nt').value;hdAddRooms(ty,1,'');return hdRender()}
+  if((b=t.closest('.hd-p'))){var id=+b.dataset.pid;if(HD.sel[id])delete HD.sel[id];else HD.sel[id]=true;return hdRender()}
+});
+hdDlg.addEventListener('change',function(e){
+  var t=e.target;
+  if(t.dataset&&t.dataset.rtype!=null&&t.matches('select')){
+    var no=t.dataset.rtype,r=hdD().rooms.find(function(x){return x.no===no});if(!r)return;
+    var mem=hdMem(no),ty=t.value;
+    if(mem.length&&ty&&!confirm('تغيير نوع غرفة '+no+' لـ '+roomLbl(ty)+' هيغير نوع تسكين '+mem.length+' فرد فيها. تكمل؟')){return hdRender()}
+    hdPush();r.type=ty;if(ty)mem.forEach(function(p){p.room=ty});return hdRender();
+  }
+  if(t.id==='hd-rf'){HD.rf=t.value;hdRender()}
+});
+$('hd-search').oninput=function(){HD.q=this.value;hdRender()};
+$('hd-addroom').onclick=function(){var q=Math.max(1,Math.min(200,parseInt($('hd-nq').value)||1));hdAddRooms($('hd-nt').value,q,$('hd-ns').value.trim());hdRender()};
+$('hd-link').onclick=hdLinkSel;
+$('hd-unlink').onclick=function(){var ids=Object.keys(HD.sel).map(Number);if(!ids.length){hdSay('حدد الأفراد اللي عاوز تفك ربطهم','err');return}hdUnlink(ids);HD.sel={};hdRender()};
+$('hd-selall').onclick=function(){hdPeople().filter(hdAwaitOK).forEach(function(p){HD.sel[p.id]=true});hdRender()};
+$('hd-selnone').onclick=function(){HD.sel={};hdRender()};
+$('hd-bybk').onclick=function(){
+  var bk={};hdPeople().forEach(function(p){if(p.bk)(bk[p.bk]=bk[p.bk]||[]).push(p.id)});
+  var ks=Object.keys(bk).filter(function(k){return bk[k].length>1});
+  if(!ks.length){hdSay('مفيش حجوزات فيها أكتر من فرد','err');return}
+  if(!confirm('هعمل ربط لـ '+ks.length+' حجز (كل حجز = مجموعة مرتبطة). تكمل؟'))return;
+  hdPush();var d=hdD();
+  ks.forEach(function(k){var lm=hdLinkMap(),merged=bk[k].slice(),old=[];bk[k].forEach(function(id){var l=lm[id];if(l&&old.indexOf(l)<0){old.push(l);l.ids.forEach(function(i){if(merged.indexOf(i)<0)merged.push(i)})}});d.links=d.links.filter(function(l){return old.indexOf(l)<0});d.links.push({n:old.length?old[0].n:++d.lc,ids:merged})});
+  hdSay('✓ اترابط '+ks.length+' حجز','ok');hdRender();
 };
-
-/* ── clear all ── */
+$('hd-undo').onclick=function(){if(!HD.undo.length)return;hdRestore(HD.undo.pop());hdRender();hdSay('↩ تم التراجع','ok')};
+$('hd-autohouse').onclick=hdAuto;
 $('hd-clearall').onclick=function(){
-  if(!confirm('مسح كل التسكين للمجموعة دي؟'))return;
-  hdList().forEach(function(p){p.rno='';p.fam=false});
-  hdRender();
+  if(!confirm('مسح تسكين كل الأفراد (الغرف الفاضية هتفضل)؟'))return;
+  hdPush();hdPeople().forEach(function(p){p.rno='';p.fam=false});hdRender();
 };
+
+/* ── drag & drop (delegated) ── */
+function hdClearOver(){document.querySelectorAll('.hd-room.dover,#hd-await.over').forEach(function(x){x.classList.remove('dover','over')})}
+hdDlg.addEventListener('dragstart',function(e){
+  var el=e.target.closest&&e.target.closest('.hd-p,.hd-lg-h');if(!el)return;
+  var ids;
+  if(el.classList.contains('hd-lg-h')){var l=hdLinkByN(el.dataset.link);if(!l)return;ids=l.ids.filter(function(i){var p=hdById(i);return p&&!p.rno})}
+  else{
+    var pid=+el.dataset.pid;
+    if(HD.sel[pid]&&Object.keys(HD.sel).length>1)ids=hdExpand(Object.keys(HD.sel).map(Number));
+    else ids=e.shiftKey?[pid]:hdExpand([pid]);
+    el.classList.add('dragging');
+  }
+  HD.drag={ids:ids};
+  try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','hd')}catch(x){}
+});
+hdDlg.addEventListener('dragend',function(){HD.drag=null;hdClearOver();document.querySelectorAll('.hd-p.dragging').forEach(function(x){x.classList.remove('dragging')})});
+hdDlg.addEventListener('dragover',function(e){
+  if(!HD.drag)return;
+  var room=e.target.closest('.hd-room'),aw=e.target.closest('#hd-await');
+  if(room||aw){e.preventDefault();hdClearOver();(room||aw).classList.add(room?'dover':'over')}
+});
+hdDlg.addEventListener('drop',function(e){
+  if(!HD.drag)return;
+  var room=e.target.closest('.hd-room'),aw=e.target.closest('#hd-await'),ids=HD.drag.ids;
+  e.preventDefault();hdClearOver();HD.drag=null;
+  if(room){if(hdPlace(ids,room.dataset.room))HD.sel={};hdRender()}
+  else if(aw){if(ids.some(function(i){var p=hdById(i);return p&&p.rno})){hdPush();hdEject(ids)}hdRender()}
+});
 
 /* ── save ── */
 $('hd-save').onclick=async function(){
-  save();render();
-  $('housingdlg').close();
-  say('✓ التسكين اتحفظ','ok');
-  var changed=hdList();
-  for(var i=0;i<changed.length;i++) await sbSavePerson(changed[i]);
+  var by={};HD.orig.p.forEach(function(a){by[a[0]]=a});
+  var ch=hdPeople().filter(function(p){var a=by[p.id];return!a||a[1]!==(p.rno||'')||a[2]!==(p.room||'')||a[3]!==!!p.fam});
+  hdClean();save();render();$('housingdlg').close();
+  say('✓ التسكين اتحفظ ('+ch.length+' تعديل)','ok');
+  await sbSaveGroup(grp());
+  for(var i=0;i<ch.length;i++)await sbSavePerson(ch[i]);
 };
+
+/* ── print: كشف التسكين ── */
+function hdPrint(){
+  var g=grp(),d=hdClean(),lm=hdLinkMap(),mode=$('pmode')?$('pmode').value:'full';
+  var nm=function(p){return mode==='flight'?nameFlight(p):nameFull(p)};
+  var rooms=d.rooms.filter(function(r){return hdMem(r.no).length}),k=0,rows='',rr='',cnt={},guests=0;
+  rooms.forEach(function(r){
+    var I=hdRoomInfo(r),mem=I.mem.slice().sort(function(a,b){return(a.sex===b.sex?0:a.sex==='M'?-1:1)});
+    cnt[r.type||'?']=(cnt[r.type||'?']||0)+1;
+    rr='';
+    mem.forEach(function(p,i){
+      guests++;var l=lm[p.id],notes=[];
+      if(l)notes.push('Linked #'+l.n);if(isInf(p,g))notes.push('Infant');
+      if(i===0){if(I.fam)notes.push('Family room');if(I.cls==='over')notes.push('OVER +'+(I.n-I.cap));else if(I.cap&&I.n<I.cap)notes.push('Incomplete '+I.n+'/'+I.cap)}
+      rr+='<tr'+(i===0?' class="rf"':'')+'>'
+        +(i===0?'<td rowspan="'+mem.length+'" class="num rno"><b>'+esc(r.no)+'</b></td><td rowspan="'+mem.length+'" class="c">'+esc(HD_EN[r.type]||'—')+'<br><small>'+esc(roomLbl(r.type))+' · '+I.n+'/'+(I.cap||'?')+'</small></td>':'')
+        +'<td class="num">'+(++k)+'</td><td class="nm">'+esc(nm(p))+'</td><td class="c">'+(p.sex==='M'?'M':p.sex==='F'?'F':'')+'</td><td class="mono">'+esc(p.pno||'')+'</td><td>'+esc(notes.join(' · '))+'</td></tr>';
+    });
+    rows+='<tbody class="rg">'+rr+'</tbody>';
+  });
+  var un=hdPeople().filter(function(p){return!p.rno}),unRows=un.map(function(p,i){return'<tr><td class="num">'+(i+1)+'</td><td class="nm">'+esc(nm(p))+'</td><td class="c">'+(p.sex||'')+'</td><td class="mono">'+esc(p.pno||'')+'</td><td>'+esc(HD_EN[p.room]||'No room type')+'</td></tr>'}).join('');
+  var date=new Date().toLocaleDateString('en-GB');
+  var chips=Object.keys(cnt).map(function(t){return'<span class="mi"><b>'+esc(HD_EN[t]||'?')+'</b> '+cnt[t]+'</span>'}).join('');
+  $('pa').innerHTML='<div class="ph"><div><div class="brand">AL-MAAMOUN FLIGHTS</div><h2>Rooming List — '+esc(g.name)+'</h2><div class="sub">'+esc(g.trip||'')+(g.date?' · '+fmtDate(g.date):'')+'</div></div>'
+    +'<div class="meta"><span class="mi"><b>Guests</b> '+guests+'</span><span class="mi"><b>Rooms</b> '+rooms.length+'</span>'+chips+'</div></div>'
+    +(rooms.length?'<table class="rooming"><thead><tr><th>Room</th><th>Type</th><th>#</th><th>Guest Name</th><th>Sex</th><th>Passport No.</th><th>Notes</th></tr></thead>'+rows+'</table>':'<p>No rooms assigned yet.</p>')
+    +(un.length?'<h3 style="margin:14px 0 5px;font-size:13px;color:#991b1b">Unassigned guests ('+un.length+')</h3><table><thead><tr><th>#</th><th>Guest Name</th><th>Sex</th><th>Passport No.</th><th>Requested</th></tr></thead><tbody>'+unRows+'</tbody></table>':'')
+    +'<div class="foot"><span>Printed: '+date+'</span><span>'+esc(g.name)+'</span></div>';
+  doPrint();
+}
+$('hd-print').onclick=hdPrint;
+$('rml').onclick=hdPrint;
+
 
 render();box.focus();
 
