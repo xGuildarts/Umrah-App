@@ -544,6 +544,21 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
   #pa th.ar{font-size:1em}
   #pa td.rno b{font-size:1.6em;color:#12284a}
   #pa table.rooming td small{font-weight:500;color:#4b5b72}
+  /* ── تثبيت التنسيق: الجدول ما بيعدّيش الورقة والأسماء بتلتف بدل ما تتقص ── */
+  #pa{direction:ltr;width:100%;max-width:100%;box-sizing:border-box;overflow:visible;margin:0;padding:0}
+  #pa.s-lg{--fs:13px;--pad:6px 8px}
+  #pa table{max-width:100%;margin:0}
+  #pa table.fx{table-layout:fixed}
+  #pa td,#pa th{overflow-wrap:anywhere;word-break:normal;min-width:0}
+  #pa td.nm{white-space:normal}
+  #pa td.rno small,#pa td.c small{display:block;white-space:normal;overflow-wrap:anywhere;line-height:1.3}
+  #pa td.ar{white-space:normal;line-height:1.5}
+  #pa td.mono{white-space:nowrap;overflow-wrap:normal;font-size:.95em}
+  #pa h2{overflow-wrap:anywhere}
+  #pa h3{break-after:avoid;page-break-after:avoid}
+  #pa .ph{break-inside:avoid}
+  #pa thead th{position:static}
+  #pa tr.rf td{break-before:auto}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
@@ -770,6 +785,13 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
 </div>
 </div>
 
+<dialog id="printdlg" style="width:min(380px,94vw)">
+  <h4 style="margin:0 0 10px">🖨️ إعدادات الطباعة</h4>
+  <label style="display:block;font-size:13px;margin-bottom:8px">اتجاه الورقة<br><select id="pr-o" style="width:100%;padding:6px;font-size:14px"><option value="auto">تلقائي (حسب عدد الأعمدة)</option><option value="portrait">طولي</option><option value="landscape">عرضي</option></select></label>
+  <label style="display:block;font-size:13px;margin-bottom:8px">حجم الخط<br><select id="pr-z" style="width:100%;padding:6px;font-size:14px"><option value="auto">تلقائي</option><option value="s">صغير (أعمدة كتير)</option><option value="m">متوسط</option><option value="l">كبير وواضح</option></select></label>
+  <div id="pr-i" class="hint" style="margin-bottom:10px"></div>
+  <div class="row" style="justify-content:flex-end"><button class="sec" id="pr-x">إلغاء</button><button id="pr-go">🖨️ طباعة</button></div>
+</dialog>
 <dialog id="paydlg">
   <h4 id="pay-ttl" style="margin:0 0 4px"></h4>
   <div id="pay-tot" class="hint" style="margin-bottom:8px"></div>
@@ -1844,6 +1866,7 @@ $('pay-list').addEventListener('change',async function(e){var t=e.target,p=curP(
 $('pay-rm').onchange=async function(){var p=curP();if(!p)return;var m=this.value;if(!m){await setReq(p,'','')}else{var d=m==='pct'?minPct(grp()):'';$('pay-rv').value=$('pay-rv').value||d;await setReq(p,m,$('pay-rv').value)}save();render();renderPay();syncReq();await sbSaveGroup(grp())};
 $('pay-rv').onchange=async function(){var p=curP();if(!p)return;await setReq(p,$('pay-rm').value,this.value);save();render();renderPay();syncReq();await sbSaveGroup(grp())};
 $('pay-close').onclick=function(){$('paydlg').close()};
+$('pr-go').onclick=doPrintNow;$('pr-x').onclick=function(){$('printdlg').close()};$('pr-o').onchange=prInfo;
 
 /* ══════════════════════════════════════════
    EDIT PERSON
@@ -2008,14 +2031,27 @@ function colValue(p,col,mode,tripDate){
    PRINT
 ══════════════════════════════════════════ */
 function fmtN(v){return typeof v==='number'?v.toLocaleString('en'):v}
+var PRN={o:'auto',z:'auto'};
+try{var _pj=JSON.parse(localStorage.getItem('fm_print')||'null');if(_pj){PRN.o=_pj.o||'auto';PRN.z=_pj.z||'auto'}}catch(e){}
 function doPrint(){
   var pa=$('pa');
   pa.querySelectorAll('td,th').forEach(function(c){if(!c.hasAttribute('dir'))c.setAttribute('dir','auto')});
-  var n=pa.querySelectorAll('thead tr:first-child th').length;
-  pa.className=n>13?'s-sm':n>9?'s-md':'';
-  $('pgs').textContent='@page{size:A4 '+(n>7?'landscape':'portrait')+';margin:10mm}';
+  pa._n=pa.querySelectorAll('thead tr:first-child th').length;
+  pa._rows=pa.querySelectorAll('tbody tr').length;
+  $('pr-o').value=PRN.o;$('pr-z').value=PRN.z;prInfo();
+  $('printdlg').showModal();$('pr-go').focus();
+}
+function prInfo(){var pa=$('pa'),n=pa._n||0,o=$('pr-o').value,land=o==='auto'?n>7:o==='landscape';
+  $('pr-i').textContent=(pa._rows||0)+' صف · '+n+' عمود — الورقة '+(land?'عرضي':'طولي')+(o==='auto'?' (تلقائي)':'')}
+function doPrintNow(){
+  var pa=$('pa'),n=pa._n||0;
+  PRN.o=$('pr-o').value;PRN.z=$('pr-z').value;try{localStorage.setItem('fm_print',JSON.stringify(PRN))}catch(e){}
+  var land=PRN.o==='auto'?n>7:PRN.o==='landscape';
+  pa.className=PRN.z==='s'?'s-sm':PRN.z==='m'?'s-md':PRN.z==='l'?'s-lg':(n>13?'s-sm':n>9?'s-md':'');
+  $('pgs').textContent='@page{size:A4 '+(land?'landscape':'portrait')+';margin:10mm}';
+  $('printdlg').close();
   var t=document.title,h=pa.querySelector('h2');if(h)document.title=h.textContent;
-  window.print();document.title=t;
+  setTimeout(function(){window.print();document.title=t},60);
 }
 function printCell(p,c,i,g,mode){
   var v=colValue(p,c,mode,g.date),cls=COLDEF[c]?COLDEF[c][2]:'';
@@ -2990,6 +3026,10 @@ $('hd-save').onclick=async function(){
 };
 
 /* ── print: كشف التسكين (عربي / إنجليزي / الاتنين) ── */
+function hdCg(ar,en,room){
+  var fixed=room?[8,10,4]:[4],tail=room?[4,11,10]:[4,12,10],nm=100-fixed.concat(tail).reduce(function(a,b){return a+b},0),w=fixed.slice();
+  if(ar&&en){w.push(Math.round(nm*.46),nm-Math.round(nm*.46))}else w.push(nm);
+  w=w.concat(tail);return'<colgroup>'+w.map(function(x){return'<col style="width:'+x+'%">'}).join('')+'</colgroup>'}
 function hdPrint(){
   var g=grp(),d=hdClean(),lm=hdLinkMap(),mode=$('pmode')?$('pmode').value:'full',lang=$('hd-pl')?$('hd-pl').value:'both';
   arEnsureAll(hdPeople());
@@ -3019,8 +3059,8 @@ function hdPrint(){
   var hN='<th class="ar">الاسم بالعربي</th>',hE='<th>Guest Name</th>';
   $('pa').innerHTML='<div class="ph"><div><div class="brand">AL-MAAMOUN FLIGHTS</div><h2>Rooming List — '+esc(g.name)+(ar?' | كشف التسكين':'')+'</h2><div class="sub">'+esc(g.trip||'')+(g.date?' · '+fmtDate(g.date):'')+'</div></div>'
     +'<div class="meta"><span class="mi"><b>Guests</b> '+guests+'</span><span class="mi"><b>Rooms</b> '+rooms.length+'</span>'+chips+'</div></div>'
-    +(rooms.length?'<table class="rooming"><thead><tr><th>Room<small>الغرفة</small></th><th>Type<small>النوع</small></th><th>#</th>'+(ar?hN:'')+(en?hE:'')+'<th>Sex</th><th>Passport No.</th><th>Notes</th></tr></thead>'+rows+'</table>':'<p>No rooms assigned yet.</p>')
-    +(un.length?'<h3 style="margin:14px 0 5px;font-size:13px;color:#991b1b">Unassigned guests / غير مسكَّنين ('+un.length+')</h3><table><thead><tr><th>#</th>'+(ar?hN:'')+(en?hE:'')+'<th>Sex</th><th>Passport No.</th><th>Requested</th></tr></thead><tbody>'+unRows+'</tbody></table>':'')
+    +(rooms.length?'<table class="rooming fx">'+hdCg(ar,en,1)+'<thead><tr><th>Room<small>الغرفة</small></th><th>Type<small>النوع</small></th><th>#</th>'+(ar?hN:'')+(en?hE:'')+'<th>Sex</th><th>Passport No.</th><th>Notes</th></tr></thead>'+rows+'</table>':'<p>No rooms assigned yet.</p>')
+    +(un.length?'<h3 style="margin:14px 0 5px;font-size:13px;color:#991b1b">Unassigned guests / غير مسكَّنين ('+un.length+')</h3><table class="fx">'+hdCg(ar,en,0)+'<thead><tr><th>#</th>'+(ar?hN:'')+(en?hE:'')+'<th>Sex</th><th>Passport No.</th><th>Requested</th></tr></thead><tbody>'+unRows+'</tbody></table>':'')
     +'<div class="foot"><span>Printed: '+date+'</span><span>'+esc(g.name)+'</span></div>';
   doPrint();
 }
