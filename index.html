@@ -559,6 +559,16 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
   #pa .ph{break-inside:avoid}
   #pa thead th{position:static}
   #pa tr.rf td{break-before:auto}
+  #pa .notes{margin-top:14px;border:1.5px solid #12284a;border-radius:5px;padding:8px 12px 6px;break-inside:avoid;page-break-inside:avoid;font-size:var(--fs);background:#fff}
+  #pa .notes h3{margin:0 0 5px;font-size:1.1em;color:#12284a;display:flex;justify-content:space-between;gap:10px}
+  #pa .notes ul{margin:0;padding:0;list-style:none}
+  #pa .notes li{padding:3px 0;border-top:1px dotted #b7c2d0;display:flex;gap:8px;align-items:baseline;line-height:1.45}
+  #pa .notes li:first-child{border-top:0}
+  #pa .notes li i{flex:0 0 auto;font-style:normal;font-weight:800}
+  #pa .notes li.warn i{color:#92400e}#pa .notes li.bad i{color:#991b1b}#pa .notes li.ok i{color:#166534}
+  #pa .notes .a{font-weight:700;color:#0b1b33}
+  #pa .notes .e{display:block;font-size:.9em;color:#4b5b72;direction:ltr;text-align:left}
+  #pa .notes li>div{flex:1}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
@@ -3026,6 +3036,39 @@ $('hd-save').onclick=async function(){
 };
 
 /* ── print: كشف التسكين (عربي / إنجليزي / الاتنين) ── */
+/* ── ملاحظات تلقائية آخر كشف التسكين: النواقص / الزيادات / غير المسكنين ── */
+function hdSexW(sx,n){ /* سيدات/رجال بالمفرد والمثنى والجمع الصح */
+  var w={M:['رجل واحد','رجلين','رجال'],F:['سيدة واحدة','سيدتين','سيدات'],X:['فرد واحد','فردين','أفراد']}[sx||'X'];
+  return n===1?w[0]:n===2?w[1]:n+' '+w[2]}
+function hdSexE(sx,n){var w={M:['male','males'],F:['female','females'],X:['guest','guests']}[sx||'X'];return n+' '+(n===1?w[0]:w[1])}
+function hdSexOf(mem){var sx={};mem.forEach(function(p){if(p.sex)sx[p.sex]=1});return sx.M&&sx.F?'X':sx.M?'M':sx.F?'F':'X'}
+function hdNotes(rooms,un,ar,en){
+  var L=[],tot={},both=ar&&en;
+  var tw={M:'رجال',F:'سيدات',X:'مختلط'},te={M:'men',F:'women',X:'mixed'};
+  rooms.forEach(function(r){
+    var I=hdRoomInfo(r),sx=hdSexOf(I.mem),ty=roomLbl(r.type)||'بدون نوع',tye=HD_EN[r.type]||'No type';
+    var nm=r.nm?' «'+r.nm+'»':'',who=I.mixed?(I.fam?'عائلة':'رجال وسيدات'):tw[sx],whoE=I.mixed?(I.fam?'family':'mixed'):te[sx];
+    if(!I.cap){L.push({k:'warn',a:'غرفة '+r.no+nm+': النوع غير محدد',e:'Room '+r.no+': room type not set'});return}
+    if(I.n<I.cap){var need=I.cap-I.n,key=r.type+'|'+sx;tot[key]=tot[key]||{ty:ty,tye:tye,sx:sx,n:0,rooms:0};tot[key].n+=need;tot[key].rooms++;
+      L.push({k:'warn',a:'غرفة '+r.no+nm+' ('+ty+' '+who+'): ناقصة '+hdSexW(sx,need),e:'Room '+r.no+' ('+tye+', '+whoE+'): needs '+hdSexE(sx,need)+' more'})}
+    else if(I.n>I.cap)L.push({k:'bad',a:'غرفة '+r.no+nm+' ('+ty+' '+who+'): زيادة '+(I.n-I.cap)+' عن السعة',e:'Room '+r.no+' ('+tye+'): over capacity by '+(I.n-I.cap)});
+    if(I.badMix)L.push({k:'bad',a:'غرفة '+r.no+nm+': رجال وسيدات مع بعض وليست غرفة عائلة — راجعها',e:'Room '+r.no+': men and women together, not marked as family room'});
+  });
+  var keys=Object.keys(tot);
+  if(keys.length){
+    L.push({k:'warn',a:'إجمالي الأماكن الناقصة: '+keys.map(function(k){var t=tot[k];return t.ty+' '+tw[t.sx]+': '+t.n+' ('+t.rooms+(t.rooms===1?' غرفة':' غرف')+')'}).join(' · '),
+      e:'Total open spaces: '+keys.map(function(k){var t=tot[k];return t.tye+' '+te[t.sx]+': '+t.n}).join(' · ')});
+  }
+  if(un.length){
+    var m=un.filter(function(p){return p.sex==='M'}).length,f=un.filter(function(p){return p.sex==='F'}).length;
+    L.push({k:'bad',a:'غير مسكَّنين: '+un.length+' ('+(m?hdSexW('M',m):'')+(m&&f?' و ':'')+(f?hdSexW('F',f):'')+')',e:'Unassigned: '+un.length+' ('+m+' male, '+f+' female)'});
+  }
+  if(!L.length)L.push({k:'ok',a:'كل الغرف مكتملة ولا يوجد نواقص',e:'All rooms are complete'});
+  var ic={warn:'⚠',bad:'✖',ok:'✔'};
+  return'<div class="notes"><h3><span>'+(ar?'ملاحظات':'Notes')+'</span>'+(both?'<span>Notes</span>':'')+'</h3><ul>'
+    +L.map(function(x){return'<li class="'+x.k+'"><i>'+ic[x.k]+'</i><div>'
+      +(ar?'<span class="a" dir="rtl" style="display:block;text-align:right">'+esc(x.a)+'</span>':'')
+      +(en?(ar?'<span class="e">'+esc(x.e)+'</span>':'<span class="a" style="display:block">'+esc(x.e)+'</span>'):'')+'</div></li>'}).join('')+'</ul></div>'}
 function hdCg(ar,en,room){
   var fixed=room?[8,10,4]:[4],tail=room?[4,11,10]:[4,12,10],nm=100-fixed.concat(tail).reduce(function(a,b){return a+b},0),w=fixed.slice();
   if(ar&&en){w.push(Math.round(nm*.46),nm-Math.round(nm*.46))}else w.push(nm);
@@ -3061,6 +3104,7 @@ function hdPrint(){
     +'<div class="meta"><span class="mi"><b>Guests</b> '+guests+'</span><span class="mi"><b>Rooms</b> '+rooms.length+'</span>'+chips+'</div></div>'
     +(rooms.length?'<table class="rooming fx">'+hdCg(ar,en,1)+'<thead><tr><th>Room<small>الغرفة</small></th><th>Type<small>النوع</small></th><th>#</th>'+(ar?hN:'')+(en?hE:'')+'<th>Sex</th><th>Passport No.</th><th>Notes</th></tr></thead>'+rows+'</table>':'<p>No rooms assigned yet.</p>')
     +(un.length?'<h3 style="margin:14px 0 5px;font-size:13px;color:#991b1b">Unassigned guests / غير مسكَّنين ('+un.length+')</h3><table class="fx">'+hdCg(ar,en,0)+'<thead><tr><th>#</th>'+(ar?hN:'')+(en?hE:'')+'<th>Sex</th><th>Passport No.</th><th>Requested</th></tr></thead><tbody>'+unRows+'</tbody></table>':'')
+    +hdNotes(rooms,un,ar,en)
     +'<div class="foot"><span>Printed: '+date+'</span><span>'+esc(g.name)+'</span></div>';
   doPrint();
 }
