@@ -986,7 +986,6 @@ function missing(p,g){
   var m=[];if(!p.photo)m.push('صورة');if(!p.passportDoc)m.push('جواز');if(p.tajneed)m.push('تجنيد');
   var c=expStatus(p.exp,g.date).cls;if(c==='tag-bad')m.push('جواز منتهي');else if(c==='tag-warn')m.push('جواز أقل من سنة');
   if(longNm(p)&&!p.rev)m.push('اسم طويل — ممكن مقصوص');
-  var ri=roomIssue(p,g);if(ri)m.push('غرفة '+p.rno+': '+ri);
   var pi=payInfo(p,g);if(pi.due)m.push('سداد'+(pi.amt?' '+pi.amt:''));
   return m;
 }
@@ -2221,7 +2220,7 @@ function render(){
   // summary warning bar
   var expWarn=l.filter(function(p){var s=expStatus(p.exp,g.date);return s.cls!==''}).length;
   var nB=l.filter(function(p){return expStatus(p.exp,g.date).cls==='tag-bad'}).length,nDoc=l.filter(function(p){return!p.photo||!p.passportDoc}).length,pays=l.filter(function(p){var q=payInfo(p,g);return q.due&&(!q.bk||q.lead)}),tot=pays.reduce(function(a,p){return a+payInfo(p,g).amt},0);
-  $('sumbar').innerHTML=(l.length?((nB?'<span style="color:var(--bad)">⛔ جوازات فيها مشكلة: '+nB+'</span> &nbsp;':'')+(nDoc?'<span style="color:var(--warn)">📎 ناقص أوراق: '+nDoc+'</span> &nbsp;':'')+(pays.length?'<span style="color:var(--bad)">💰 مطلوب سداد: '+pays.length+(tot?' — '+tot.toLocaleString('en')+' '+CUR:'')+'</span>':'')||'<span style="color:var(--ok)">✓ مفيش ملاحظات</span>')+' &nbsp;<span style="color:var(--mut)">🛂 الجواز معانا: '+l.filter(function(p){return p.hasPass}).length+'/'+l.length+'</span>'+(!g.date?' &nbsp;<span style="color:var(--warn)">📅 حدد تاريخ الرحلة عشان فحص الجواز يبقى دقيق</span>':'')+(function(){var m=roomMap(g),n=0;Object.keys(m).forEach(function(k){if(roomIssue(m[k][0],g))n++});return n?' &nbsp;<span style="color:var(--warn)">🛏️ غرف فيها ملاحظات: '+n+'</span>':''})():'');
+  $('sumbar').innerHTML=(l.length?((nB?'<span style="color:var(--bad)">⛔ جوازات فيها مشكلة: '+nB+'</span> &nbsp;':'')+(nDoc?'<span style="color:var(--warn)">📎 ناقص أوراق: '+nDoc+'</span> &nbsp;':'')+(pays.length?'<span style="color:var(--bad)">💰 مطلوب سداد: '+pays.length+(tot?' — '+tot.toLocaleString('en')+' '+CUR:'')+'</span>':'')||'<span style="color:var(--ok)">✓ مفيش ملاحظات</span>')+' &nbsp;<span style="color:var(--mut)">🛂 الجواز معانا: '+l.filter(function(p){return p.hasPass}).length+'/'+l.length+'</span>'+(!g.date?' &nbsp;<span style="color:var(--warn)">📅 حدد تاريخ الرحلة عشان فحص الجواز يبقى دقيق</span>':''):'');
   // thead
   var opts=S.groups.map(function(x){return'<option value="'+x.id+'">'+esc(x.name)+'</option>'}).join('');
   $('thead-row').innerHTML='<tr>'
@@ -2263,7 +2262,7 @@ function render(){
       +'<td class="chk"><input type="checkbox" data-pid="'+p.id+'" data-field="hasPass"'+(p.hasPass?' checked':'')+'></td>'
       +'<td class="chk"><input type="checkbox" data-pid="'+p.id+'" data-field="rev"'+(p.rev?' checked':'')+'></td>'
       +'<td><select data-room="'+p.id+'" style="font-size:12px;padding:3px 5px"><option value="">—</option>'+ROOMS.map(function(r){return'<option value="'+r[0]+'"'+(p.room===r[0]?' selected':'')+'>'+r[1]+((g.pr&&g.pr[r[0]])?' ('+g.pr[r[0]]+')':'')+'</option>'}).join('')+'</select></td>'
-      +'<td><input class="rno" data-pid="'+p.id+'" value="'+esc(p.rno)+'" style="width:46px;padding:3px 5px;font-size:12px"> <label title="عائلة / غرفة مغلقة"><input type="checkbox" data-pid="'+p.id+'" data-field="fam"'+(p.fam?' checked':'')+'>👪</label>'+(p.room&&!p.rno?' <button class="sec" data-sug="'+p.id+'" title="اقتراح غرفة" style="padding:1px 5px;font-size:12px">💡</button>':'')+(ri?' <span title="'+esc(ri)+'" style="cursor:help">⚠️</span>':'')+'</td>'
+      +'<td><input class="rno" data-pid="'+p.id+'" value="'+esc(p.rno)+'" style="width:46px;padding:3px 5px;font-size:12px"> <label title="عائلة / غرفة مغلقة"><input type="checkbox" data-pid="'+p.id+'" data-field="fam"'+(p.fam?' checked':'')+'>👪</label>'+(p.room&&!p.rno?' <button class="sec" data-sug="'+p.id+'" title="اقتراح غرفة" style="padding:1px 5px;font-size:12px">💡</button>':'')+'</td>'
       +'<td><input class="bk" list="bklist" data-pid="'+p.id+'" value="'+esc(p.bk)+'" placeholder="—" style="width:80px;padding:3px 5px;font-size:12px">'+rlBadge(p)+'</td>'
       +'<td><button class="sec" data-pay="'+p.id+'" style="padding:3px 8px;font-size:12px">💵 '+paidOf(p)+'</button>'+(+p.disc>0?'<div style="font-size:11px;color:var(--warn)">🏷️ خصم '+p.disc+'</div>':'')+'</td>'
       +'<td style="font-size:12px">'+(p.sup?'<b style="color:var(--ok)">👑 مشرف — بدون تكلفة</b>':pi.auto?(pi.due?'<b style="color:var(--bad)">💰 مطلوب '+(pi.bk&&!pi.lead?'ضمن الحجز':pi.amt+' '+CUR)+'</b>':'<b style="color:var(--ok)">✓ '+pct+'%+</b>')+'<br><span style="color:var(--mut)">'+(pi.bk?'حجز '+esc(pi.bk)+' ('+pi.n+'): المتبقي '+pi.rem+' من '+pi.btot:'المتبقي '+pi.rem)+'</span>':'<label><input type="checkbox" data-pid="'+p.id+'" data-field="payDue"'+(p.payDue?' checked':'')+'> سداد</label>'+(p.payDue?' <input type="number" min="0" class="amt" data-pid="'+p.id+'" placeholder="المبلغ" value="'+esc(p.payAmt)+'" style="width:70px;padding:3px 5px;font-size:12px">':''))+'</td>'
@@ -2380,7 +2379,6 @@ function preflight(){
     if(!p.sex)add('⚠️ الجنس ناقص',p);
     if(!p.rev)add('🔍 الاسم لسه ماتراجعش',p);
     if(!p.room)add('🛏️ بدون نوع تسكين',p);else if(!p.rno)add('🛏️ بدون رقم غرفة',p);
-    if(roomIssue(p,g))add('🛏️ غرفة فيها مشكلة',p);
     if(!p.photo)add('📎 ناقص صورة',p);
     if(!p.passportDoc)add('📎 ناقص صورة جواز',p);
     if(p.tajneed)add('🎖️ تجنيد مطلوب',p);
