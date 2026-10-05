@@ -853,9 +853,11 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
         <option value="flight">ترتيب طيران</option>
         <option value="mrz">MRZ</option>
         <option value="cols">عمودين (اللقب | الاسم الأول)</option>
+        <option value="ar">🔤 الاسم بالعربي</option>
+        <option value="enar">🔤 إنجليزي + عربي (عمودين)</option>
       </select>
       <button id="prt">🖨️ طباعة</button>
-      <button class="sec" id="xls">⬇️ Excel / CSV</button>
+      <button class="sec" id="xls">⬇️ Excel</button>
       <button class="sec" id="xls-air" title="يحمّل شيت الطيران بنفس الفورمه متملي بالأسماء">✈️ شيت الطيران (Excel)</button>
       <label class="sec" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:7px 11px;border:1px solid var(--line);border-radius:8px;font-size:inherit;font-weight:500" title="ارفع شيت الطيران الفاضي وهيتملى بالأسماء تلقائي">
         📤 رفع شيت طيران
@@ -887,7 +889,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
   <h4 style="margin:0 0 10px">🖨️ إعدادات الطباعة</h4>
   <label style="display:block;font-size:13px;margin-bottom:8px">اتجاه الورقة<br><select id="pr-o" style="width:100%;padding:6px;font-size:14px"><option value="auto">تلقائي (حسب عدد الأعمدة)</option><option value="portrait">طولي</option><option value="landscape">عرضي</option></select></label>
   <label style="display:block;font-size:13px;margin-bottom:8px">حجم الخط<br><select id="pr-z" style="width:100%;padding:6px;font-size:14px"><option value="auto">تلقائي</option><option value="s">صغير (أعمدة كتير)</option><option value="m">متوسط</option><option value="l">كبير وواضح</option></select></label>
-  <div id="pr-i" class="hint" style="margin-bottom:6px"></div><div id="pr-w" style="color:var(--bad);font-weight:700;font-size:13px;margin-bottom:8px"></div>
+  <div class="hint" style="margin-bottom:6px">لتحميل PDF: اضغط طباعة واختار الطابعة «Save as PDF / حفظ كـ PDF».</div><div id="pr-i" class="hint" style="margin-bottom:6px"></div><div id="pr-w" style="color:var(--bad);font-weight:700;font-size:13px;margin-bottom:8px"></div>
   <div class="row" style="justify-content:flex-end"><button class="sec" id="pr-x">إلغاء</button><button id="pr-go">🖨️ طباعة</button></div>
 </dialog>
 <dialog id="paydlg">
@@ -1398,6 +1400,7 @@ function nameMRZ(p){return(p.sur||'').replace(/ /g,'<')+'<<'+(p.giv||'').replace
 function nameByMode(p,mode){
   if(mode==='flight')return nameFlight(p);
   if(mode==='mrz')return nameMRZ(p);
+  if(mode==='ar')return arText(p)||nameFull(p);
   return nameFull(p);
 }
 
@@ -2234,6 +2237,7 @@ function printCell(p,c,i,g,mode){
   if(c==='num')return'<td class="num">'+(i+1)+'</td>';
   if(c==='name'){
     if(mode==='cols')return'<td class="nm">'+esc(p.sur)+'</td><td class="nm">'+esc(p.giv)+'</td>';
+    if(mode==='enar')return'<td class="nm">'+esc(nameFull(p))+'</td><td class="nm" dir="rtl" style="text-align:right">'+esc(arText(p)||'')+'</td>';
     if(mode==='airline'){var _ap=(p.giv||'').trim().split(/\s+/);return'<td class="nm">'+esc(p.sur)+'</td><td class="nm">'+esc(_ap[0]||'')+'</td><td class="nm">'+esc(_ap.slice(1).join(' '))+'</td>';}
     return'<td class="'+(mode==='mrz'?'mono':'nm')+'">'+esc(v)+'</td>';
   }
@@ -2248,6 +2252,7 @@ function printCell(p,c,i,g,mode){
 $('prt').onclick=function(){
   var l=viewList();if(!l.length){alert('مفيش أفراد مطابقين للفلتر.');return}
   var cols=getSelectedCols(),mode=$('pmode').value,g=grp();
+  if((mode==='ar'||mode==='enar')&&cols.includes('name')){try{arEnsureAll(l)}catch(e){}var _un=l.filter(function(p){return!arOk(p)}).length;if(_un&&!confirm('⚠️ فيه '+_un+' اسم عربي ترجمة تلقائية لسه ماتراجعتش.\nتكمّل برضو؟ (تراجعهم من «مراجعة الأسماء بالعربي» في قسم الاعاشة)'))return}
   var now=new Date(),date=now.toLocaleDateString('en-GB')+' '+now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
   var hasPay=cols.some(isPayCol);
 
@@ -2273,6 +2278,7 @@ $('prt').onclick=function(){
   var thead='<tr>';
   cols.forEach(function(c){
     if(c==='name'&&mode==='cols')thead+='<th>Surname<small>اللقب</small></th><th>Given Names<small>الاسم الأول</small></th>';
+    else if(c==='name'&&mode==='enar')thead+='<th>Name<small>الاسم</small></th><th>الاسم بالعربي<small>Arabic Name</small></th>';
     else thead+='<th>'+esc(colLabel(c))+(COLDEF[c]&&COLDEF[c][1]?'<small>'+COLDEF[c][1]+'</small>':'')+'</th>';
   });
   thead+='</tr>';
@@ -2292,7 +2298,7 @@ $('prt').onclick=function(){
     tfoot='<tfoot><tr>';var lab=false;
     cols.forEach(function(c){
       if(isPayCol(c))tfoot+='<td>'+(sums[c]!=null?sums[c].toLocaleString('en'):'')+'</td>';
-      else if(c==='name'&&mode==='cols'){tfoot+='<td colspan="2" style="text-align:start">Total / الإجمالي</td>';lab=true}
+      else if(c==='name'&&(mode==='cols'||mode==='enar')){tfoot+='<td colspan="2" style="text-align:start">Total / الإجمالي</td>';lab=true}
       else if(c==='name'&&mode==='airline'){tfoot+='<td colspan="3" style="text-align:start">Total / الإجمالي</td>';lab=true}
       else if(c==='name'){tfoot+='<td style="text-align:start">Total / الإجمالي</td>';lab=true}
       else tfoot+='<td></td>';
@@ -2328,10 +2334,12 @@ $('prt').onclick=function(){
 $('xls').onclick=function(){
   var l=viewList();if(!l.length){alert('مفيش أفراد مطابقين للفلتر.');return}
   var cols=getSelectedCols(),mode=$('pmode').value,g=grp();
+  if((mode==='ar'||mode==='enar')&&cols.includes('name')){try{arEnsureAll(l)}catch(e){}var _un=l.filter(function(p){return!arOk(p)}).length;if(_un&&!confirm('⚠️ فيه '+_un+' اسم عربي ترجمة تلقائية لسه ماتراجعتش.\nتكمّل برضو؟ (تراجعهم من «مراجعة الأسماء بالعربي» في قسم الاعاشة)'))return}
   var rows=[];
   var hdr=[];
   cols.forEach(function(c){
     if(c==='name'&&mode==='cols'){hdr.push('Surname','Given Names')}
+    else if(c==='name'&&mode==='enar'){hdr.push('Name','الاسم بالعربي')}
     else if(c==='name'&&mode==='airline'){hdr.push('Last Name','First Name','Sec Name')}
     else hdr.push(colLabel(c));
   });
@@ -2341,6 +2349,7 @@ $('xls').onclick=function(){
     cols.forEach(function(c){
       if(c==='num')row.push(i+1);
       else if(c==='name'&&mode==='cols'){row.push(p.sur);row.push(p.giv)}
+      else if(c==='name'&&mode==='enar'){row.push(nameFull(p));row.push(arText(p)||'')}
       else if(c==='name'&&mode==='airline'){
         var _ap=(p.giv||'').trim().split(/\s+/);
         row.push(p.sur);row.push(_ap[0]||'');row.push(_ap[1]||'');
@@ -2349,12 +2358,23 @@ $('xls').onclick=function(){
     });
     rows.push(row);
   });
-  var csv=rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"'}).join(',')}).join('\r\n');
-  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
-  var a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=g.name.replace(/\s/g,'_')+'_'+(g.date||new Date().toISOString().slice(0,10))+'.csv';
-  a.click();URL.revokeObjectURL(a.href);
+  var fn=g.name.replace(/\s/g,'_')+'_'+(g.date||new Date().toISOString().slice(0,10));
+  var dl=function(blob,name){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},4000)};
+  var asCsv=function(){var csv=rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"'}).join(',')}).join('\r\n');dl(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}),fn+'.csv')};
+  if(!window.ExcelJS){asCsv();return}
+  var rtl=(mode==='ar'||mode==='enar'),thin={style:'thin',color:{argb:'FF9FB3C8'}};
+  try{
+    var wb=new ExcelJS.Workbook(),ws=wb.addWorksheet(String(g.name||'Sheet').replace(/[\\\/?*\[\]:]/g,' ').slice(0,31),{views:[{rightToLeft:rtl,state:'frozen',ySplit:1}]});
+    ws.addRows(rows);
+    ws.columns.forEach(function(col,ci){var mx=8;rows.forEach(function(r){var v=r[ci];if(v!=null)mx=Math.max(mx,String(v).length)});col.width=Math.min(46,mx+3)});
+    ws.eachRow(function(row,ri){row.eachCell(function(c){
+      c.border={top:thin,left:thin,bottom:thin,right:thin};
+      c.alignment={vertical:'middle',horizontal:'center',wrapText:true,readingOrder:rtl?'rtl':'ltr'};
+      if(ri===1){c.font={bold:true,color:{argb:'FFFFFFFF'}};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1B8FD2'}}}
+      else if(ri%2===1)c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF1F6FB'}};
+    })});
+    wb.xlsx.writeBuffer().then(function(buf){dl(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),fn+'.xlsx')}).catch(asCsv);
+  }catch(e){asCsv()}
 };
 
 /* ══════════════════════════════════════════
@@ -3436,16 +3456,17 @@ var ML_CSS='@page{size:A4;margin:0}*{box-sizing:border-box}html,body{margin:0;pa
  +'table{border-collapse:collapse;table-layout:fixed;width:100%}'
  +'th{background:#1b8fd2;color:#fff;font-weight:700;border:.25mm solid #1b8fd2;padding:0 1.5mm;text-align:center}'
  +'td{border:.25mm solid #9fb3c8;padding:0 2mm;vertical-align:middle;white-space:nowrap;overflow:hidden;text-align:right}'
- +'td.n{text-align:center;font-weight:700;padding:0}td.pn{direction:ltr;text-align:center;font-family:Consolas,monospace;font-size:10pt}'
+ +'td.n{text-align:center;font-weight:700;padding:0}td.pn{direction:ltr;text-align:center;font-family:Consolas,monospace;font-size:9.5pt;padding:0 .8mm}'
  +'tr:nth-child(even) td{background:#f1f6fb}'
  +'@media screen{body{background:#7b818c;padding:12px 0}.pg{margin:0 auto 14px;box-shadow:0 2px 12px rgba(0,0,0,.45)}}'
  +'@media screen and (max-width:830px){.pg{zoom:.55}}';
+var ML_FIT='function fitNames(){var c=document.querySelectorAll("td.nm");for(var i=0;i<c.length;i++){var td=c[i],sp=td.firstChild,st=getComputedStyle(td),av=td.clientWidth-parseFloat(st.paddingLeft)-parseFloat(st.paddingRight)-1,fs=parseFloat(td.getAttribute("data-f"))||12;td.style.whiteSpace="nowrap";td.style.lineHeight="";td.style.fontSize=fs+"pt";while(sp.getBoundingClientRect().width>av&&fs>7){fs-=.25;td.style.fontSize=fs+"pt"}if(sp.getBoundingClientRect().width>av){td.style.whiteSpace="normal";td.style.lineHeight="1.1";td.style.fontSize="7pt";if(td.scrollHeight>td.clientHeight+1)td.style.fontSize="6.5pt"}}}window.fitNames=fitNames;window.addEventListener("load",function(){fitNames();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitNames)});';
 function mlBuild(){
   var g=mlGroup(),ppl=mlPeople(g),n=ppl.length,hasNote=!!(ML.note&&ML.note.trim());
   var L=n?mlLayout(n,hasNote):{sz:'m',cols:1,r1:1,rn:1,pages:1},S0=ML_SZ[L.sz],c=L.cols,f=c===2?Math.min(S0.f,12):S0.f;
   var unrev=ppl.filter(function(p){return!arOk(p)}).length,pages=[],i=0;
   while(true){var first=!pages.length,rows=first?L.r1:L.rn;pages.push({first:first,start:i,rows:rows,chunk:ppl.slice(i,i+rows*c)});i+=rows*c;if(i>=n)break}
-  var nameW=c===2?73:158,maxCh=Math.floor(nameW/(f*0.2));
+  var nameW=(c===2?82:170)-(c===2?7:12)-(ML.pno?(c===2?21:28):0)-4,maxCh=Math.floor(nameW/(f*0.2));
   var sub=['المجموعة: '+esc(g.name)+(g.trip?' — '+esc(g.trip):'')];
   if(ML.date&&g.date)sub.push('تاريخ الرحلة: '+fmtDate(g.date));
   sub.push('عدد المعتمرين: '+n);
@@ -3455,17 +3476,17 @@ function mlBuild(){
     var tbls='';
     for(var k=0;k<c;k++){
       var part=P.chunk.slice(k*P.rows,(k+1)*P.rows);if(!part.length)continue;
-      var cg='<colgroup><col style="width:'+(c===2?9:12)+'mm">'+'<col>'+(ML.pno?'<col style="width:'+(c===2?24:30)+'mm">':'')+'</colgroup>';
+      var cg='<colgroup><col style="width:'+(c===2?7:12)+'mm">'+'<col>'+(ML.pno?'<col style="width:'+(c===2?21:28)+'mm">':'')+'</colgroup>';
       tbls+='<table style="'+(c===2?'width:calc(50% - 3mm)':'')+'">'+cg+'<thead><tr style="height:'+S0.r+'mm"><th style="font-size:'+Math.min(f,11)+'pt">م</th><th style="font-size:'+Math.min(f,11)+'pt">الاسم</th>'+(ML.pno?'<th style="font-size:'+Math.min(f,11)+'pt">رقم الجواز</th>':'')+'</tr></thead><tbody>'
         +part.map(function(p,j){
-          var nm=arText(p)||nameFull(p),fs=nm.length>maxCh?Math.max(8,Math.round(f*maxCh/nm.length*10)/10):f;
-          return'<tr style="height:'+S0.r+'mm"><td class="n" style="font-size:'+Math.min(f,12)+'pt">'+(P.start+k*P.rows+j+1)+'</td><td style="font-size:'+fs+'pt">'+esc(nm)+'</td>'+(ML.pno?'<td class="pn">'+esc(p.pno||'')+'</td>':'')+'</tr>';
+          var nm=arText(p)||nameFull(p),fs=nm.length>maxCh?Math.max(7,Math.round(f*maxCh/nm.length*10)/10):f;
+          return'<tr style="height:'+S0.r+'mm"><td class="n" style="font-size:'+Math.min(f,12)+'pt">'+(P.start+k*P.rows+j+1)+'</td><td class="nm" data-f="'+fs+'" style="font-size:'+fs+'pt"><span>'+esc(nm)+'</span></td>'+(ML.pno?'<td class="pn">'+esc(p.pno||'')+'</td>':'')+'</tr>';
         }).join('')+'</tbody></table>';
     }
     return'<div class="pg"><img src="'+LH_SRC+'" alt=""><div class="bd">'+(pages.length>1?'<div class="pl">صفحة '+(pi+1)+' من '+pages.length+'</div>':'')+head+'<div class="cols c'+c+'">'+tbls+'</div></div></div>';
   }).join('');
   var doc='<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+esc((ML.title||'كشف الاعاشة')+' - '+g.name)+'</title>'
-    +'<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"><style>'+ML_CSS+'</style></head><body>'+html+'</body></html>';
+    +'<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"><style>'+ML_CSS+'</style></head><body>'+html+'<script>'+ML_FIT+'<\/script></body></html>';
   return{html:doc,n:n,pages:pages.length,L:L,unrev:unrev,g:g};
 }
 function mlInfo(){
@@ -3509,7 +3530,7 @@ function mlPrint(){
   var f=document.createElement('iframe');f.setAttribute('aria-hidden','true');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
   document.body.appendChild(f);
   var w=f.contentWindow,d=w.document;d.open();d.write(b.html);d.close();
-  var go=function(){try{w.focus();w.print()}catch(e){alert('الطباعة فشلت: '+e.message)}setTimeout(function(){f.remove()},120000)};
+  var go=function(){try{if(w.fitNames)w.fitNames();w.focus();w.print()}catch(e){alert('الطباعة فشلت: '+e.message)}setTimeout(function(){f.remove()},120000)};
   var img=d.querySelector('img'),ready=function(){var fr=(d.fonts&&d.fonts.ready)?Promise.race([d.fonts.ready,new Promise(function(r){setTimeout(r,1800)})]):Promise.resolve();fr.then(function(){setTimeout(go,150)})};
   if(!img||img.complete)ready();else{img.onload=ready;img.onerror=ready}
   logAct('طباعة كشف اعاشة — '+b.g.name+' ('+b.n+' معتمر)',b.g);
