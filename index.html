@@ -3637,9 +3637,12 @@ function mlPack(ppl,sz,c,hasNote){
   var f=mlFont(sz,c),mc=mlMaxCh(f,c),r=ML_SZ[sz].r,pages=[],pg=null,col=0,used=0,avail=0;
   function newPage(){var first=!pages.length;avail=(ML.plain?267:ML_BODY)-mlHead(first,hasNote)-r-2;pg={first:first,cols:[]};for(var k=0;k<c;k++)pg.cols.push([]);pages.push(pg);col=0;used=0}
   newPage();
+  var balH=0;
+  if(ML.plain&&c===2){var tot=0,mx=0;ppl.forEach(function(p){var nm=mlNm(p),len=nm.length+(ML.sup&&p.sup?7:0),h=mlRowH(sz,f,len>mc?2:1);tot+=h;if(h>mx)mx=h});if(tot<=2*avail)balH=tot/2+mx*0.5}
   ppl.forEach(function(p,i){
     var nm=mlNm(p),len=nm.length+(ML.sup&&p.sup?7:0),lines=len>mc?2:1,h=mlRowH(sz,f,lines);
-    if(used+h>avail+0.01&&pg.cols[col].length){col++;used=0;if(col>=c)newPage()}
+    var lim=(balH&&pages.length===1)?Math.min(avail,balH):avail;
+    if(used+h>lim+0.01&&pg.cols[col].length){col++;used=0;if(col>=c)newPage()}
     pg.cols[col].push({p:p,n:i+1,nm:nm,h:h});used+=h;
   });
   return{pages:pages,np:pages.length,sz:sz,c:c,f:f};
