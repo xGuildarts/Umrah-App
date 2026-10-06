@@ -933,6 +933,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
     <label>نوع التسكين<select id="ed-room"></select></label>
     <label>رقم الغرفة<input id="ed-rno" autocomplete="off"></label>
     <label>الحجز<input id="ed-bk" list="bklist" autocomplete="off"></label>
+    <label>📲 رقم الموبايل (واتساب)<input id="ed-ph" dir="ltr" placeholder="01012345678" autocomplete="off"></label>
     <label>سعر خاص (طفل / خصم)<input id="ed-custom" type="number" min="0"></label>
     <label>🏷️ خصم (مبلغ أو %)<input id="ed-disc" class="ltr" placeholder="500 أو 10%" autocomplete="off"></label>
   </div>
@@ -1092,6 +1093,29 @@ function suggestRoom(p,g){var m=roomMap(g),best='';Object.keys(m).some(function(
 function sumPays(p){return(p.pays||[]).reduce(function(a,x){return a+(+x.a||0)},0)}
 function paidOf(p){return(p.pays&&p.pays.length)?sumPays(p):(+p.paid||0)}
 function roomMap(g){var m={};S.people.forEach(function(p){if(p.g===g.id&&p.rno)(m[p.rno]=m[p.rno]||[]).push(p)});return m}
+/* ===== تسكين صارم: نوع الغرفة = نوع التسكين، سيدات مع سيدات / رجال مع رجال إلا المرتبطين ===== */
+function rmFix(ps){
+  var out=[],d=hdD();
+  ps.forEach(function(p){
+    if(!p||!p.rno||!p.room)return;
+    var r=d.rooms.find(function(x){return x.no===String(p.rno)});
+    if(r&&r.type&&r.type!==p.room)out.push({id:p.id,no:String(p.rno),rt:r.type,pt:p.room});
+  });
+  if(out.length)hdEject(out.map(function(o){return o.id}));
+  return out;
+}
+function rmCheck(p,no){
+  no=String(no||'').trim();if(!no)return'';
+  var g=grp(),d=hdD(),r=d.rooms.find(function(x){return x.no===no});
+  var mem=list().filter(function(x){return String(x.rno||'')===no&&x.id!==p.id});
+  var ty=(r&&r.type)||(mem[0]&&mem[0].room)||'';
+  if(ty&&p.room&&p.room!==ty)return'غرفة '+no+' نوعها '+roomLbl(ty)+' ونوع تسكين الفرد '+roomLbl(p.room)+' — لازم يتطابقوا';
+  var t=ty||p.room;
+  if(t&&CAP[t]){var n=mem.filter(function(x){return!isInf(x,g)}).length+(isInf(p,g)?0:1);if(n>CAP[t])return'غرفة '+no+' ('+roomLbl(t)+') كاملة'}
+  var all=mem.concat([p]),sx={};all.forEach(function(x){if(x.sex)sx[x.sex]=1});
+  if(sx.M&&sx.F&&!hdFamOK(all))return'غرفة '+no+' فيها رجال وسيدات — مسموح بس لو كلهم مرتبطين ببعض';
+  return'';
+}
 function roomIssue(p,g){
   if(!p.rno)return'';
   var mem=roomMap(g)[p.rno]||[],ty={},sx={},fam=false,msg=[];
@@ -1956,13 +1980,14 @@ $('tb').addEventListener('change',async function(e){
   // room type select
   if(t.dataset.room){
     var pr=S.people.find(function(x){return x.id===+t.dataset.room});
-    if(pr){pr.room=t.value;save();render();await sbSavePerson(pr);}return;
+    if(pr){pr.room=t.value;var _ej=rmFix([pr]);save();render();await sbSavePerson(pr);
+      if(_ej.length)say('⚠️ '+nameFull(pr)+' اتشال من غرفة '+_ej[0].no+' ('+roomLbl(_ej[0].rt)+') لأن نوع تسكينه بقى '+roomLbl(_ej[0].pt)+' — سكّنه في غرفة '+roomLbl(_ej[0].pt),'err')}return;
   }
   // room number or booking input
   if(t.classList.contains('rno')||t.classList.contains('bk')){
     if(p){
       if(t.classList.contains('bk'))p.bk=t.value.trim();
-      else p.rno=t.value.trim();
+      else{var _m=rmCheck(p,t.value);if(_m){alert('⛔ '+_m);render();return}p.rno=t.value.trim()}
       save();render();await sbSavePerson(p);
     }return;
   }
@@ -2129,24 +2154,31 @@ $('rd-body').onclick=function(e){var b=e.target.closest('[data-rd]');if(!b)retur
   $('flt').value=k;$('flt').dispatchEvent(new Event('change'));render()};
 $('sb-backup').addEventListener('click',function(){try{localStorage.setItem('fm_lastbk',Date.now())}catch(e){}});
 var WA_TPL='السلام عليكم ورحمة الله 🌙\nبخصوص حجز العمرة — {trip} {date}\nالحجز: {bk}\nالأفراد ({n}): {names}\n\nالإجمالي: {tot} {cur}\nالمدفوع: {paid} {cur}\nالمتبقي: {rem} {cur}\n{need_line}\n\nشكرًا لحضرتك 🤍\n{company}';
-var WA={k:''};
+var WA={k:'',pid:0};
 function waNum(r){var d=String(r||'').replace(/\D/g,'');if(d.indexOf('00')===0)d=d.slice(2);else if(d.charAt(0)==='0')d='20'+d.slice(1);else if(d.length===10&&d.charAt(0)==='1')d='20'+d;return d}
 function waBuild(b,g){
   var c=pcOf(g),t=c.tpl||WA_TPL,names=b.mem.map(function(p){return arText(p)||nameFull(p)}).join('، ');
   var need=b.need>0?'⚠️ المطلوب سداده الآن: '+b.need+' '+CUR:'✅ تم سداد الحد المطلوب';
-  var v={bk:b.k,names:names,n:b.mem.length,tot:b.tot,paid:b.paid,rem:b.rem,need_line:need,trip:g.trip||g.name,date:g.date?'('+fmtDate(g.date)+')':'',cur:CUR,company:c.co||'المامون انترناشيونال'};
+  var v={bk:b.k||'—',names:names,n:b.mem.length,tot:b.tot,paid:b.paid,rem:b.rem,need_line:need,trip:g.trip||g.name,date:g.date?'('+fmtDate(g.date)+')':'',cur:CUR,company:c.co||'المامون انترناشيونال'};
   return t.replace(/\{(\w+)\}/g,function(m,k){return v[k]!=null?v[k]:m}).replace(/[ \t]+\n/g,'\n')}
-function waOpen(k){
-  var g=grp(),b=bookings(g).find(function(x){return x.k===k});if(!b)return;WA.k=k;var c=pcOf(g);
-  c.ph=c.ph||{};$('wa-t').textContent='📲 واتساب — حجز '+k;$('wa-ph').value=c.ph[k]||'';$('wa-tpl').value=c.tpl||WA_TPL;$('wa-m').value=waBuild(b,g);$('wa-e').textContent='';$('wadlg').showModal();
+function waSolo(p,g){var o=payOwn(p,g);return{k:'',mem:[p],tot:o.tot||0,paid:o.paid||0,rem:o.rem||0,need:o.need||0}}
+function waCurB(){var g=grp();if(WA.pid){var p=S.people.find(function(x){return x.id===WA.pid});if(!p)return null;return(p.bk&&bookings(g).find(function(x){return x.k===p.bk}))||waSolo(p,g)}return bookings(g).find(function(x){return x.k===WA.k})||null}
+function waOpen(k,pid){
+  var g=grp(),c=pcOf(g),b,ph='',ttl;c.ph=c.ph||{};WA.pid=pid||0;
+  if(pid){var p=S.people.find(function(x){return x.id===pid});if(!p)return;WA.k='p'+pid;
+    b=(p.bk&&bookings(g).find(function(x){return x.k===p.bk}))||waSolo(p,g);ph=c.ph['p'+pid]||(p.bk&&c.ph[p.bk])||'';ttl='📲 واتساب — '+nameFull(p)}
+  else{b=bookings(g).find(function(x){return x.k===k});if(!b)return;WA.k=k;
+    ph=c.ph[k]||'';if(!ph)b.mem.some(function(m){if(c.ph['p'+m.id]){ph=c.ph['p'+m.id];return true}return false});ttl='📲 واتساب — حجز '+k}
+  $('wa-t').textContent=ttl;$('wa-ph').value=ph;$('wa-tpl').value=c.tpl||WA_TPL;$('wa-m').value=waBuild(b,g);$('wa-e').textContent='';$('wadlg').showModal();
 }
-function waPhone(){var g=grp(),c=pcOf(g),n=waNum($('wa-ph').value);if(n.length<11||n.length>15){$('wa-e').textContent='رقم الموبايل غير صحيح';return''}c.ph=c.ph||{};c.ph[WA.k]=$('wa-ph').value.trim();save();sbSaveGroup(g);return n}
+function waPhone(){var g=grp(),c=pcOf(g),n=waNum($('wa-ph').value);if(n.length<11||n.length>15){$('wa-e').style.color='var(--bad)';$('wa-e').textContent='رقم الموبايل غير صحيح';return''}c.ph=c.ph||{};c.ph[WA.k]=$('wa-ph').value.trim();save();sbSaveGroup(g);return n}
 $('wa-go').onclick=function(){var n=waPhone();if(!n)return;window.open('https://wa.me/'+n+'?text='+encodeURIComponent($('wa-m').value),'_blank')};
 $('wa-cp').onclick=function(){try{navigator.clipboard.writeText($('wa-m').value);$('wa-e').style.color='var(--ok)';$('wa-e').textContent='✓ اتنسخت'}catch(e){$('wa-m').select();document.execCommand('copy')}};
 $('wa-x').onclick=function(){$('wadlg').close()};
-$('wa-tsave').onclick=function(){var g=grp();pcOf(g).tpl=$('wa-tpl').value;save();sbSaveGroup(g);var b=bookings(g).find(function(x){return x.k===WA.k});if(b)$('wa-m').value=waBuild(b,g)};
-$('wa-treset').onclick=function(){var g=grp();delete pcOf(g).tpl;$('wa-tpl').value=WA_TPL;save();sbSaveGroup(g);var b=bookings(g).find(function(x){return x.k===WA.k});if(b)$('wa-m').value=waBuild(b,g)};
+$('wa-tsave').onclick=function(){var g=grp();pcOf(g).tpl=$('wa-tpl').value;save();sbSaveGroup(g);var b=waCurB();if(b)$('wa-m').value=waBuild(b,g)};
+$('wa-treset').onclick=function(){var g=grp();delete pcOf(g).tpl;$('wa-tpl').value=WA_TPL;save();sbSaveGroup(g);var b=waCurB();if(b)$('wa-m').value=waBuild(b,g)};
 $('bkt').addEventListener('click',function(e){var b=e.target.closest('[data-wa]');if(b)waOpen(b.dataset.wa)});
+$('tb').addEventListener('click',function(e){var b=e.target.closest('button[data-wap]');if(b)waOpen(null,+b.dataset.wap)});
 $('pr-go').onclick=doPrintNow;$('pr-x').onclick=function(){$('printdlg').close()};$('pr-o').onchange=prInfo;
 
 /* ══════════════════════════════════════════
@@ -2181,7 +2213,7 @@ function openEdit(id){
   $('ed-ar').value=arGet(p)||arAuto(p).t;$('ed-sex').value=p.sex||'';$('ed-dob').value=p.dob||'';$('ed-exp').value=p.exp||'';
   $('ed-room').innerHTML='<option value="">—</option>'+ROOMS.map(function(r){return'<option value="'+r[0]+'"'+(p.room===r[0]?' selected':'')+'>'+r[1]+'</option>'}).join('');
   $('ed-disc').value=p.disc||'';$('ed-rno').value=p.rno||'';$('ed-bk').value=p.bk||'';$('ed-custom').value=p.custom===''||p.custom==null?'':p.custom;
-  $('ed-sup').checked=!!p.sup;$('ed-mrz').style.display=p.mrz?'':'none';
+  $('ed-sup').checked=!!p.sup;$('ed-ph').value=(pcOf(grp()).ph||{})['p'+p.id]||'';$('ed-mrz').style.display=p.mrz?'':'none';
   edMrz='';$('ed-scan').value='';$('ed-scanmsg').textContent='';
   $('editdlg').showModal();$('ed-scan').focus();
 }
@@ -2205,6 +2237,9 @@ $('ed-save').onclick=async function(){
   if(!okName(su)||!okName(gi)){alert('الاسم لازم حروف إنجليزي بس (A-Z).');return}
   if(pno){var dup=S.people.find(function(x){return x.id!==p.id&&x.pno&&x.pno===pno});
     if(dup){alert('⚠️ رقم الجواز ده متسجل قبل كده لـ: '+nameFull(dup));return}}
+  var _nr=$('ed-rno').value.trim(),_ph=$('ed-ph').value.trim();
+  if(_ph&&(function(){var n=waNum(_ph);return n.length<11||n.length>15})()){alert('رقم الموبايل غير صحيح');return}
+  if(_nr!==String(p.rno||'')){var _tp=Object.assign({},p,{room:$('ed-room').value,sex:$('ed-sex').value,dob:$('ed-dob').value}),_m=rmCheck(_tp,_nr);if(_m){alert('⛔ '+_m);return}}
   var old=JSON.parse(JSON.stringify(p));
   if(su!==p.sur||gi!==p.giv)p.rev=false;
   p.sur=su;p.giv=gi;p.pno=pno;p.nat=$('ed-nat').value.trim().toUpperCase();p.sex=$('ed-sex').value;
@@ -2218,13 +2253,17 @@ $('ed-save').onclick=async function(){
   else{var pc=/%$/.test(dv),n=parseFloat(dv);
     if(isNaN(n)||n<0||(pc&&n>100)){Object.assign(p,old);alert('الخصم لازم رقم (مبلغ) أو نسبة زي 10%.');return}
     p.disc=pc?Math.round(baseOf(p,grp())*n/100):n}
+  var _gp=pcOf(grp());_gp.ph=_gp.ph||{};if(_ph)_gp.ph['p'+p.id]=_ph;else delete _gp.ph['p'+p.id];
+  var _ej=rmFix([p]);
   $('editdlg').close();save();render();say('✓ اتعدل: '+nameFull(p),'ok');
+  if(_ej.length)say('⚠️ '+nameFull(p)+' اتشال من غرفة '+_ej[0].no+' ('+roomLbl(_ej[0].rt)+') لأن نوع تسكينه بقى '+roomLbl(_ej[0].pt)+' — سكّنه في غرفة '+roomLbl(_ej[0].pt),'err');
+  sbSaveGroup(grp());
   (function(){var df=edDiff(old,p);if(df)logAct('تعديل «'+nameFull(p)+'» — '+df)})();
   showUndo('تم تعديل '+nameFull(p),async function(){
     Object.keys(p).forEach(function(k){if(!(k in old))delete p[k]});Object.assign(p,old);save();render();await sbSavePerson(p)});
   await sbSavePerson(p);
 };
-['ed-sur','ed-giv','ed-pno','ed-nat','ed-rno','ed-bk','ed-custom','ed-disc'].forEach(function(id){
+['ed-sur','ed-giv','ed-pno','ed-nat','ed-rno','ed-bk','ed-ph','ed-custom','ed-disc'].forEach(function(id){
   $(id).addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();$('ed-save').click()}})});
 $('autorm').onclick=async function(){
   var cand=list().filter(function(p){return p.room&&!p.rno&&!p.fam});
@@ -2554,12 +2593,12 @@ function render(){
       +'<td class="chk"><input type="checkbox" data-pid="'+p.id+'" data-field="hasPass"'+(p.hasPass?' checked':'')+'></td>'
       +'<td class="chk"><input type="checkbox" data-pid="'+p.id+'" data-field="rev"'+(p.rev?' checked':'')+'></td>'
       +'<td><select data-room="'+p.id+'" style="font-size:12px;padding:3px 5px"><option value="">—</option>'+ROOMS.map(function(r){return'<option value="'+r[0]+'"'+(p.room===r[0]?' selected':'')+'>'+r[1]+((g.pr&&g.pr[r[0]])?' ('+g.pr[r[0]]+')':'')+'</option>'}).join('')+'</select></td>'
-      +'<td><input class="rno" data-pid="'+p.id+'" value="'+esc(p.rno)+'" style="width:46px;padding:3px 5px;font-size:12px"> <label title="عائلة / غرفة مغلقة"><input type="checkbox" data-pid="'+p.id+'" data-field="fam"'+(p.fam?' checked':'')+'>👪</label>'+(p.room&&!p.rno?' <button class="sec" data-sug="'+p.id+'" title="اقتراح غرفة" style="padding:1px 5px;font-size:12px">💡</button>':'')+'</td>'
+      +'<td><input class="rno" data-pid="'+p.id+'" value="'+esc(p.rno)+'" style="width:46px;padding:3px 5px;font-size:12px"> '+(p.fam?'<span title="غرفة مختلطة لأنهم مرتبطين ببعض">👪</span>':'')+(p.room&&!p.rno?' <button class="sec" data-sug="'+p.id+'" title="اقتراح غرفة" style="padding:1px 5px;font-size:12px">💡</button>':'')+'</td>'
       +'<td><input class="bk" list="bklist" data-pid="'+p.id+'" value="'+esc(p.bk)+'" placeholder="—" style="width:80px;padding:3px 5px;font-size:12px">'+rlBadge(p)+'</td>'
       +'<td><button class="sec" data-pay="'+p.id+'" style="padding:3px 8px;font-size:12px">💵 '+paidOf(p)+'</button>'+(+p.disc>0?'<div style="font-size:11px;color:var(--warn)">🏷️ خصم '+p.disc+'</div>':'')+'</td>'
       +'<td style="font-size:12px">'+(p.sup?'<b style="color:var(--ok)">👑 مشرف — بدون تكلفة</b>':pi.auto?(pi.due?'<b style="color:var(--bad)">💰 مطلوب '+(pi.bk&&!pi.lead?'ضمن الحجز':pi.amt+' '+CUR)+'</b>':'<b style="color:var(--ok)">✓ '+pct+'%+</b>')+'<br><span style="color:var(--mut)">'+(pi.bk?'حجز '+esc(pi.bk)+' ('+pi.n+'): المتبقي '+pi.rem+' من '+pi.btot:'المتبقي '+pi.rem)+'</span>':'<label><input type="checkbox" data-pid="'+p.id+'" data-field="payDue"'+(p.payDue?' checked':'')+'> سداد</label>'+(p.payDue?' <input type="number" min="0" class="amt" data-pid="'+p.id+'" placeholder="المبلغ" value="'+esc(p.payAmt)+'" style="width:70px;padding:3px 5px;font-size:12px">':''))+'</td>'
       +'<td><select data-m="'+p.id+'" style="font-size:11px;padding:3px 5px">'+opts.replace('value="'+p.g+'"','value="'+p.g+'" selected')+'</select></td>'
-      +'<td style="white-space:nowrap"><button class="sec" data-e="'+p.id+'" title="تعديل البيانات" style="padding:2px 7px;font-size:13px">✏️</button><button class="x" data-d="'+p.id+'">✕</button></td>'
+      +'<td style="white-space:nowrap"><button class="sec" data-wap="'+p.id+'" title="'+((((g.pc||{}).ph||{})['p'+p.id])?'واتساب — '+esc(g.pc.ph['p'+p.id]):'واتساب — ضيف رقم العميل')+'" style="padding:2px 7px;font-size:13px;color:#128c4a">📲</button><button class="sec" data-e="'+p.id+'" title="تعديل البيانات" style="padding:2px 7px;font-size:13px">✏️</button><button class="x" data-d="'+p.id+'">✕</button></td>'
       +'</tr>'
   }).join('');
   renderExtras();renderBulk();
@@ -2605,9 +2644,9 @@ async function bulkApply(label,fn,confirmMsg){
   if(!ps.length)return;
   if(confirmMsg&&!confirm(confirmMsg.replace('{n}',ps.length)))return;
   snapNow('قبل '+label);
-  ps.forEach(fn);save();render();
+  ps.forEach(fn);var _ej=rmFix(ps);save();render();
   for(var i=0;i<ps.length;i++)await sbSavePerson(ps[i]);
-  say('✓ '+label+' — '+ps.length+' فرد','ok');logAct('تعديل جماعي: '+label+' — '+ps.length+' فرد');
+  say('✓ '+label+' — '+ps.length+' فرد'+(_ej.length?' — ⚠️ '+_ej.length+' اتشالوا من غرف نوعها مختلف وهيتسكنوا من جديد':''),_ej.length?'err':'ok');logAct('تعديل جماعي: '+label+' — '+ps.length+' فرد');
 }
 var _rlHex=['#8b5cf6','#f59e0b','#0ea5e9','#ec4899','#10b981','#ef4444','#6366f1','#14b8a6','#a16207','#64748b'];
 function rlBadge(p){try{var l=hdLinkMap()[p.id];if(!l)return'';var mates=l.ids.filter(function(i){return i!==p.id}).map(function(i){var q=S.people.find(function(x){return x.id===i});return q?nameFlight(q):''}).join('، ');var c=_rlHex[(l.n-1)%10];return'<div style="margin-top:3px"><span title="لازم يتسكن في غرفة واحدة مع: '+esc(mates)+'" style="background:'+c+';color:#fff;border-radius:9px;padding:1px 8px;font-size:11.5px;font-weight:700;white-space:nowrap">🔗 غرفة واحدة ر'+l.n+' ('+l.ids.length+')</span></div>'}catch(e){return''}}
@@ -2616,6 +2655,7 @@ function rlMake(ps){
   var types={};ps.forEach(function(p){if(p.room)types[p.room]=1});var ks=Object.keys(types);
   if(ks.length>1){var t0=ps.filter(function(p){return p.room})[0].room;if(!confirm('نوع التسكين مختلف بين المحددين ('+ks.map(roomLbl).join(' / ')+').\nأوحّد الكل على: '+roomLbl(t0)+' ؟'))return false;ps.forEach(function(p){p.room=t0})}
   else if(ks.length===1)ps.forEach(function(p){p.room=ks[0]});
+  rmFix(ps);
   var d=hdD(),lm=hdLinkMap(),merged=ps.map(function(p){return p.id}),old=[];
   merged.slice().forEach(function(id){var l=lm[id];if(l&&old.indexOf(l)<0){old.push(l);l.ids.forEach(function(i){if(merged.indexOf(i)<0)merged.push(i)})}});
   var n=old.length?old[0].n:++d.lc;
@@ -2987,7 +3027,8 @@ $('open-housing').onclick=function(){
   document.querySelectorAll('.hd-sex-tab').forEach(function(x){x.classList.toggle('on',x.dataset.sex==='all')});
   $('hd-nt').innerHTML=ROOMS.map(function(r){return'<option value="'+r[0]+'">'+r[1]+'</option>'}).join('');
   $('hd-nt').value='quad';
-  arEnsureAll(hdPeople());hdClean();HD.orig=hdSnap();hdRender();$('housingdlg').showModal();
+  arEnsureAll(hdPeople());hdClean();HD.orig=hdSnap();var _fx=rmFix(hdPeople());hdRender();$('housingdlg').showModal();
+  if(_fx.length)hdSay('⚠️ '+_fx.length+' فرد كانوا في غرفة نوعها مختلف عن نوع تسكينهم — اتشالوا ومحتاجين تسكين من جديد (اضغط حفظ)','err');
 };
 function hdChanged(){var n=hdSnap();return JSON.stringify(n.p)!==JSON.stringify(HD.orig.p)||n.d!==HD.orig.d}
 $('hd-close').onclick=function(){
@@ -3118,16 +3159,19 @@ function hdEject(ids){
 function hdPlace(ids,no){
   var r=hdD().rooms.find(function(x){return x.no===no});if(!r)return false;
   var g=grp(),ppl=ids.map(hdById).filter(Boolean);if(!ppl.length)return false;
+  if(!r.type){hdSay('⛔ حدد نوع غرفة '+no+' الأول','err');return false}
+  var bad=ppl.filter(function(p){return p.room&&p.room!==r.type});
+  if(bad.length){hdSay('⛔ غرفة '+no+' '+roomLbl(r.type)+' — لكن '+bad.map(arText).join('، ')+' نوع تسكينه '+roomLbl(bad[0].room)+'. غيّر نوع تسكين الفرد الأول أو اختار غرفة '+roomLbl(bad[0].room),'err');return false}
   var rest=hdMem(no).filter(function(p){return ids.indexOf(p.id)<0}),all=rest.concat(ppl);
   var cap=CAP[r.type]||0,n=hdN(all);
-  if(cap&&n>cap&&!confirm('غرفة '+no+' ('+roomLbl(r.type)+') هتبقى '+n+'/'+cap+' — زيادة عن السعة. تكمل؟'))return false;
+  if(cap&&n>cap){hdSay('⛔ غرفة '+no+' ('+roomLbl(r.type)+') هتبقى '+n+'/'+cap+' — مفيش مكان كفاية','err');return false}
   var sx={};all.forEach(function(p){if(p.sex)sx[p.sex]=1});
-  if(sx.M&&sx.F&&!hdFamOK(all)&&!confirm('غرفة '+no+' هيبقى فيها رجال وسيدات مع بعض (ومش مرتبطين ببعض). تكمل؟'))return false;
+  if(sx.M&&sx.F&&!hdFamOK(all)){hdSay('⛔ غرفة '+no+' هيبقى فيها رجال وسيدات — مسموح بس للمرتبطين ببعض (استخدم 🔗 ربط الأول)','err');return false}
   hdPush();
   var olds={},chg=0;
-  ppl.forEach(function(p){if(p.rno&&String(p.rno)!==no)olds[String(p.rno)]=1;p.rno=no;if(r.type&&p.room!==r.type){p.room=r.type;chg++}});
+  ppl.forEach(function(p){if(p.rno&&String(p.rno)!==no)olds[String(p.rno)]=1;p.rno=no;if(p.room!==r.type){p.room=r.type;chg++}});
   hdSyncFam(no);Object.keys(olds).forEach(hdSyncFam);
-  hdSay('✓ اتسكّن '+ppl.length+' في غرفة '+no+(chg?' — اتغير نوع تسكين '+chg+' فرد لـ '+roomLbl(r.type):''),'ok');
+  hdSay('✓ اتسكّن '+ppl.length+' في غرفة '+no,'ok');
   return true;
 }
 function hdAddRooms(type,qty,start){
@@ -3143,7 +3187,11 @@ function hdAddRooms(type,qty,start){
 function hdLinkSel(){
   var ids=Object.keys(HD.sel).map(Number);
   if(ids.length<2){hdSay('حدد فردين أو أكتر الأول (اضغط على الأسماء)','err');return}
-  hdPush();
+  var _ps=ids.map(hdById).filter(Boolean),_ty={};_ps.forEach(function(p){if(p.room)_ty[p.room]=1});
+  if(Object.keys(_ty).length>1){var _t0=_ps.filter(function(p){return p.room})[0].room;
+    if(!confirm('نوع التسكين مختلف بين المحددين ('+Object.keys(_ty).map(roomLbl).join(' / ')+').\nأوحّد الكل على: '+roomLbl(_t0)+' ؟'))return;
+    hdPush();_ps.forEach(function(p){p.room=_t0});hdEject(_ps.filter(function(p){return p.rno&&(hdD().rooms.find(function(r){return r.no===String(p.rno)})||{}).type!==_t0}).map(function(p){return p.id}))}
+  else hdPush();
   var d=hdD(),lm=hdLinkMap(true),merged=ids.slice(),old=[];
   ids.forEach(function(id){var l=lm[id];if(l&&old.indexOf(l)<0){old.push(l);l.ids.forEach(function(i){if(merged.indexOf(i)<0)merged.push(i)})}});
   d.links=d.links.filter(function(l){return old.indexOf(l)<0});
@@ -3282,7 +3330,11 @@ hdDlg.addEventListener('change',function(e){
   if(t.dataset&&t.dataset.rtype!=null&&t.matches('select')){
     var no=t.dataset.rtype,r=hdD().rooms.find(function(x){return x.no===no});if(!r)return;
     var mem=hdMem(no),ty=t.value;
-    if(mem.length&&ty&&!confirm('تغيير نوع غرفة '+no+' لـ '+roomLbl(ty)+' هيغير نوع تسكين '+mem.length+' فرد فيها. تكمل؟')){return hdRender()}
+    if(mem.length&&ty!==(r.type||'')){
+      var bad=mem.filter(function(p){return p.room&&p.room!==ty});
+      if(!ty||bad.length){hdSay('⛔ غرفة '+no+' فيها '+mem.length+' فرد — أخرجهم الأول قبل تغيير نوعها','err');return hdRender()}
+      if(CAP[ty]&&hdN(mem)>CAP[ty]){hdSay('⛔ عدد اللي في الغرفة أكبر من سعة '+roomLbl(ty),'err');return hdRender()}
+    }
     hdPush();r.type=ty;if(ty)mem.forEach(function(p){p.room=ty});return hdRender();
   }
   if(t.id==='hd-rf'){HD.rf=t.value;hdRender()}
