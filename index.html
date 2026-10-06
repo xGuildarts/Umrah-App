@@ -739,6 +739,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
     <label>توزيع الصفحات<select id="ml-fit"><option value="normal">عادي — صفحة أو أكتر حسب العدد</option><option value="one">كل الأسماء في ورقة واحدة</option></select></label>
   </div>
   <div class="row" style="margin-top:8px;font-size:13px;gap:14px">
+    <label style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="ml-plain"> طباعة على ورقة بيضاء (من غير ورقة الشركة)</label>
     <label style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="ml-showtitle"> إظهار عنوان الكشف</label>
     <label style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="ml-showsub"> إظهار بيانات الرحلة (المجموعة / العدد)</label>
     <label style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="ml-date"> تاريخ الرحلة في العنوان</label>
@@ -3608,7 +3609,7 @@ $('sb-backup').addEventListener('click',function(){setTimeout(exUI,50)});
 setInterval(exUI,60000);
 
 /* ═════════════ الاعاشة ═════════════ */
-var ML={title:'كشف أسماء المعتمرين — الاعاشة',note:'',sort:'add',cols:'auto',size:'auto',pno:false,date:true,sup:true,showTitle:true,showSub:true,sig:false,stp:false,sigName:'',sigImg:'',stpImg:'',fit:'normal',fpt:0,g:''};
+var ML={title:'كشف أسماء المعتمرين — الاعاشة',note:'',sort:'add',cols:'auto',size:'auto',pno:false,date:true,sup:true,showTitle:true,showSub:true,plain:false,sig:false,stp:false,sigName:'',sigImg:'',stpImg:'',fit:'normal',fpt:0,g:''};
 try{var _m=JSON.parse(localStorage.getItem('fm_meal')||'{}');Object.keys(_m).forEach(function(k){if(k!=='g'&&k.charAt(0)!=='_')ML[k]=_m[k]})}catch(e){}
 function mlSave(){try{var o={};Object.keys(ML).forEach(function(k){if(k!=='g'&&k.charAt(0)!=='_')o[k]=ML[k]});localStorage.setItem('fm_meal',JSON.stringify(o))}catch(e){}}
 function mlGroup(){return S.groups.find(function(x){return String(x.id)===String(ML.g)})||grp()}
@@ -3634,7 +3635,7 @@ function mlNm(p){return arText(p)||nameFull(p)}
 /* توزيع الأسماء على الصفحات والأعمدة حسب ارتفاع كل صف (الاسم الطويل = سطرين) */
 function mlPack(ppl,sz,c,hasNote){
   var f=mlFont(sz,c),mc=mlMaxCh(f,c),r=ML_SZ[sz].r,pages=[],pg=null,col=0,used=0,avail=0;
-  function newPage(){var first=!pages.length;avail=ML_BODY-mlHead(first,hasNote)-r-2;pg={first:first,cols:[]};for(var k=0;k<c;k++)pg.cols.push([]);pages.push(pg);col=0;used=0}
+  function newPage(){var first=!pages.length;avail=(ML.plain?267:ML_BODY)-mlHead(first,hasNote)-r-2;pg={first:first,cols:[]};for(var k=0;k<c;k++)pg.cols.push([]);pages.push(pg);col=0;used=0}
   newPage();
   ppl.forEach(function(p,i){
     var nm=mlNm(p),len=nm.length+(ML.sup&&p.sup?7:0),lines=len>mc?2:1,h=mlRowH(sz,f,lines);
@@ -3698,7 +3699,7 @@ function mlBuild(){
           return'<tr data-h="'+it.h+'" style="height:'+it.h+'mm"><td class="n" style="font-size:'+Math.min(f,12)+'pt">'+it.n+'</td><td class="nm" data-f="'+f+'" style="font-size:'+f+'pt"><span>'+esc(it.nm)+(ML.sup&&p.sup?' <b style="color:#b3261e;white-space:nowrap">(مشرف)</b>':'')+'</span></td>'+(ML.pno?'<td class="pn">'+esc(p.pno||'')+'</td>':'')+'</tr>';
         }).join('')+'</tbody></table>';
     }
-    return'<div class="pg"><img src="'+LH_SRC+'" alt=""><div class="bd">'+(pages.length>1?'<div class="pl">صفحة '+(pi+1)+' من '+pages.length+'</div>':'')+head+'<div class="cols c'+c+'">'+tbls+'</div></div>'+(pi===pages.length-1?((ML.stp?'<div class="stp">'+(ML.stpImg?'<img src="'+ML.stpImg+'" alt="">':'<span>ختم الشركة</span>')+'</div>':'')+(ML.sig?'<div class="sg"><div>رئيس مجلس الإدارة</div>'+(ML.sigImg?'<img src="'+ML.sigImg+'" alt="">':'<div class="sp"></div>')+(ML.sigName?'<div class="sn">'+esc(ML.sigName)+'</div>':'')+'</div>':'')):'')+'</div>';
+    return'<div class="pg">'+(ML.plain?'':'<img src="'+LH_SRC+'" alt="">')+'<div class="bd"'+(ML.plain?' style="top:15mm;height:267mm"':'')+'>'+(pages.length>1?'<div class="pl">صفحة '+(pi+1)+' من '+pages.length+'</div>':'')+head+'<div class="cols c'+c+'">'+tbls+'</div></div>'+(pi===pages.length-1&&!ML.plain?((ML.stp?'<div class="stp">'+(ML.stpImg?'<img src="'+ML.stpImg+'" alt="">':'<span>ختم الشركة</span>')+'</div>':'')+(ML.sig?'<div class="sg"><div>رئيس مجلس الإدارة</div>'+(ML.sigImg?'<img src="'+ML.sigImg+'" alt="">':'<div class="sp"></div>')+(ML.sigName?'<div class="sn">'+esc(ML.sigName)+'</div>':'')+'</div>':'')):'')+'</div>';
   }).join('');
   var doc='<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+esc((ML.title||'كشف الاعاشة')+' - '+g.name)+'</title>'
     +'<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"><style>'+ML_CSS+'</style></head><body>'+html+'<script>'+ML_FIT+'<\/script></body></html>';
@@ -3726,13 +3727,14 @@ function mlRefresh(){
   [['ml-title','title'],['ml-note','note']].forEach(function(a){if(document.activeElement!==$(a[0]))$(a[0]).value=ML[a[1]]||''});
   [['ml-sort','sort'],['ml-cols','cols'],['ml-size','size'],['ml-fit','fit']].forEach(function(a){$(a[0]).value=ML[a[1]]});
   if(document.activeElement!==$('ml-fpt'))$('ml-fpt').value=ML.fpt||'';
-  $('ml-sig').checked=!!ML.sig;$('ml-stp').checked=!!ML.stp;if(document.activeElement!==$('ml-signame'))$('ml-signame').value=ML.sigName||'';$('ml-showtitle').checked=ML.showTitle!==false;$('ml-showsub').checked=ML.showSub!==false;$('ml-date').checked=!!ML.date;$('ml-pno').checked=!!ML.pno;$('ml-sup').checked=!!ML.sup;
+  $('ml-plain').checked=!!ML.plain;$('ml-sig').checked=!!ML.sig;$('ml-stp').checked=!!ML.stp;if(document.activeElement!==$('ml-signame'))$('ml-signame').value=ML.sigName||'';$('ml-showtitle').checked=ML.showTitle!==false;$('ml-showsub').checked=ML.showSub!==false;$('ml-date').checked=!!ML.date;$('ml-pno').checked=!!ML.pno;$('ml-sup').checked=!!ML.sup;
   mlInfo();
 }
 $('ml-g').onchange=function(){ML.g=this.value;mlInfo()};
 ['ml-title','ml-note'].forEach(function(id){$(id).oninput=function(){ML[id==='ml-title'?'title':'note']=this.value;mlSave();mlInfo()}});
 ['ml-sort','ml-cols','ml-size','ml-fit'].forEach(function(id){$(id).onchange=function(){ML[id.slice(3)]=this.value;mlSave();mlInfo()}});
 $('ml-date').onchange=function(){ML.date=this.checked;mlSave()};
+$('ml-plain').onchange=function(){ML.plain=this.checked;mlSave();mlInfo()};
 $('ml-sig').onchange=function(){ML.sig=this.checked;mlSave()};
 $('ml-stp').onchange=function(){ML.stp=this.checked;mlSave()};
 $('ml-signame').oninput=function(){ML.sigName=this.value;mlSave()};
