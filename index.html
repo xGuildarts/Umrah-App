@@ -3647,7 +3647,7 @@ function mlPack(ppl,sz,c,hasNote){
 function mlLayout(ppl,hasNote){
   var one=ML.fit==='one',sizes=ML.size==='auto'?(one?['l','m','s','xs','xxs']:['l','m','s']):[ML.size];
   if(ML.fpt>0){var cf=Math.min(24,Math.max(7,+ML.fpt));ML_SZ.c={f:cf,r:Math.max(4,Math.round(cf*0.58*10)/10)};sizes=['c']}
-  var cols=ML.cols==='auto'?[1,2]:[+ML.cols],best=null;
+  var cols=ML.cols==='auto'?(ML.plain?[2]:[1,2]):[+ML.cols],best=null;
   for(var a=0;a<sizes.length;a++)for(var b=0;b<cols.length;b++){
     var L=mlPack(ppl,sizes[a],cols[b],hasNote);
     if(!best||L.np<best.np)best=L;
