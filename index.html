@@ -751,6 +751,30 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
   <p class="hint" style="margin:8px 0 0">في نافذة الطباعة اختار ورق A4 والهوامش (Margins) = None، وفعّل Background graphics لو الورقة طلعت من غير خلفية.</p>
 </div>
 
+<!-- Letter / خطاب على ورقة الشركة -->
+<div class="card" id="letter-card">
+  <div class="sec-t">✉️ خطاب / إيميل رسمي <small>(نص حر بدون أسماء معتمرين، على ورقة الشركة المختومة)</small></div>
+  <div class="mealgrid">
+    <label>إلى (الجهة / الشخص)<input id="lt-to" placeholder="مثال: السادة / شركة ... المحترمين"></label>
+    <label>الموضوع<input id="lt-subj" placeholder="مثال: طلب تأشيرات عمرة"></label>
+    <label>التاريخ<input id="lt-dtx" placeholder="15/10/2026"></label>
+    <label>حجم الخط<select id="lt-size"><option value="l">كبير</option><option value="m">متوسط</option><option value="s">صغير</option></select></label>
+  </div>
+  <label style="display:flex;flex-direction:column;gap:3px;font-size:13px;margin-top:8px">نص الخطاب <small style="color:var(--mut)">(كل سطر جديد = فقرة جديدة، ولو النص طويل بيكمّل لوحده على صفحة تانية)</small>
+    <textarea id="lt-body" rows="9" style="width:100%;font-family:inherit;font-size:14px;line-height:1.7" placeholder="تحية طيبة وبعد،&#10;نتشرف بأن نتقدم لسيادتكم ..."></textarea></label>
+  <label style="display:flex;flex-direction:column;gap:3px;font-size:13px;margin-top:8px">الختام والتوقيع
+    <textarea id="lt-close" rows="3" style="width:100%;font-family:inherit;font-size:14px;line-height:1.7" placeholder="وتفضلوا بقبول فائق الاحترام والتقدير،&#10;الإدارة"></textarea></label>
+  <div class="row" style="margin-top:8px;font-size:13px;gap:14px">
+    <label style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="lt-date"> اكتب التاريخ في أول الخطاب</label>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <button id="lt-prev" class="sec">👁️ معاينة</button>
+    <button id="lt-print">🖨️ طباعة على ورقة الشركة</button>
+    <button id="lt-clear" class="sec">🧹 مسح النص</button>
+  </div>
+  <p class="hint" style="margin:8px 0 0">نفس إعدادات طباعة الاعاشة: A4 والهوامش (Margins) = None، وفعّل Background graphics لو الورقة طلعت من غير خلفية.</p>
+</div>
+
 <!-- Scanner -->
 <div class="card scan-card">
   <div class="sec-t">📷 قراءة الجواز <small>(MRZ)</small></div>
@@ -3696,6 +3720,7 @@ $('ml-pno').onchange=function(){ML.pno=this.checked;mlSave();mlInfo()};
 $('ml-sup').onchange=function(){ML.sup=this.checked;mlSave()};
 $('ml-ar').onclick=function(){var id=+ML.g;if(grp().id!==id){S.active=id;save();render()}arOpen()};
 $('ml-prev').onclick=function(){
+  window.ML_MODE='meal';$('ml-frame').onload=null;
   var b=mlBuild();if(!b.n){alert('الرحلة دي مفيهاش معتمرين.');return}
   $('ml-frame').srcdoc=b.html;
   $('ml-pi').textContent=b.n+' معتمر · '+b.pages+' صفحة'+(b.unrev?' · ⚠️ '+b.unrev+' اسم لسه ماتراجعش':'');
@@ -3713,7 +3738,79 @@ function mlPrint(){
   if(!img||img.complete)ready();else{img.onload=ready;img.onerror=ready}
   logAct('طباعة كشف اعاشة — '+b.g.name+' ('+b.n+' معتمر)',b.g);
 }
-$('ml-print').onclick=mlPrint;$('ml-pgo').onclick=function(){$('mldlg').close();mlPrint()};
+$('ml-print').onclick=mlPrint;$('ml-pgo').onclick=function(){$('mldlg').close();if(window.ML_MODE==='letter')ltPrint();else mlPrint()};
+
+/* ═════════════ خطاب / إيميل رسمي على ورقة الشركة ═════════════ */
+var LT={to:'',subj:'',body:'',close:'',date:true,dtx:'',size:'m'};
+try{var _l=JSON.parse(localStorage.getItem('fm_letter')||'{}');Object.keys(_l).forEach(function(k){LT[k]=_l[k]})}catch(e){}
+function ltSave(){try{localStorage.setItem('fm_letter',JSON.stringify(LT))}catch(e){}}
+function ltToday(){var d=new Date();return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()}
+if(!LT.dtx)LT.dtx=ltToday();
+var LT_SZ={l:14,m:12.5,s:11};
+var LT_CSS='.bd{direction:rtl;color:#12284a}.bd>div{font-size:var(--f,12.5pt)}'
+ +'.dt{text-align:left;direction:ltr;padding-bottom:3mm;color:#3b4a63;font-weight:500}'
+ +'.to{font-weight:800;padding-bottom:3mm;line-height:1.6}'
+ +'.sj{font-weight:800;text-align:center;padding-bottom:4mm;line-height:1.6;text-decoration:underline;text-underline-offset:1.4mm;text-decoration-color:#e8743b}'
+ +'.p{text-align:justify;line-height:1.75;padding-bottom:2.6mm;font-weight:500}'
+ +'.cl{text-align:left;direction:rtl;padding:3mm 12mm 0 0;line-height:1.9;font-weight:700;white-space:pre-line}';
+var LT_JS='window.DATA=JSON.parse(document.getElementById("d").textContent);'
+ +'function paginate(){var D=window.DATA,root=document.getElementById("root");root.innerHTML="";var bd;'
+ +'function newPage(){var pg=document.createElement("div");pg.className="pg";pg.style.setProperty("--f",D.f+"pt");var im=document.createElement("img");im.src=D.lh;im.alt="";pg.appendChild(im);bd=document.createElement("div");bd.className="bd";pg.appendChild(bd);root.appendChild(pg)}'
+ +'function over(){return bd.scrollHeight>bd.clientHeight+1}'
+ +'newPage();'
+ +'D.blocks.forEach(function(b){'
+ +'var el=document.createElement("div");el.className=b.c;'
+ +'if(!b.split){el.textContent=b.t;bd.appendChild(el);if(over()&&bd.children.length>1){bd.removeChild(el);newPage();bd.appendChild(el)}return}'
+ +'el.textContent=b.t;bd.appendChild(el);if(!over())return;'
+ +'var words=b.t.split(" "),i=0;el.textContent="";'
+ +'while(i<words.length){var prev=el.textContent;el.textContent=(prev?prev+" ":"")+words[i];'
+ +'if(over()){el.textContent=prev;'
+ +'if(prev){newPage();el=document.createElement("div");el.className=b.c;bd.appendChild(el);continue}'
+ +'if(bd.children.length>1){bd.removeChild(el);newPage();bd.appendChild(el);continue}'
+ +'el.textContent=words[i]}i++}'
+ +'});'
+ +'var pgs=root.children;if(pgs.length>1)for(var k=0;k<pgs.length;k++){var l=document.createElement("div");l.className="pl";l.textContent="صفحة "+(k+1)+" من "+pgs.length;pgs[k].querySelector(".bd").appendChild(l)}'
+ +'}window.paginate=paginate;'
+ +'window.addEventListener("load",function(){paginate();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(paginate)});';
+function ltBuild(){
+  var blocks=[];
+  if(LT.date&&LT.dtx.trim())blocks.push({c:'dt',t:LT.dtx.trim()});
+  if(LT.to.trim())blocks.push({c:'to',t:LT.to.trim()});
+  if(LT.subj.trim())blocks.push({c:'sj',t:'الموضوع: '+LT.subj.trim()});
+  LT.body.split(/\n/).forEach(function(l){l=l.replace(/\s+/g,' ').trim();if(l)blocks.push({c:'p',t:l,split:1})});
+  if(LT.close.trim())blocks.push({c:'cl',t:LT.close.replace(/\s+$/,'')});
+  var data=JSON.stringify({blocks:blocks,f:LT_SZ[LT.size]||12.5,lh:LH_SRC}).replace(/</g,'\\u003c');
+  var doc='<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+esc(LT.subj||'خطاب')+'</title>'
+    +'<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"><style>'+ML_CSS+LT_CSS+'</style></head><body><div id="root"></div>'
+    +'<script type="application/json" id="d">'+data+'<\/script><script>'+LT_JS+'<\/script></body></html>';
+  return{html:doc,n:blocks.length};
+}
+function ltCheck(){if(!(LT.body.trim()||LT.to.trim()||LT.subj.trim())){alert('اكتب نص الخطاب الأول.');return false}return true}
+$('lt-prev').onclick=function(){
+  if(!ltCheck())return;
+  window.ML_MODE='letter';var fr=$('ml-frame');
+  fr.onload=function(){try{var n=fr.contentDocument.querySelectorAll('.pg').length;$('ml-pi').textContent='خطاب · '+n+(n===1?' صفحة':n===2?' صفحتين':' صفحات')}catch(e){}};
+  fr.srcdoc=ltBuild().html;$('mldlg').showModal();
+};
+function ltPrint(){
+  if(!ltCheck())return;
+  var b=ltBuild(),f=document.createElement('iframe');f.setAttribute('aria-hidden','true');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(f);
+  var w=f.contentWindow,d=w.document;d.open();d.write(b.html);d.close();
+  var go=function(){try{if(w.paginate)w.paginate();w.focus();w.print()}catch(e){alert('الطباعة فشلت: '+e.message)}setTimeout(function(){f.remove()},120000)};
+  var img=d.querySelector('img'),ready=function(){var fr=(d.fonts&&d.fonts.ready)?Promise.race([d.fonts.ready,new Promise(function(r){setTimeout(r,1800)})]):Promise.resolve();fr.then(function(){setTimeout(go,150)})};
+  if(!img||img.complete)ready();else{img.onload=ready;img.onerror=ready}
+  try{logAct('طباعة خطاب على ورقة الشركة'+(LT.subj?' — '+LT.subj:''))}catch(e){}
+}
+function ltInit(){
+  $('lt-to').value=LT.to;$('lt-subj').value=LT.subj;$('lt-dtx').value=LT.dtx;$('lt-size').value=LT.size;$('lt-body').value=LT.body;$('lt-close').value=LT.close;$('lt-date').checked=!!LT.date;
+  [['lt-to','to'],['lt-subj','subj'],['lt-dtx','dtx'],['lt-body','body'],['lt-close','close']].forEach(function(a){$(a[0]).oninput=function(){LT[a[1]]=this.value;ltSave()}});
+  $('lt-size').onchange=function(){LT.size=this.value;ltSave()};
+  $('lt-date').onchange=function(){LT.date=this.checked;ltSave()};
+  $('lt-print').onclick=ltPrint;
+  $('lt-clear').onclick=function(){if(!confirm('تمسح نص الخطاب؟'))return;LT.to=LT.subj=LT.body=LT.close='';LT.dtx=ltToday();ltSave();ltInit()};
+}
+ltInit();
 
 /* ═════════════ غرفة جديدة: اسأل عن النوع ═════════════ */
 var NR_ICON={single:'1',double:'2',triple:'3',quad:'4',quint:'5'};
