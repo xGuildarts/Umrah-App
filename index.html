@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title> AL-Maamoun Flights </title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#eef2f7;--card:#fff;--ink:#12284a;--mut:#5b6b82;--line:#d5dde8;
@@ -573,9 +573,17 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
 }
 </style>
 <style id="pgs"></style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<script>
+/* ExcelJS بيتحمّل بعد فتح الصفحة (أو أول ما تحتاجه) بدل ما يعطّل التحميل */
+var _xlP=null;
+function ensureExcel(){
+  if(window.ExcelJS)return Promise.resolve(true);
+  if(_xlP)return _xlP;
+  _xlP=new Promise(function(res){var sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';sc.onload=function(){res(true)};sc.onerror=function(){_xlP=null;res(false)};document.head.appendChild(sc)});
+  return _xlP;
+}
+window.addEventListener('load',function(){setTimeout(ensureExcel,1500)});
+</script>
 <style id="tk-airlines-css">
 .tk-cc{font-family:"Courier New",Courier,monospace;font-size:10pt;padding:6mm;white-space:pre}
 .tk-sv{zoom:.66;position:relative;width:1035px;height:1130px;margin:28px 0 0 62px;text-align:left;page-break-after:always;overflow:hidden;font-family:'Open Sans','Segoe UI',Arial,sans-serif;color:#111;background:#fff}
@@ -625,6 +633,17 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
 #save-warn button{background:#fff;color:#b3261e;border-color:#fff;padding:4px 12px}
 #lock-bar{display:none;margin:0 0 8px;padding:8px 12px;border-radius:8px;background:rgba(180,83,9,.14);border:1px solid var(--warn);color:var(--warn);font-weight:700;font-size:13px}
 </style>
+<style>
+/* ── التبويبات ── */
+#tabs-bar{display:flex;gap:6px;overflow-x:auto;padding:6px;margin:0 0 14px;position:sticky;top:0;z-index:40;
+  background:var(--card);border:1.5px solid var(--line2,var(--line));border-radius:14px;box-shadow:0 4px 14px rgba(10,31,61,.10);scrollbar-width:thin}
+#tabs-bar button{flex:1 0 auto;min-height:44px;padding:8px 18px;white-space:nowrap;background:transparent;color:var(--ink);
+  border:1.5px solid transparent;box-shadow:none;font-weight:700;border-radius:10px}
+#tabs-bar button:hover:not(:disabled){background:var(--teal-soft,var(--bg));color:var(--teal-t,var(--acc));transform:none;box-shadow:none;border-color:transparent}
+#tabs-bar button[aria-selected="true"]{background:var(--navy,#12284a);color:#fff;border-color:var(--gold,var(--navy,#12284a));box-shadow:inset 0 -3px 0 var(--gold,#d4a62a)}
+.tab-hide{display:none!important}
+@media print{#tabs-bar{display:none!important}}
+</style>
 </head>
 <body>
 <div id="save-warn" role="alert">⚠️ <span>الحفظ على الجهاز فشل (مساحة المتصفح؟) — البيانات المعدّلة دلوقتي ممكن تضيع لو قفلت الصفحة.</span><button id="sw-bk">💾 نزّل Backup دلوقتي</button></div>
@@ -659,8 +678,16 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
   </div>
 </div>
 
+<!-- Tabs / التبويبات -->
+<nav id="tabs-bar" role="tablist" aria-label="أقسام الصفحة">
+  <button type="button" role="tab" data-go="pax">👥 المعتمرين والحجوزات</button>
+  <button type="button" role="tab" data-go="grp">🗂️ المجموعة والرحلة</button>
+  <button type="button" role="tab" data-go="meal">🍽️ الاعاشة</button>
+  <button type="button" role="tab" data-go="letter">✉️ الخطابات</button>
+</nav>
+
 <!-- Groups -->
-<div class="card">
+<div class="card" data-tab="grp">
   <div class="sec-t">🗂️ المجموعة والرحلة</div>
   <div class="row">
     <label for="gsel" style="font-size:13px">المجموعة:</label>
@@ -725,8 +752,25 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
   </details>
 </div>
 
+<!-- Trip calculator / حاسبة الرحلة -->
+<div class="card" id="trip-card" data-tab="grp">
+  <div class="sec-t">🕋 حاسبة مدة الرحلة <small>(مكة والمدينة — ليالي وأيام وتواريخ كل مدينة)</small></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;font-size:13px">
+    <label style="display:flex;flex-direction:column;gap:3px">تاريخ بداية الرحلة<input id="tc-start" type="date"></label>
+    <label style="display:flex;flex-direction:column;gap:3px">تاريخ نهاية الرحلة <small style="color:var(--mut)">(اختياري)</small><input id="tc-end" type="date"></label>
+    <label style="display:flex;flex-direction:column;gap:3px">البداية من<select id="tc-first"><option value="mk">مكة</option><option value="md">المدينة</option></select></label>
+    <label style="display:flex;flex-direction:column;gap:3px">عدد ليالي مكة<input id="tc-nmk" type="number" min="0" max="60" placeholder="0"></label>
+    <label style="display:flex;flex-direction:column;gap:3px">عدد ليالي المدينة<input id="tc-nmd" type="number" min="0" max="60" placeholder="0"></label>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <button class="sec" id="tc-fromtk" type="button" style="font-size:13px;padding:6px 12px" title="ياخد تواريخ الذهاب والعودة من بيانات التكت">📥 هات التواريخ من التكت</button>
+    <button class="sec" id="tc-clr" type="button" style="font-size:13px;padding:6px 12px">مسح</button>
+  </div>
+  <div id="tc-out" style="margin-top:10px"></div>
+</div>
+
 <!-- Meals / الاعاشة -->
-<div class="card" id="meal-card">
+<div class="card" id="meal-card" data-tab="meal">
   <div class="sec-t">🍽️ الاعاشة <small>(كشف أسماء المعتمرين بالعربي، مرقّم، على ورقة الشركة المختومة)</small></div>
   <div class="mealgrid">
     <label>الرحلة / المجموعة<select id="ml-g"></select></label>
@@ -764,7 +808,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
 </div>
 
 <!-- Letter / خطاب على ورقة الشركة -->
-<div class="card" id="letter-card">
+<div class="card" id="letter-card" data-tab="letter">
   <div class="sec-t">✉️ خطاب / إيميل رسمي <small>(نص حر بدون أسماء معتمرين، على ورقة الشركة المختومة)</small></div>
   <div class="mealgrid">
     <label>إلى (الجهة / الشخص)<input id="lt-to" placeholder="مثال: السادة / شركة ... المحترمين"></label>
@@ -789,7 +833,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
 </div>
 
 <!-- Scanner -->
-<div class="card scan-card">
+<div class="card scan-card" data-tab="pax">
   <div class="sec-t">📷 قراءة الجواز <small>(MRZ)</small></div>
   <p class="hint">سكّن الجواز على القارئ — الاسم والبيانات بتتسجل تلقائي. &nbsp;<kbd>F2</kbd> مجموعة جديدة &nbsp;<kbd>F3</kbd> طباعة &nbsp;<kbd>Ctrl+Z</kbd> تراجع</p>
   <textarea id="box" autofocus placeholder="P<EGY..."></textarea>
@@ -809,7 +853,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
 </div>
 
 <!-- List -->
-<div class="card list-card">
+<div class="card list-card" data-tab="pax">
   <div class="row" style="justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
     <strong id="ttl" style="font-size:14px"></strong>
     <div class="row">
@@ -1254,7 +1298,9 @@ function expStatus(expIso,tripIso){
 ══════════════════════════════════════════ */
 var S={groups:[{id:1,name:'مجموعة 1',trip:'',date:''}],people:[],active:1,seq:2};
 try{var _r=localStorage.getItem('fm3');if(_r)S=JSON.parse(_r)}catch(e){}
-var _sf=0;function save(){try{localStorage.setItem('fm3',JSON.stringify(S));if(window._svBad){window._svBad=0;saveFailBar(0)}}catch(e){window._svBad=1;try{saveFailBar(1)}catch(x){}if(Date.now()-_sf>8000){_sf=Date.now();try{say('⚠️ مقدرتش أحفظ على الجهاز (مساحة المتصفح؟) — نزّل 💾 Backup فورًا','err')}catch(x){}}}}
+var _svT=0;
+function save(){if(_svT)return;_svT=setTimeout(saveNow,350)}
+function saveNow(){if(_svT){clearTimeout(_svT);_svT=0}try{localStorage.setItem('fm3',JSON.stringify(S));if(window._svBad){window._svBad=0;saveFailBar(0)}}catch(e){window._svBad=1;try{saveFailBar(1)}catch(x){}if(Date.now()-_sf>8000){_sf=Date.now();try{say('⚠️ مقدرتش أحفظ على الجهاز (مساحة المتصفح؟) — نزّل 💾 Backup فورًا','err')}catch(x){}}}}
 var SEL={};
 function grp(){return S.groups.find(function(g){return g.id===S.active})||S.groups[0]}
 function list(){return S.people.filter(function(p){return p.g===grp().id})}
@@ -2542,7 +2588,7 @@ $('xls').onclick=function(){
   var fn=g.name.replace(/\s/g,'_')+'_'+(g.date||new Date().toISOString().slice(0,10));
   var dl=function(blob,name){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},4000)};
   var asCsv=function(){var csv=rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"'}).join(',')}).join('\r\n');dl(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}),fn+'.csv')};
-  if(!window.ExcelJS){asCsv();return}
+  if(!window.ExcelJS){ensureExcel();asCsv();return}
   var rtl=(mode==='ar'||mode==='enar'),thin={style:'thin',color:{argb:'FF9FB3C8'}};
   try{
     var wb=new ExcelJS.Workbook(),ws=wb.addWorksheet(String(g.name||'Sheet').replace(/[\\\/?*\[\]:]/g,' ').slice(0,31),{views:[{rightToLeft:rtl,state:'frozen',ySplit:1}]});
@@ -3927,6 +3973,7 @@ $('bkc-pr').onclick=function(){
 
 /* ═════════════ كشف التسكين Excel (للفندق) ═════════════ */
 async function hdExcel(){
+  await ensureExcel();
   if(typeof ExcelJS==='undefined'){alert('تصدير Excel محتاج مكتبة ExcelJS من الإنترنت ومتحملتش.\nاتأكد إن النت شغال وأعد تحميل الصفحة.');return}
   var g=grp(),d=hdClean(),lm=hdLinkMap(),mode=$('pmode')?$('pmode').value:'full',lang=$('hd-pl')?$('hd-pl').value:'both',en=lang!=='ar',ar=lang!=='en';
   arEnsureAll(hdPeople());
@@ -3988,6 +4035,7 @@ var AIRLINE_TPL_B64 = "UEsDBBQABgAIAAAAIQBi7p1oXgEAAJAEAAATAAgCW0NvbnRlbnRfVHlwZ
 function b64ToBuf(b){var s=atob(b),u=new Uint8Array(s.length);for(var i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u.buffer}
 /* يملى الفورمه (بتنسيقها كامل) ويحمّلها. buf = ملف الفورمه (المدمج أو المرفوع) */
 async function fillAirlineSheet(buf){
+  await ensureExcel();
   var l = viewList();
   if(!l.length){ alert('المجموعة فاضية — اسكّن الجوازات الأول.'); return; }
   var wb = new ExcelJS.Workbook();
@@ -4035,5 +4083,84 @@ $('airline-upload').addEventListener('change', function(e){
 </script>
 <div id="ticket-pages"></div>
 
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)};
+  var DAY=86400000, WD=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  function pd(v){ if(!v) return null; var p=v.split('-'); if(p.length<3) return null; return Date.UTC(+p[0],+p[1]-1,+p[2]); }
+  function fd(t){ var d=new Date(t); return WD[d.getUTCDay()]+' '+('0'+d.getUTCDate()).slice(-2)+'/'+('0'+(d.getUTCMonth()+1)).slice(-2)+'/'+d.getUTCFullYear(); }
+  function iso(t){ var d=new Date(t); return d.getUTCFullYear()+'-'+('0'+(d.getUTCMonth()+1)).slice(-2)+'-'+('0'+d.getUTCDate()).slice(-2); }
+  function nn(id){ var v=parseInt($(id).value,10); return isNaN(v)||v<0?0:v; }
+  function nTxt(n){ return n===2?'ليلتين':(n===1?'ليلة واحدة':n+' '+(n>=3&&n<=10?'ليالي':'ليلة')); }
+  function dTxt(n){ return n===2?'يومين':(n===1?'يوم واحد':n+' '+(n>=3&&n<=10?'أيام':'يوم')); }
+
+  function row(city,ci,co,n,color){
+    if(n===0) return '';
+    return '<div style="flex:1;min-width:250px;background:var(--bg);border:1px solid var(--line);border-inline-start:5px solid '+color+';border-radius:10px;padding:10px 14px">'
+      +'<div style="font-weight:800;font-size:17px;margin-bottom:6px">'+city+'</div>'
+      +'<div>من: <b>'+fd(ci)+'</b></div>'
+      +'<div>إلى: <b>'+fd(co)+'</b></div>'
+      +'<div style="margin-top:6px;font-weight:700;color:var(--teal-t,var(--acc))">'+nTxt(n)+' — '+dTxt(n+1)+'</div></div>';
+  }
+
+  function calc(){
+    var out=$('tc-out'), st=pd($('tc-start').value), en=pd($('tc-end').value);
+    var nmk=nn('tc-nmk'), nmd=nn('tc-nmd'), sum=nmk+nmd, first=$('tc-first').value;
+    if(!st){ out.innerHTML='<p class="hint" style="margin:0">اختار تاريخ البداية واكتب عدد الليالي وهيتحسب لوحده.</p>'; return; }
+    var html='', warn='';
+    var total=sum;
+    if(en){
+      var diff=Math.round((en-st)/DAY);
+      if(diff<0){ out.innerHTML='<div style="color:var(--bad);font-weight:700">⛔ تاريخ النهاية قبل تاريخ البداية.</div>'; return; }
+      total=diff;
+      if(sum!==diff){
+        var d=diff-sum;
+        warn='<div style="color:var(--warn);font-weight:700;margin-top:8px">⚠️ مجموع ليالي المدينتين ('+sum+') '+(d>0?'أقل':'أكتر')+' من ليالي الرحلة ('+diff+') بـ '+Math.abs(d)+' — '+(d>0?'فيه '+nTxt(d)+' ناقصة (مثلاً ليالي جدة أو الترانزيت).':'راجع الأرقام.')+'</div>';
+      }
+    }
+    var a=first==='mk'?{n:'🕋 مكة المكرمة',c:'#0b7f78',k:nmk}:{n:'🕌 المدينة المنورة',c:'#d4a62a',k:nmd};
+    var b=first==='mk'?{n:'🕌 المدينة المنورة',c:'#d4a62a',k:nmd}:{n:'🕋 مكة المكرمة',c:'#0b7f78',k:nmk};
+    var aIn=st, aOut=st+a.k*DAY, bIn=aOut, bOut=bIn+b.k*DAY;
+    html+='<div class="row" style="align-items:stretch;gap:10px">'+row(a.n,aIn,aOut,a.k,a.c)+row(b.n,bIn,bOut,b.k,b.c)+'</div>';
+    var endShown=en||(st+total*DAY);
+    html+='<div style="margin-top:10px;background:var(--navy,#0a1f3d);color:#fff;border-radius:10px;padding:12px 16px">'
+      +'<div style="font-weight:800;font-size:17px">إجمالي الرحلة: '+nTxt(total)+' — '+dTxt(total+1)+'</div>'
+      +'<div style="opacity:.9;margin-top:3px">من '+fd(st)+' إلى '+fd(endShown)+'</div></div>';
+    html+=warn;
+    if(nmk>0&&nmd>0) html+='<p class="hint" style="margin:8px 0 0">يوم الانتقال بين المدينتين ('+fd(aOut)+') محسوب في المدينتين، عشان كده مجموع أيام المدينتين بيزيد يوم عن إجمالي أيام الرحلة.</p>';
+    out.innerHTML=html;
+  }
+
+  ['tc-start','tc-end','tc-first','tc-nmk','tc-nmd'].forEach(function(i){
+    var e=$(i); if(e){ e.addEventListener('input',calc); e.addEventListener('change',calc); }
+  });
+  $('tc-clr').addEventListener('click',function(){
+    ['tc-start','tc-end','tc-nmk','tc-nmd'].forEach(function(i){$(i).value=''}); $('tc-first').value='mk'; calc();
+  });
+  $('tc-fromtk').addEventListener('click',function(){
+    var d=$('tk-dep-date'), r=$('tk-ret-date');
+    if(d&&d.value) $('tc-start').value=d.value;
+    if(r&&r.value) $('tc-end').value=r.value;
+    calc();
+  });
+  calc();
+})();
+</script>
+<script>
+(function(){
+  var KEY='am_active_tab', names=['pax','grp','meal','letter'];
+  var btns=[].slice.call(document.querySelectorAll('#tabs-bar [data-go]'));
+  function show(t,remember){
+    if(names.indexOf(t)<0) t='pax';
+    [].forEach.call(document.querySelectorAll('[data-tab]'),function(el){ el.classList.toggle('tab-hide',el.getAttribute('data-tab')!==t); });
+    btns.forEach(function(b){ b.setAttribute('aria-selected',b.getAttribute('data-go')===t?'true':'false'); });
+    if(remember){ try{localStorage.setItem(KEY,t)}catch(e){} }
+  }
+  btns.forEach(function(b){ b.addEventListener('click',function(){ show(b.getAttribute('data-go'),true); window.scrollTo({top:0}); }); });
+  var start='pax'; try{ start=localStorage.getItem(KEY)||'pax'; }catch(e){}
+  show(start,false);
+  window.showTab=function(t){ show(t,true); };
+})();
+</script>
 </body>
 </html>
