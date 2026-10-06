@@ -734,7 +734,8 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
     <label>سطر إضافي (اختياري)<input id="ml-note" placeholder="مثال: اعاشة فطار وعشاء — 7 ليالي"></label>
     <label>ترتيب الأسماء<select id="ml-sort"><option value="add">زي ترتيب الإضافة</option><option value="room">حسب رقم الغرفة</option><option value="bk">حسب الحجز</option><option value="ar">أبجدي</option></select></label>
     <label>عدد الأعمدة<select id="ml-cols"><option value="auto">تلقائي</option><option value="1">عمود واحد</option><option value="2">عمودين</option></select></label>
-    <label>حجم الخط<select id="ml-size"><option value="auto">تلقائي</option><option value="l">كبير</option><option value="m">متوسط</option><option value="s">صغير</option></select></label>
+    <label>حجم الخط<select id="ml-size"><option value="auto">تلقائي</option><option value="l">كبير</option><option value="m">متوسط</option><option value="s">صغير</option><option value="xs">صغير جدًا</option></select></label>
+    <label>توزيع الصفحات<select id="ml-fit"><option value="normal">عادي — صفحة أو أكتر حسب العدد</option><option value="one">كل الأسماء في ورقة واحدة</option></select></label>
   </div>
   <div class="row" style="margin-top:8px;font-size:13px;gap:14px">
     <label style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="ml-date"> تاريخ الرحلة في العنوان</label>
@@ -3571,7 +3572,7 @@ $('sb-backup').addEventListener('click',function(){setTimeout(exUI,50)});
 setInterval(exUI,60000);
 
 /* ═════════════ الاعاشة ═════════════ */
-var ML={title:'كشف أسماء المعتمرين — الاعاشة',note:'',sort:'add',cols:'auto',size:'auto',pno:false,date:true,sup:true,g:''};
+var ML={title:'كشف أسماء المعتمرين — الاعاشة',note:'',sort:'add',cols:'auto',size:'auto',pno:false,date:true,sup:true,fit:'normal',g:''};
 try{var _m=JSON.parse(localStorage.getItem('fm_meal')||'{}');Object.keys(_m).forEach(function(k){if(k!=='g'&&k.charAt(0)!=='_')ML[k]=_m[k]})}catch(e){}
 function mlSave(){try{var o={};Object.keys(ML).forEach(function(k){if(k!=='g'&&k.charAt(0)!=='_')o[k]=ML[k]});localStorage.setItem('fm_meal',JSON.stringify(o))}catch(e){}}
 function mlGroup(){return S.groups.find(function(x){return String(x.id)===String(ML.g)})||grp()}
@@ -3586,15 +3587,33 @@ function mlPeople(g){
   return ppl;
 }
 /* مقاسات: f = الخط (pt) ، r = ارتفاع الصف (mm) — منطقة الكتابة 152mm بين اللوجو والختم */
-var ML_SZ={l:{f:14,r:8.4},m:{f:12.5,r:7.2},s:{f:11,r:6.2}},ML_BODY=152;
+var ML_SZ={l:{f:14,r:8.4},m:{f:12.5,r:7.2},s:{f:11,r:6.2},xs:{f:9.5,r:5.4},xxs:{f:8.5,r:4.9}},ML_BODY=152;
 function mlHead(first,hasNote){return first?(hasNote?31:25):10}
-function mlRows(sz,first,hasNote){var r=ML_SZ[sz].r;return Math.max(1,Math.floor((ML_BODY-mlHead(first,hasNote)-r-2)/r))}
-function mlLayout(n,hasNote){
-  var sizes=ML.size==='auto'?['l','m','s']:[ML.size],cols=ML.cols==='auto'?[1,2]:[+ML.cols],best=null;
-  sizes.forEach(function(sz){cols.forEach(function(c){
-    var r1=mlRows(sz,true,hasNote),rn=mlRows(sz,false,hasNote),left=n-r1*c,pages=1+(left>0?Math.ceil(left/(rn*c)):0);
-    if(!best||pages<best.pages)best={sz:sz,cols:c,r1:r1,rn:rn,pages:pages};
-  })});
+function mlFont(sz,c){var f=ML_SZ[sz].f;return c===2?Math.min(f,12):f}
+/* أقصى عدد حروف في سطر واحد (تقدير متحفّظ) */
+function mlMaxCh(f,c){var w=(c===2?82:170)-(c===2?7:12)-(ML.pno?(c===2?21:28):0)-4;return Math.floor(w/(f*0.2))}
+/* ارتفاع الصف: سطر = الارتفاع العادي ، سطرين = أطول بحيث الاسم ينزل في سطرين من غير ما يتصغّر */
+function mlRowH(sz,f,lines){var r=ML_SZ[sz].r;return lines>1?Math.max(r,Math.round((lines*f*0.3528*1.25+1.6)*10)/10):r}
+function mlNm(p){return arText(p)||nameFull(p)}
+/* توزيع الأسماء على الصفحات والأعمدة حسب ارتفاع كل صف (الاسم الطويل = سطرين) */
+function mlPack(ppl,sz,c,hasNote){
+  var f=mlFont(sz,c),mc=mlMaxCh(f,c),r=ML_SZ[sz].r,pages=[],pg=null,col=0,used=0,avail=0;
+  function newPage(){var first=!pages.length;avail=ML_BODY-mlHead(first,hasNote)-r-2;pg={first:first,cols:[]};for(var k=0;k<c;k++)pg.cols.push([]);pages.push(pg);col=0;used=0}
+  newPage();
+  ppl.forEach(function(p,i){
+    var nm=mlNm(p),len=nm.length+(ML.sup&&p.sup?7:0),lines=len>mc?2:1,h=mlRowH(sz,f,lines);
+    if(used+h>avail+0.01&&pg.cols[col].length){col++;used=0;if(col>=c)newPage()}
+    pg.cols[col].push({p:p,n:i+1,nm:nm,h:h});used+=h;
+  });
+  return{pages:pages,np:pages.length,sz:sz,c:c,f:f};
+}
+function mlLayout(ppl,hasNote){
+  var one=ML.fit==='one',sizes=ML.size==='auto'?(one?['l','m','s','xs','xxs']:['l','m','s']):[ML.size],cols=ML.cols==='auto'?[1,2]:[+ML.cols],best=null;
+  for(var a=0;a<sizes.length;a++)for(var b=0;b<cols.length;b++){
+    var L=mlPack(ppl,sizes[a],cols[b],hasNote);
+    if(!best||L.np<best.np)best=L;
+    if(one&&L.np===1)return L; /* أكبر خط يدخّل الكل في ورقة واحدة */
+  }
   return best;
 }
 var ML_CSS='@page{size:A4;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff}'
@@ -3613,16 +3632,15 @@ var ML_CSS='@page{size:A4;margin:0}*{box-sizing:border-box}html,body{margin:0;pa
  +'th{background:#1b8fd2;color:#fff;font-weight:700;border:.25mm solid #1b8fd2;padding:0 1.5mm;text-align:center}'
  +'td{border:.25mm solid #9fb3c8;padding:0 2mm;vertical-align:middle;white-space:nowrap;overflow:hidden;text-align:right}'
  +'td.n{text-align:center;font-weight:700;padding:0}td.pn{direction:ltr;text-align:center;font-family:Consolas,monospace;font-size:9.5pt;padding:0 .8mm}'
+ +'td.nm{white-space:normal;line-height:1.25;overflow-wrap:break-word;padding-top:0;padding-bottom:0}td.nm span{display:block}'
  +'tr:nth-child(even) td{background:#f1f6fb}'
  +'@media screen{body{background:#7b818c;padding:12px 0}.pg{margin:0 auto 14px;box-shadow:0 2px 12px rgba(0,0,0,.45)}}'
  +'@media screen and (max-width:830px){.pg{zoom:.55}}';
-var ML_FIT='function fitNames(){var c=document.querySelectorAll("td.nm");for(var i=0;i<c.length;i++){var td=c[i],sp=td.firstChild,st=getComputedStyle(td),av=td.clientWidth-parseFloat(st.paddingLeft)-parseFloat(st.paddingRight)-1,fs=parseFloat(td.getAttribute("data-f"))||12;td.style.whiteSpace="nowrap";td.style.lineHeight="";td.style.fontSize=fs+"pt";while(sp.getBoundingClientRect().width>av&&fs>7){fs-=.25;td.style.fontSize=fs+"pt"}if(sp.getBoundingClientRect().width>av){td.style.whiteSpace="normal";td.style.lineHeight="1.1";td.style.fontSize="7pt";if(td.scrollHeight>td.clientHeight+1)td.style.fontSize="6.5pt"}}}window.fitNames=fitNames;window.addEventListener("load",function(){fitNames();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitNames)});';
+var ML_FIT='function fitNames(){var pg=document.querySelector(".pg");if(!pg)return;var pr=document.createElement("div");pr.style.cssText="position:absolute;visibility:hidden;height:100mm;width:1px";pg.appendChild(pr);var k=pr.getBoundingClientRect().height/(100*96/25.4);pr.remove();var c=document.querySelectorAll("td.nm");for(var i=0;i<c.length;i++){var td=c[i],tr=td.parentNode,sp=td.firstChild,fs=parseFloat(td.getAttribute("data-f"))||12,av=(parseFloat(tr.getAttribute("data-h"))*96/25.4-2)*k;td.style.fontSize=fs+"pt";while(sp.getBoundingClientRect().height>av&&fs>6.5){fs-=.25;td.style.fontSize=fs+"pt"}}}window.fitNames=fitNames;window.addEventListener("load",function(){fitNames();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitNames)});';
 function mlBuild(){
   var g=mlGroup(),ppl=mlPeople(g),n=ppl.length,hasNote=!!(ML.note&&ML.note.trim());
-  var L=n?mlLayout(n,hasNote):{sz:'m',cols:1,r1:1,rn:1,pages:1},S0=ML_SZ[L.sz],c=L.cols,f=c===2?Math.min(S0.f,12):S0.f;
-  var unrev=ppl.filter(function(p){return!arOk(p)}).length,pages=[],i=0;
-  while(true){var first=!pages.length,rows=first?L.r1:L.rn;pages.push({first:first,start:i,rows:rows,chunk:ppl.slice(i,i+rows*c)});i+=rows*c;if(i>=n)break}
-  var nameW=(c===2?82:170)-(c===2?7:12)-(ML.pno?(c===2?21:28):0)-4,maxCh=Math.floor(nameW/(f*0.2));
+  var L=n?mlLayout(ppl,hasNote):{pages:[{first:true,cols:[[]]}],np:1,sz:'m',c:1,f:12.5},S0=ML_SZ[L.sz],c=L.c,f=L.f,pages=L.pages;
+  var unrev=ppl.filter(function(p){return!arOk(p)}).length;
   var sub=['المجموعة: '+esc(g.name)+(g.trip?' — '+esc(g.trip):'')];
   if(ML.date&&g.date)sub.push('تاريخ الرحلة: '+fmtDate(g.date));
   sub.push('عدد المعتمرين: '+n);
@@ -3631,12 +3649,13 @@ function mlBuild(){
       :'<div class="cont">'+esc(ML.title||'كشف الاعاشة')+' — '+esc(g.name)+' (تابع)</div>';
     var tbls='';
     for(var k=0;k<c;k++){
-      var part=P.chunk.slice(k*P.rows,(k+1)*P.rows);if(!part.length)continue;
+      var part=P.cols[k];if(!part||!part.length)continue;
       var cg='<colgroup><col style="width:'+(c===2?7:12)+'mm">'+'<col>'+(ML.pno?'<col style="width:'+(c===2?21:28)+'mm">':'')+'</colgroup>';
-      tbls+='<table style="'+(c===2?'width:calc(50% - 3mm)':'')+'">'+cg+'<thead><tr style="height:'+S0.r+'mm"><th style="font-size:'+Math.min(f,11)+'pt">م</th><th style="font-size:'+Math.min(f,11)+'pt">الاسم</th>'+(ML.pno?'<th style="font-size:'+Math.min(f,11)+'pt">رقم الجواز</th>':'')+'</tr></thead><tbody>'
-        +part.map(function(p,j){
-          var nm=arText(p)||nameFull(p),fs=nm.length>maxCh?Math.max(7,Math.round(f*maxCh/nm.length*10)/10):f;
-          return'<tr style="height:'+S0.r+'mm"><td class="n" style="font-size:'+Math.min(f,12)+'pt">'+(P.start+k*P.rows+j+1)+'</td><td class="nm" data-f="'+fs+'" style="font-size:'+fs+'pt"><span>'+esc(nm)+(ML.sup&&p.sup?' <b style="color:#b3261e">(مشرف)</b>':'')+'</span></td>'+(ML.pno?'<td class="pn">'+esc(p.pno||'')+'</td>':'')+'</tr>';
+      var hf=Math.min(f,11);
+      tbls+='<table style="'+(c===2?'width:calc(50% - 3mm)':'')+'">'+cg+'<thead><tr style="height:'+S0.r+'mm"><th style="font-size:'+hf+'pt">م</th><th style="font-size:'+hf+'pt">الاسم</th>'+(ML.pno?'<th style="font-size:'+hf+'pt">رقم الجواز</th>':'')+'</tr></thead><tbody>'
+        +part.map(function(it){
+          var p=it.p;
+          return'<tr data-h="'+it.h+'" style="height:'+it.h+'mm"><td class="n" style="font-size:'+Math.min(f,12)+'pt">'+it.n+'</td><td class="nm" data-f="'+f+'" style="font-size:'+f+'pt"><span>'+esc(it.nm)+(ML.sup&&p.sup?' <b style="color:#b3261e;white-space:nowrap">(مشرف)</b>':'')+'</span></td>'+(ML.pno?'<td class="pn">'+esc(p.pno||'')+'</td>':'')+'</tr>';
         }).join('')+'</tbody></table>';
     }
     return'<div class="pg"><img src="'+LH_SRC+'" alt=""><div class="bd">'+(pages.length>1?'<div class="pl">صفحة '+(pi+1)+' من '+pages.length+'</div>':'')+head+'<div class="cols c'+c+'">'+tbls+'</div></div></div>';
@@ -3648,10 +3667,12 @@ function mlBuild(){
 function mlInfo(){
   var el=$('ml-info');if(!el)return;
   try{
-    var g=mlGroup(),ppl=S.people.filter(function(p){return p.g===g.id}),n=ppl.length;
+    var g=mlGroup(),all=S.people.filter(function(p){return p.g===g.id}),n=all.length;
     if(!n){el.innerHTML='<span class="w">⚠️ الرحلة دي مفيهاش معتمرين.</span>';return}
-    var L=mlLayout(n,!!(ML.note&&ML.note.trim())),unrev=ppl.filter(function(p){return!arOk(p)}).length;
-    el.innerHTML='👥 <b>'+n+'</b> معتمر — هيتطبع <b>'+L.pages+'</b> '+(L.pages===1?'صفحة':L.pages===2?'صفحتين':'صفحات')+' ('+(L.cols===2?'عمودين':'عمود واحد')+'، خط '+({l:'كبير',m:'متوسط',s:'صغير'})[L.sz]+')'
+    var L=mlLayout(mlPeople(g),!!(ML.note&&ML.note.trim())),unrev=all.filter(function(p){return!arOk(p)}).length,np=L.np;
+    var szN={l:'كبير',m:'متوسط',s:'صغير',xs:'صغير جدًا',xxs:'صغير جدًا'}[L.sz];
+    el.innerHTML='👥 <b>'+n+'</b> معتمر — هيتطبع <b>'+np+'</b> '+(np===1?'صفحة':np===2?'صفحتين':'صفحات')+' ('+(L.c===2?'عمودين':'عمود واحد')+'، خط '+szN+'، الأسماء الطويلة بتنزل في سطرين)'
+      +(ML.fit==='one'&&np>1?' &nbsp; <span class="w">⚠️ مش هينفع كله في ورقة واحدة — قلّل الملاحظة أو اختار «عادي»</span>':'')
       +(unrev?' &nbsp; <span class="w">⚠️ '+unrev+' اسم عربي ترجمة تلقائية لسه ماتراجعتش</span>':' &nbsp; <span style="color:var(--ok);font-weight:700">✓ كل الأسماء العربي متراجعة</span>');
   }catch(e){el.textContent=''}
 }
@@ -3663,13 +3684,13 @@ function mlRefresh(){
   if(sel._sig!==sig){sel.innerHTML=S.groups.map(function(g){return'<option value="'+g.id+'">'+esc(g.name)+' ('+S.people.filter(function(p){return p.g===g.id}).length+')</option>'}).join('');sel._sig=sig}
   sel.value=ML.g;
   [['ml-title','title'],['ml-note','note']].forEach(function(a){if(document.activeElement!==$(a[0]))$(a[0]).value=ML[a[1]]||''});
-  [['ml-sort','sort'],['ml-cols','cols'],['ml-size','size']].forEach(function(a){$(a[0]).value=ML[a[1]]});
+  [['ml-sort','sort'],['ml-cols','cols'],['ml-size','size'],['ml-fit','fit']].forEach(function(a){$(a[0]).value=ML[a[1]]});
   $('ml-date').checked=!!ML.date;$('ml-pno').checked=!!ML.pno;$('ml-sup').checked=!!ML.sup;
   mlInfo();
 }
 $('ml-g').onchange=function(){ML.g=this.value;mlInfo()};
 ['ml-title','ml-note'].forEach(function(id){$(id).oninput=function(){ML[id==='ml-title'?'title':'note']=this.value;mlSave();mlInfo()}});
-['ml-sort','ml-cols','ml-size'].forEach(function(id){$(id).onchange=function(){ML[id.slice(3)]=this.value;mlSave();mlInfo()}});
+['ml-sort','ml-cols','ml-size','ml-fit'].forEach(function(id){$(id).onchange=function(){ML[id.slice(3)]=this.value;mlSave();mlInfo()}});
 $('ml-date').onchange=function(){ML.date=this.checked;mlSave()};
 $('ml-pno').onchange=function(){ML.pno=this.checked;mlSave();mlInfo()};
 $('ml-sup').onchange=function(){ML.sup=this.checked;mlSave()};
