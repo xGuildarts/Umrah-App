@@ -735,6 +735,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
     <label>ترتيب الأسماء<select id="ml-sort"><option value="add">زي ترتيب الإضافة</option><option value="room">حسب رقم الغرفة</option><option value="bk">حسب الحجز</option><option value="ar">أبجدي</option></select></label>
     <label>عدد الأعمدة<select id="ml-cols"><option value="auto">تلقائي</option><option value="1">عمود واحد</option><option value="2">عمودين</option></select></label>
     <label>حجم الخط<select id="ml-size"><option value="auto">تلقائي</option><option value="l">كبير</option><option value="m">متوسط</option><option value="s">صغير</option><option value="xs">صغير جدًا</option></select></label>
+    <label>حجم الخط بالرقم (pt) <small style="color:var(--mut)">يغلب الاختيار</small><input id="ml-fpt" type="number" min="7" max="24" step="0.5" placeholder="تلقائي (مثال 12)"></label>
     <label>توزيع الصفحات<select id="ml-fit"><option value="normal">عادي — صفحة أو أكتر حسب العدد</option><option value="one">كل الأسماء في ورقة واحدة</option></select></label>
   </div>
   <div class="row" style="margin-top:8px;font-size:13px;gap:14px">
@@ -759,6 +760,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
     <label>الموضوع<input id="lt-subj" placeholder="مثال: طلب تأشيرات عمرة"></label>
     <label>التاريخ<input id="lt-dtx" placeholder="15/10/2026"></label>
     <label>حجم الخط<select id="lt-size"><option value="l">كبير</option><option value="m">متوسط</option><option value="s">صغير</option></select></label>
+    <label>حجم الخط بالرقم (pt) <small style="color:var(--mut)">يغلب الاختيار</small><input id="lt-fpt" type="number" min="7" max="30" step="0.5" placeholder="تلقائي (مثال 13)"></label>
   </div>
   <label style="display:flex;flex-direction:column;gap:3px;font-size:13px;margin-top:8px">نص الخطاب <small style="color:var(--mut)">(كل سطر جديد = فقرة جديدة، ولو النص طويل بيكمّل لوحده على صفحة تانية)</small>
     <textarea id="lt-body" rows="9" style="width:100%;font-family:inherit;font-size:14px;line-height:1.7" placeholder="تحية طيبة وبعد،&#10;نتشرف بأن نتقدم لسيادتكم ..."></textarea></label>
@@ -3596,7 +3598,7 @@ $('sb-backup').addEventListener('click',function(){setTimeout(exUI,50)});
 setInterval(exUI,60000);
 
 /* ═════════════ الاعاشة ═════════════ */
-var ML={title:'كشف أسماء المعتمرين — الاعاشة',note:'',sort:'add',cols:'auto',size:'auto',pno:false,date:true,sup:true,fit:'normal',g:''};
+var ML={title:'كشف أسماء المعتمرين — الاعاشة',note:'',sort:'add',cols:'auto',size:'auto',pno:false,date:true,sup:true,fit:'normal',fpt:0,g:''};
 try{var _m=JSON.parse(localStorage.getItem('fm_meal')||'{}');Object.keys(_m).forEach(function(k){if(k!=='g'&&k.charAt(0)!=='_')ML[k]=_m[k]})}catch(e){}
 function mlSave(){try{var o={};Object.keys(ML).forEach(function(k){if(k!=='g'&&k.charAt(0)!=='_')o[k]=ML[k]});localStorage.setItem('fm_meal',JSON.stringify(o))}catch(e){}}
 function mlGroup(){return S.groups.find(function(x){return String(x.id)===String(ML.g)})||grp()}
@@ -3613,7 +3615,7 @@ function mlPeople(g){
 /* مقاسات: f = الخط (pt) ، r = ارتفاع الصف (mm) — منطقة الكتابة 152mm بين اللوجو والختم */
 var ML_SZ={l:{f:14,r:8.4},m:{f:12.5,r:7.2},s:{f:11,r:6.2},xs:{f:9.5,r:5.4},xxs:{f:8.5,r:4.9}},ML_BODY=152;
 function mlHead(first,hasNote){return first?(hasNote?31:25):10}
-function mlFont(sz,c){var f=ML_SZ[sz].f;return c===2?Math.min(f,12):f}
+function mlFont(sz,c){var f=ML_SZ[sz].f;return(c===2&&sz!=='c')?Math.min(f,12):f}
 /* أقصى عدد حروف في سطر واحد (تقدير متحفّظ) */
 function mlMaxCh(f,c){var w=(c===2?82:170)-(c===2?7:12)-(ML.pno?(c===2?21:28):0)-4;return Math.floor(w/(f*0.2))}
 /* ارتفاع الصف: سطر = الارتفاع العادي ، سطرين = أطول بحيث الاسم ينزل في سطرين من غير ما يتصغّر */
@@ -3632,7 +3634,9 @@ function mlPack(ppl,sz,c,hasNote){
   return{pages:pages,np:pages.length,sz:sz,c:c,f:f};
 }
 function mlLayout(ppl,hasNote){
-  var one=ML.fit==='one',sizes=ML.size==='auto'?(one?['l','m','s','xs','xxs']:['l','m','s']):[ML.size],cols=ML.cols==='auto'?[1,2]:[+ML.cols],best=null;
+  var one=ML.fit==='one',sizes=ML.size==='auto'?(one?['l','m','s','xs','xxs']:['l','m','s']):[ML.size];
+  if(ML.fpt>0){var cf=Math.min(24,Math.max(7,+ML.fpt));ML_SZ.c={f:cf,r:Math.max(4,Math.round(cf*0.58*10)/10)};sizes=['c']}
+  var cols=ML.cols==='auto'?[1,2]:[+ML.cols],best=null;
   for(var a=0;a<sizes.length;a++)for(var b=0;b<cols.length;b++){
     var L=mlPack(ppl,sizes[a],cols[b],hasNote);
     if(!best||L.np<best.np)best=L;
@@ -3694,7 +3698,7 @@ function mlInfo(){
     var g=mlGroup(),all=S.people.filter(function(p){return p.g===g.id}),n=all.length;
     if(!n){el.innerHTML='<span class="w">⚠️ الرحلة دي مفيهاش معتمرين.</span>';return}
     var L=mlLayout(mlPeople(g),!!(ML.note&&ML.note.trim())),unrev=all.filter(function(p){return!arOk(p)}).length,np=L.np;
-    var szN={l:'كبير',m:'متوسط',s:'صغير',xs:'صغير جدًا',xxs:'صغير جدًا'}[L.sz];
+    var szN=L.sz==='c'?(L.f+'pt'):{l:'كبير',m:'متوسط',s:'صغير',xs:'صغير جدًا',xxs:'صغير جدًا'}[L.sz];
     el.innerHTML='👥 <b>'+n+'</b> معتمر — هيتطبع <b>'+np+'</b> '+(np===1?'صفحة':np===2?'صفحتين':'صفحات')+' ('+(L.c===2?'عمودين':'عمود واحد')+'، خط '+szN+'، الأسماء الطويلة بتنزل في سطرين)'
       +(ML.fit==='one'&&np>1?' &nbsp; <span class="w">⚠️ مش هينفع كله في ورقة واحدة — قلّل الملاحظة أو اختار «عادي»</span>':'')
       +(unrev?' &nbsp; <span class="w">⚠️ '+unrev+' اسم عربي ترجمة تلقائية لسه ماتراجعتش</span>':' &nbsp; <span style="color:var(--ok);font-weight:700">✓ كل الأسماء العربي متراجعة</span>');
@@ -3709,6 +3713,7 @@ function mlRefresh(){
   sel.value=ML.g;
   [['ml-title','title'],['ml-note','note']].forEach(function(a){if(document.activeElement!==$(a[0]))$(a[0]).value=ML[a[1]]||''});
   [['ml-sort','sort'],['ml-cols','cols'],['ml-size','size'],['ml-fit','fit']].forEach(function(a){$(a[0]).value=ML[a[1]]});
+  if(document.activeElement!==$('ml-fpt'))$('ml-fpt').value=ML.fpt||'';
   $('ml-date').checked=!!ML.date;$('ml-pno').checked=!!ML.pno;$('ml-sup').checked=!!ML.sup;
   mlInfo();
 }
@@ -3718,6 +3723,7 @@ $('ml-g').onchange=function(){ML.g=this.value;mlInfo()};
 $('ml-date').onchange=function(){ML.date=this.checked;mlSave()};
 $('ml-pno').onchange=function(){ML.pno=this.checked;mlSave();mlInfo()};
 $('ml-sup').onchange=function(){ML.sup=this.checked;mlSave()};
+$('ml-fpt').oninput=function(){ML.fpt=parseFloat(this.value)||0;mlSave();mlInfo()};
 $('ml-ar').onclick=function(){var id=+ML.g;if(grp().id!==id){S.active=id;save();render()}arOpen()};
 $('ml-prev').onclick=function(){
   window.ML_MODE='meal';$('ml-frame').onload=null;
@@ -3741,7 +3747,7 @@ function mlPrint(){
 $('ml-print').onclick=mlPrint;$('ml-pgo').onclick=function(){$('mldlg').close();if(window.ML_MODE==='letter')ltPrint();else mlPrint()};
 
 /* ═════════════ خطاب / إيميل رسمي على ورقة الشركة ═════════════ */
-var LT={to:'',subj:'',body:'',close:'',date:true,dtx:'',size:'m'};
+var LT={to:'',subj:'',body:'',close:'',date:true,dtx:'',size:'m',fpt:0};
 try{var _l=JSON.parse(localStorage.getItem('fm_letter')||'{}');Object.keys(_l).forEach(function(k){LT[k]=_l[k]})}catch(e){}
 function ltSave(){try{localStorage.setItem('fm_letter',JSON.stringify(LT))}catch(e){}}
 function ltToday(){var d=new Date();return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()}
@@ -3779,7 +3785,7 @@ function ltBuild(){
   if(LT.subj.trim())blocks.push({c:'sj',t:'الموضوع: '+LT.subj.trim()});
   LT.body.split(/\n/).forEach(function(l){l=l.replace(/\s+/g,' ').trim();if(l)blocks.push({c:'p',t:l,split:1})});
   if(LT.close.trim())blocks.push({c:'cl',t:LT.close.replace(/\s+$/,'')});
-  var data=JSON.stringify({blocks:blocks,f:LT_SZ[LT.size]||12.5,lh:LH_SRC}).replace(/</g,'\\u003c');
+  var data=JSON.stringify({blocks:blocks,f:(LT.fpt>0?Math.min(30,Math.max(7,+LT.fpt)):(LT_SZ[LT.size]||12.5)),lh:LH_SRC}).replace(/</g,'\\u003c');
   var doc='<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+esc(LT.subj||'خطاب')+'</title>'
     +'<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"><style>'+ML_CSS+LT_CSS+'</style></head><body><div id="root"></div>'
     +'<script type="application/json" id="d">'+data+'<\/script><script>'+LT_JS+'<\/script></body></html>';
@@ -3803,9 +3809,10 @@ function ltPrint(){
   try{logAct('طباعة خطاب على ورقة الشركة'+(LT.subj?' — '+LT.subj:''))}catch(e){}
 }
 function ltInit(){
-  $('lt-to').value=LT.to;$('lt-subj').value=LT.subj;$('lt-dtx').value=LT.dtx;$('lt-size').value=LT.size;$('lt-body').value=LT.body;$('lt-close').value=LT.close;$('lt-date').checked=!!LT.date;
+  $('lt-to').value=LT.to;$('lt-subj').value=LT.subj;$('lt-dtx').value=LT.dtx;$('lt-size').value=LT.size;$('lt-fpt').value=LT.fpt||'';$('lt-body').value=LT.body;$('lt-close').value=LT.close;$('lt-date').checked=!!LT.date;
   [['lt-to','to'],['lt-subj','subj'],['lt-dtx','dtx'],['lt-body','body'],['lt-close','close']].forEach(function(a){$(a[0]).oninput=function(){LT[a[1]]=this.value;ltSave()}});
   $('lt-size').onchange=function(){LT.size=this.value;ltSave()};
+  $('lt-fpt').oninput=function(){LT.fpt=parseFloat(this.value)||0;ltSave()};
   $('lt-date').onchange=function(){LT.date=this.checked;ltSave()};
   $('lt-print').onclick=ltPrint;
   $('lt-clear').onclick=function(){if(!confirm('تمسح نص الخطاب؟'))return;LT.to=LT.subj=LT.body=LT.close='';LT.dtx=ltToday();ltSave();ltInit()};
