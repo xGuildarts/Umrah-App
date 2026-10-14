@@ -1130,6 +1130,8 @@ window.addEventListener('load',function(){setTimeout(ensureExcel,1500)});
     <button id="hd-arbtn" title="مراجعة الأسماء العربي">🔤 الأسماء بالعربي</button>
     <select id="hd-pl" title="لغة الأسماء في الكشف"><option value="both">كشف: عربي + English</option><option value="ar">كشف: عربي فقط</option><option value="en">كشف: English فقط</option></select>
     <button id="hd-print">🖨️ طباعة كشف التسكين</button>
+    <input id="hd-hmk" placeholder="🕋 فندق مكة" style="width:130px;font-size:13px" title="يظهر في ورقة الطباعة"><input id="hd-hmd" placeholder="🕌 فندق المدينة" style="width:130px;font-size:13px" title="يظهر في ورقة الطباعة">
+    <button id="hd-printar" title="كشف عربي فقط: الغرف + الأسماء + نوع التسكين + العمر">🖨️ كشف عربي (غرف + عمر)</button>
   </div>
   <div class="hd-hint"><b>🔗 غرفة واحدة</b> (زوج/زوجة، أخ/أخ، أم/بنت…): بيتسكنوا مع بعض دايمًا — بتتعمل من الجدول الرئيسي وقت الحجز، أو من هنا بتحديد الأسماء ثم 🔗 ربط. &nbsp; <b>📒 نفس الحجز</b>: مجرد ملف واحد، من غير إجبار على غرفة واحدة — لما تحدد فرد بتتعلّم باقي حجزه بإطار منقّط. &nbsp; اسحب أي فرد وهيجيب معاه المربوطين بيه — <b>Shift + سحب</b> يسحبه لوحده.</div>
   <div class="hd-body">
@@ -1421,6 +1423,7 @@ async function sbSaveGroup0(g){
   if(!sbReady)return null;
   var body={id:g.id,name:g.name,trip:g.trip||'',date:g.date||null,prices:g.pr||{},min_pct:g.minPct==null?50:g.minPct};
   var opt=function(){return{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)}};
+  if(sbTk&&g.hd&&g.hd.ar){try{var _sv=await sbFetch('fm_groups?id=eq.'+g.id+'&select=tk'),_sh=_sv&&_sv[0]&&_sv[0].tk&&_sv[0].tk.__hd;if(_sh&&_sh.ar){g.hd.arok=g.hd.arok||{};Object.keys(_sh.ar).forEach(function(k){if(_sh.arok&&_sh.arok[k]&&!g.hd.arok[k]){g.hd.ar[k]=_sh.ar[k];g.hd.arok[k]=1}})}}catch(e){}}
   if(sbTk)body.tk=Object.assign({},g.tk||{},g.hd?{__hd:g.hd}:{},g.pc?{__pc:g.pc}:{},g.ex?{__ex:g.ex}:{},g.idc?{__idc:g.idc}:{});
   var r=await sbFetch('fm_groups?on_conflict=id',opt());
   if(r===null&&sbTk){
@@ -3038,7 +3041,7 @@ function arMigrate(ppl){
   var done={};
   (ppl||[]).forEach(function(p){var h=arStore(p);if(h.arv===3)return;
     var bad=arAuto(p,true).t,cur=h.ar[p.id];
-    if(cur&&cur===bad){delete h.ar[p.id];delete h.arok[p.id]}   /* اسم اتولّد بالترتيب المعكوس → يتولّد تاني صح */
+    if(cur&&cur===bad&&!h.arok[p.id]){delete h.ar[p.id];delete h.arok[p.id]}   /* اسم اتولّد بالترتيب المعكوس → يتولّد تاني صح */
     done[p.g]=h});
   Object.keys(done).forEach(function(k){done[k].arv=3});
 }
@@ -3055,7 +3058,7 @@ function arAutoSet(p,force){
 }
 function arEnsureAll(ppl){var n=0;arMigrate(ppl||list());(ppl||list()).forEach(function(p){if(arAutoSet(p))n++});return n}
 var _arT=null;
-function arSaveSoon(g){save();clearTimeout(_arT);_arT=setTimeout(function(){sbSaveGroup(g||grp())},900)}
+function arSaveSoon(g){g=g||grp();saveNow();if(SB.url&&SB.key){DIRTY['g'+g.id]=1;dsave()}clearTimeout(_arT);_arT=setTimeout(function(){sbSaveGroup(g)},900)}
 function arText(p){return arGet(p)||arAuto(p).t}
 
 /* ── شاشة مراجعة الأسماء العربي ── */
@@ -3143,9 +3146,9 @@ function hdRoomInfo(r){
 }
 
 /* ── undo / snapshot ── */
-function hdCore(){var d=hdD(),c={};Object.keys(d).forEach(function(k){if(k!=='ar'&&k!=='arok'&&k!=='tok'&&k!=='arv')c[k]=d[k]});return JSON.stringify(c)}
+function hdCore(){var d=hdD(),c={};Object.keys(d).forEach(function(k){if(k!=='ar'&&k!=='arok'&&k!=='tok'&&k!=='arv'&&k!=='hotels')c[k]=d[k]});return JSON.stringify(c)}
 function hdSnap(){return{p:hdPeople().map(function(p){return[p.id,p.rno||'',p.room||'',!!p.fam]}),d:hdCore()}}
-function hdRestore(s){var by={};s.p.forEach(function(a){by[a[0]]=a});hdPeople().forEach(function(p){var a=by[p.id];if(a){p.rno=a[1];p.room=a[2];p.fam=a[3]}});var cur=grp().hd||{},nd=JSON.parse(s.d);nd.ar=cur.ar||{};nd.arok=cur.arok||{};nd.tok=cur.tok;nd.arv=cur.arv;grp().hd=nd}
+function hdRestore(s){var by={};s.p.forEach(function(a){by[a[0]]=a});hdPeople().forEach(function(p){var a=by[p.id];if(a){p.rno=a[1];p.room=a[2];p.fam=a[3]}});var cur=grp().hd||{},nd=JSON.parse(s.d);nd.ar=cur.ar||{};nd.arok=cur.arok||{};nd.tok=cur.tok;nd.arv=cur.arv;nd.hotels=cur.hotels;grp().hd=nd}
 function hdPush(){HD.undo.push(hdSnap());if(HD.undo.length>50)HD.undo.shift()}
 function hdSay(t,c){var e=$('hd-msg');e.textContent=t;e.className=c||'';clearTimeout(hdSay._t);hdSay._t=setTimeout(function(){e.textContent=''},6000)}
 
@@ -3156,6 +3159,7 @@ $('open-housing').onclick=function(){
   document.querySelectorAll('.hd-sex-tab').forEach(function(x){x.classList.toggle('on',x.dataset.sex==='all')});
   $('hd-nt').innerHTML=ROOMS.map(function(r){return'<option value="'+r[0]+'">'+r[1]+'</option>'}).join('');
   $('hd-nt').value='quad';
+  var _ht=hdD().hotels||{};$('hd-hmk').value=_ht.mk||'';$('hd-hmd').value=_ht.md||'';
   arEnsureAll(hdPeople());hdClean();HD.orig=hdSnap();var _fx=rmFix(hdPeople());hdRender();$('housingdlg').showModal();
   if(_fx.length)hdSay('⚠️ '+_fx.length+' فرد كانوا في غرفة نوعها مختلف عن نوع تسكينهم — اتشالوا ومحتاجين تسكين من جديد (اضغط حفظ)','err');
 };
@@ -3597,8 +3601,9 @@ function hdPrint(){
   var date=new Date().toLocaleDateString('en-GB');
   var chips=Object.keys(cnt).map(function(t){return'<span class="mi"><b>'+esc(HD_EN[t]||'?')+'</b> '+cnt[t]+'</span>'}).join('');
   var hN='<th class="ar">الاسم بالعربي</th>',hE='<th>Guest Name</th>';
-  $('pa').innerHTML='<div class="ph"><div><div class="brand">AL-MAAMOUN FLIGHTS</div><h2>Rooming List — '+esc(g.name)+(ar?' | كشف التسكين':'')+'</h2><div class="sub">'+esc(g.trip||'')+(g.date?' · '+fmtDate(g.date):'')+'</div></div>'
+  $('pa').innerHTML='<div class="ph"><div><div class="brand">AL-MAAMOUN FLIGHTS</div><h2>Rooming List — '+esc(g.name)+(ar?' | كشف التسكين':'')+'</h2><div class="sub">'+esc(g.trip||'')+(g.date?' · '+fmtDate(g.date):'')+'</div>'+(hdHotelsTx().length?'<div class="sub" dir="rtl" style="font-weight:700">'+hdHotelsTx().map(esc).join(' | ')+'</div>':'')+'</div>'
     +'<div class="meta"><span class="mi"><b>Guests</b> '+guests+'</span><span class="mi"><b>Rooms</b> '+rooms.length+'</span>'+chips+'</div></div>'
+    +hdSummHTML(hdPeople(),g)
     +(rooms.length?'<table class="rooming fx">'+hdCg(ar,en,1)+'<thead><tr><th>Room<small>الغرفة</small></th><th>Type<small>النوع</small></th><th>#</th>'+(ar?hN:'')+(en?hE:'')+'<th>Sex</th><th>Passport No.</th><th>Notes</th></tr></thead>'+rows+'</table>':'<p>No rooms assigned yet.</p>')
     +(un.length?'<h3 style="margin:14px 0 5px;font-size:13px;color:#991b1b">Unassigned guests / غير مسكَّنين ('+un.length+')</h3><table class="fx">'+hdCg(ar,en,0)+'<thead><tr><th>#</th>'+(ar?hN:'')+(en?hE:'')+'<th>Sex</th><th>Passport No.</th><th>Requested</th></tr></thead><tbody>'+unRows+'</tbody></table>':'')
     +hdNotes(rooms,un,ar,en)
@@ -3608,6 +3613,55 @@ function hdPrint(){
   doPrint();
 }
 $('hd-print').onclick=hdPrint;
+
+/* ── أسماء الفنادق + ملخص (رجال/سيدات/أطفال) للطباعة ── */
+var HD_CHILD_AGE=12; /* أقل من كده = طفل */
+function hdHotelSave(){var g=grp(),h=hdD();h.hotels={mk:$('hd-hmk').value.trim(),md:$('hd-hmd').value.trim()};arSaveSoon(g)}
+$('hd-hmk').oninput=hdHotelSave;$('hd-hmd').oninput=hdHotelSave;
+function hdHotelsTx(){var h=hdD().hotels||{},a=[];if(h.mk)a.push('فندق مكة: '+h.mk);if(h.md)a.push('فندق المدينة: '+h.md);return a}
+function hdSumm(ppl,g){var m=0,f=0,c=0,inf=0,x=0;ppl.forEach(function(p){var a=ageAt(p.dob,g.date);
+  if(a!==null&&a<HD_CHILD_AGE){c++;if(a<2)inf++}else if(p.sex==='M')m++;else if(p.sex==='F')f++;else x++});
+  return{m:m,f:f,c:c,inf:inf,x:x,t:ppl.length}}
+function hdSummHTML(ppl,g){var s=hdSumm(ppl,g);
+  return'<div dir="rtl" style="direction:rtl;border:1.5px solid #12284a;border-radius:6px;padding:6px 10px;margin:0 0 8px;font-size:1.05em;font-weight:700;display:flex;gap:16px;flex-wrap:wrap;background:#f4f7fa">'
+  +'<span>الإجمالي: '+s.t+' فرد</span><span>رجال: '+s.m+'</span><span>سيدات: '+s.f+'</span><span>أطفال: '+s.c+(s.inf?' (منهم '+s.inf+' رضيع)':'')+'</span>'+(s.x?'<span>غير محدد النوع: '+s.x+'</span>':'')+'</div>'}
+
+/* ── كشف التسكين عربي فقط: الغرفة + نوع التسكين + الاسم بالعربي + العمر ── */
+function hdPrintAr(){
+  var g=grp(),d=hdClean();
+  arEnsureAll(hdPeople());
+  var ageTx=function(p){var a=ageAt(p.dob,g.date);return a===null?'—':a<1?'أقل من سنة':a+' سنة'};
+  var rooms=d.rooms.filter(function(r){return hdMem(r.no).length}),k=0,rows='',guests=0,cnt={};
+  rooms.forEach(function(r){
+    var I=hdRoomInfo(r),mem=I.mem.slice().sort(function(a,b){return(a.sex===b.sex?0:a.sex==='M'?-1:1)}),rr='',tl=roomLbl(r.type)||'غير محدد';
+    cnt[tl]=(cnt[tl]||0)+1;
+    mem.forEach(function(p,i){
+      guests++;
+      rr+='<tr dir="rtl"'+(i===0?' class="rf"':'')+'>'
+        +(i===0?'<td rowspan="'+mem.length+'" class="num rno" dir="rtl"><b>'+esc(r.no)+'</b>'+(r.nm?'<br><small>'+esc(r.nm)+'</small>':'')+'</td>'
+          +'<td rowspan="'+mem.length+'" class="c" dir="rtl"><b>'+esc(tl)+'</b><br><small>'+(I.fam?'غرفة عائلة · ':'')+I.n+' من '+(I.cap||'؟')+'</small></td>':'')
+        +'<td class="num" dir="rtl">'+(++k)+'</td>'
+        +'<td class="ar" dir="rtl">'+esc(arText(p))+(isInf(p,g)?' <small>(رضيع)</small>':'')+'</td>'
+        +'<td class="c" dir="rtl">'+ageTx(p)+'</td></tr>';
+    });
+    rows+='<tbody class="rg">'+rr+'</tbody>';
+  });
+  var un=hdPeople().filter(function(p){return!p.rno});
+  var unRows=un.map(function(p,i){return'<tr dir="rtl"><td class="num" dir="rtl">'+(i+1)+'</td><td class="ar" dir="rtl">'+esc(arText(p))+'</td><td class="c" dir="rtl">'+ageTx(p)+'</td><td class="c" dir="rtl">'+esc(roomLbl(p.room)||'غير محدد')+'</td></tr>'}).join('');
+  var cg=function(w){return'<colgroup>'+w.map(function(x){return'<col style="width:'+x+'%">'}).join('')+'</colgroup>'};
+  var chips=Object.keys(cnt).map(function(t){return'<span class="mi"><b>'+esc(t)+'</b> '+cnt[t]+'</span>'}).join('');
+  var date=new Date().toLocaleDateString('en-GB');
+  $('pa').innerHTML='<div dir="rtl" style="direction:rtl;text-align:right"><div class="ph" dir="rtl"><div><div class="brand">المامون انترناشيونال</div><h2>كشف التسكين — '+esc(g.name)+'</h2><div class="sub">'+esc(g.trip||'')+(g.date?' · '+fmtDate(g.date):'')+'</div>'+(hdHotelsTx().length?'<div class="sub" style="font-weight:700">'+hdHotelsTx().map(esc).join(' &nbsp;|&nbsp; ')+'</div>':'')+'</div>'
+    +'<div class="meta"><span class="mi"><b>الأفراد</b> '+guests+'</span><span class="mi"><b>الغرف</b> '+rooms.length+'</span>'+chips+'</div></div>'
+    +hdSummHTML(hdPeople(),g)
+    +(rooms.length?'<table class="rooming fx" dir="rtl" style="direction:rtl">'+cg([12,17,6,47,18])+'<thead><tr><th>الغرفة</th><th>نوع التسكين</th><th>#</th><th>الاسم</th><th>العمر</th></tr></thead>'+rows+'</table>':'<p>لسه مفيش غرف متسكنة.</p>')
+    +(un.length?'<h3 style="margin:14px 0 5px;font-size:13px;color:#991b1b">غير مسكَّنين ('+un.length+')</h3><table class="fx" dir="rtl" style="direction:rtl">'+cg([6,50,18,26])+'<thead><tr><th>#</th><th>الاسم</th><th>العمر</th><th>التسكين المطلوب</th></tr></thead><tbody>'+unRows+'</tbody></table>':'')
+    +'<div class="foot" dir="rtl"><span>تاريخ الطباعة: '+date+'</span><span>'+esc(g.name)+'</span></div></div>';
+  var _un=hdPeople().filter(function(p){return p.rno&&!arOk(p)}).length;
+  PRN.w=_un?'⚠️ '+_un+' اسم عربي ترجمة تلقائية لسه ماتراجعتش (زر «الأسماء بالعربي» للمراجعة)':'';
+  doPrint();
+}
+$('hd-printar').onclick=hdPrintAr;
 $('hd-merge').onclick=hdMerge;
 $('rml').onclick=hdPrint;
 
