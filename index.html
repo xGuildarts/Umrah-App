@@ -789,7 +789,7 @@ window.addEventListener('load',function(){setTimeout(ensureExcel,1500)});
     <label style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="ml-showsub"> إظهار بيانات الرحلة (المجموعة / العدد)</label>
     <label style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="ml-date"> تاريخ الرحلة في العنوان</label>
     <label style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="ml-pno"> عمود رقم الجواز</label>
-    <label style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="ml-sup"> علامة (مشرف) جنب اسم المشرف</label>
+    <label style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="ml-sup"> علامة (مشرف / مشرف مساعد) جنب الاسم</label>
     <label style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="ml-sig"> توقيع رئيس مجلس الإدارة (تحت يمين)</label>
     <label style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="ml-stp"> ختم الشركة (فوق الختم)</label>
   </div>
@@ -928,7 +928,7 @@ window.addEventListener('load',function(){setTimeout(ensureExcel,1500)});
     <b>🟨 محدد: <span id="bn">0</span></b>
     <select id="bk-room" style="font-size:12px;padding:3px 5px"></select><button class="sec" id="bk-room-ok" style="font-size:12px;padding:3px 8px">تطبيق</button>
     <input id="bk-bk" list="bklist" placeholder="اسم حجز" style="width:90px;font-size:12px;padding:3px 5px"><button class="sec" id="bk-bk-ok" style="font-size:12px;padding:3px 8px">تطبيق</button><button class="sec" id="bk-req" title="حدد المطلوب سداده للمحددين: نسبة (30%) أو مبلغ (2000)" style="font-size:12px;padding:3px 8px">💰 المطلوب</button><button class="sec" id="bk-link" title="المحددين يتسكنوا في غرفة واحدة دايمًا" style="font-size:12px;padding:3px 8px">🔗 غرفة واحدة</button><button class="sec" id="bk-unlink" title="فك ربط الغرفة للمحددين" style="font-size:12px;padding:3px 8px">⛓️ فك</button><button class="sec" id="bk-newbk" title="اعمل حجز جديد بترقيم تلقائي وحط فيه المحددين" style="font-size:12px;padding:3px 8px">📒 حجز جديد للمحدد</button>
-    <button class="sec" id="bk-sup" style="font-size:12px;padding:3px 8px">👑 مشرف</button><button class="sec" id="bk-unsup" style="font-size:12px;padding:3px 8px">إلغاء مشرف</button>
+    <button class="sec" id="bk-sup" style="font-size:12px;padding:3px 8px">👑 مشرف</button><button class="sec" id="bk-unsup" style="font-size:12px;padding:3px 8px">إلغاء مشرف</button><button class="sec" id="bk-asup" style="font-size:12px;padding:3px 8px">🎖️ مشرف مساعد</button><button class="sec" id="bk-unasup" style="font-size:12px;padding:3px 8px">إلغاء مساعد</button><button class="sec" id="bk-nobed" title="طفل/رضيع مش بياخد سرير" style="font-size:12px;padding:3px 8px">👶 بدون سرير</button><button class="sec" id="bk-unnobed" style="font-size:12px;padding:3px 8px">له سرير</button>
     <select id="bk-grp" style="font-size:12px;padding:3px 5px"></select><button class="sec" id="bk-grp-ok" style="font-size:12px;padding:3px 8px">نقل</button>
     <button class="sec" id="bk-clr" style="font-size:12px;padding:3px 8px">✕ مسح التحديد</button>
   </div>
@@ -1065,6 +1065,8 @@ window.addEventListener('load',function(){setTimeout(ensureExcel,1500)});
     <label>🏷️ خصم (مبلغ أو %)<input id="ed-disc" class="ltr" placeholder="500 أو 10%" autocomplete="off"></label>
   </div>
   <label style="font-size:13px;display:flex;align-items:center;gap:6px;margin-top:8px"><input type="checkbox" id="ed-sup"> 👑 مشرف المجموعة (التكلفة = 0 ومفيش عليه فلوس)</label>
+  <label style="font-size:13px;display:flex;align-items:center;gap:6px;margin-top:6px"><input type="checkbox" id="ed-asup"> 🎖️ مشرف مساعد (بيظهر في الكشف)</label>
+  <label style="font-size:13px;display:flex;align-items:center;gap:6px;margin-top:6px"><input type="checkbox" id="ed-nobed"> 👶 طفل / رضيع بدون سرير (بيدخل الغرفة ومش بيتحسب في عدد السراير)</label>
   <div class="row" style="margin-top:6px;justify-content:space-between">
     <button class="sec" id="ed-mrz" style="font-size:12px;padding:4px 9px">↩ رجّع الاسم من الـ MRZ</button>
     <span class="row"><button class="sec" id="ed-cancel">إلغاء</button><button id="ed-save">💾 حفظ التعديل</button></span>
@@ -1210,14 +1212,20 @@ var CUR='EGP';
 var CAP={single:1,double:2,triple:3,quad:4,quint:5};
 function ageAt(dob,ref){if(!dob)return null;var a=new Date(dob),b=ref?new Date(ref):new Date(),y=b.getFullYear()-a.getFullYear();if(b.getMonth()<a.getMonth()||(b.getMonth()===a.getMonth()&&b.getDate()<a.getDate()))y--;return y}
 function isInf(p,g){var a=ageAt(p.dob,g.date);return a!==null&&a<2}
+/* طفل/رضيع بدون سرير: مش بيتحسب في سعة الغرفة (رضيع أقل من سنتين تلقائي، أو أي طفل متعلّم يدوي) */
+function noBed(p,g){return !!p.nobed||isInf(p,g)}
+function noBedLbl(p,g){return isInf(p,g)?'رضيع':'طفل'}
+function noBedLblEn(p,g){return isInf(p,g)?'Infant':'Child'}
+/* مشرف / مشرف مساعد */
+function supTxt(p){return p.sup?'مشرف':(p.asup?'مشرف مساعد':'')}
 function longNm(p){return!!p.mrz&&p.mrz.split('\n')[0].slice(5).replace(/<+$/,'').length>=38}
 function okName(x){return!x||/^[A-Z][A-Z '\-]*$/.test(x)}
 function nextRoom(){var mx=0;list().forEach(function(p){var n=parseInt(p.rno);if(n>mx)mx=n});return String(mx+1)}
 function roomLbl(k){var r=ROOMS.filter(function(x){return x[0]===k})[0];return r?r[1]:'غير محدد'}
-function roomStats(g){var m=roomMap(g),st={};Object.keys(m).forEach(function(k){var mem=m[k],ty=mem[0].room||'?',n=mem.filter(function(x){return!isInf(x,g)}).length;st[ty]=st[ty]||{r:0,inc:0};st[ty].r++;if(CAP[ty]&&n<CAP[ty])st[ty].inc++});return st}
+function roomStats(g){var m=roomMap(g),st={};Object.keys(m).forEach(function(k){var mem=m[k],ty=mem[0].room||'?',n=mem.filter(function(x){return!noBed(x,g)}).length;st[ty]=st[ty]||{r:0,inc:0};st[ty].r++;if(CAP[ty]&&n<CAP[ty])st[ty].inc++});return st}
 function suggestRoom(p,g){var m=roomMap(g),best='';Object.keys(m).some(function(k){var mem=m[k];
   if(mem.some(function(x){return x.fam})||mem[0].room!==p.room)return false;
-  if(mem.filter(function(x){return!isInf(x,g)}).length>=CAP[p.room])return false;
+  if(mem.filter(function(x){return!noBed(x,g)}).length>=CAP[p.room])return false;
   if(mem.some(function(x){return x.sex&&p.sex&&x.sex!==p.sex}))return false;best=k;return true});return best}
 function sumPays(p){return(p.pays||[]).reduce(function(a,x){return a+(+x.a||0)},0)}
 function paidOf(p){return(p.pays&&p.pays.length)?sumPays(p):(+p.paid||0)}
@@ -1240,7 +1248,7 @@ function rmCheck(p,no){
   var ty=(r&&r.type)||(mem[0]&&mem[0].room)||'';
   if(ty&&p.room&&p.room!==ty)return'غرفة '+no+' نوعها '+roomLbl(ty)+' ونوع تسكين الفرد '+roomLbl(p.room)+' — لازم يتطابقوا';
   var t=ty||p.room;
-  if(t&&CAP[t]){var n=mem.filter(function(x){return!isInf(x,g)}).length+(isInf(p,g)?0:1);if(n>CAP[t])return'غرفة '+no+' ('+roomLbl(t)+') كاملة'}
+  if(t&&CAP[t]){var n=mem.filter(function(x){return!noBed(x,g)}).length+(noBed(p,g)?0:1);if(n>CAP[t])return'غرفة '+no+' ('+roomLbl(t)+') كاملة'}
   var all=mem.concat([p]),sx={};all.forEach(function(x){if(x.sex)sx[x.sex]=1});
   if(sx.M&&sx.F&&!hdFamOK(all))return'غرفة '+no+' فيها رجال وسيدات — مسموح بس لو كلهم مرتبطين ببعض';
   return'';
@@ -1251,7 +1259,7 @@ function roomIssue(p,g){
   mem.forEach(function(x){if(x.room)ty[x.room]=1;if(x.sex)sx[x.sex]=1;if(x.fam)fam=true});
   var tk=Object.keys(ty);
   if(tk.length>1)msg.push('تسكين مختلف في نفس الغرفة');
-  else if(tk.length){var c=CAP[tk[0]],n=mem.filter(function(x){return!isInf(x,g)}).length;if(n>c)msg.push('زيادة '+(n-c));else if(n<c)msg.push('ناقصة '+(c-n))}
+  else if(tk.length){var c=CAP[tk[0]],n=mem.filter(function(x){return!noBed(x,g)}).length;if(n>c)msg.push('زيادة '+(n-c));else if(n<c)msg.push('ناقصة '+(c-n))}
   if(Object.keys(sx).length>1&&!fam)msg.push('رجال وسيدات مع بعض');
   return msg.join(' + ');
 }
@@ -1302,6 +1310,7 @@ function fltOK(p,g,f){
 function viewList(){var g=grp(),f=$('flt').value,r=list().filter(function(p){return fltOK(p,g,f)});
   var sb=$('sortby').value;if(sb==='bk')r=r.map(function(p,i){return[p,i]}).sort(function(a,b){var x=a[0].bk||'\uffff',y=b[0].bk||'\uffff';return x<y?-1:x>y?1:a[1]-b[1]}).map(function(a){return a[0]});
   else if(sb==='room')r=r.map(function(p,i){return[p,i]}).sort(function(a,b){var x=parseInt(a[0].rno),y=parseInt(b[0].rno);x=isNaN(x)?1e9:x;y=isNaN(y)?1e9:y;return x-y||a[1]-b[1]}).map(function(a){return a[0]});
+  if(sb!=='room'){var _f={},_o=[];r.forEach(function(p){if(p.bk){if(!_f[p.bk])_f[p.bk]=[];_f[p.bk].push(p)}});var _d={};r.forEach(function(p){if(!p.bk)_o.push(p);else if(!_d[p.bk]){_d[p.bk]=1;_f[p.bk].forEach(function(q){_o.push(q)})}});r=_o}
   return r}
 // MRZ check digit (ICAO 7-3-1)
 function chkD(s,c){var w=[7,3,1],t=0;for(var i=0;i<s.length;i++){var ch=s[i],v=ch==='<'?0:/\d/.test(ch)?+ch:ch.charCodeAt(0)-55;t+=v*w[i%3]}return String(t%10)===c}
@@ -1406,7 +1415,7 @@ async function sbLoad(){
       nat:p.nat||'',sex:p.sex||'',dob:p.dob||'',exp:p.exp||'',
       photo:p.photo||false,passportDoc:p.passport_doc||false,tajneed:p.tajneed||false,
       payDue:p.pay_due||false,payAmt:p.pay_amount==null?'':p.pay_amount,
-      room:p.room||'',paid:p.paid||'',hasPass:p.has_pass||false,pays:p.payments||[],rno:p.room_no||'',fam:p.family||false,bk:p.booking||'',mrz:p.mrz||'',rev:p.rev||false,custom:p.price_custom==null?'':p.price_custom,sup:p.supervisor==null?((_old[p.id]||{}).sup||false):!!p.supervisor,disc:p.discount==null?((_old[p.id]||{}).disc||''):(+p.discount||'')
+      room:p.room||'',paid:p.paid||'',hasPass:p.has_pass||false,pays:p.payments||[],rno:p.room_no||'',fam:p.family||false,bk:p.booking||'',mrz:p.mrz||'',rev:p.rev||false,custom:p.price_custom==null?'':p.price_custom,sup:p.supervisor==null?((_old[p.id]||{}).sup||false):!!p.supervisor,asup:p.asst_supervisor==null?((_old[p.id]||{}).asup||false):!!p.asst_supervisor,nobed:p.no_bed==null?((_old[p.id]||{}).nobed||false):!!p.no_bed,disc:p.discount==null?((_old[p.id]||{}).disc||''):(+p.discount||'')
     }});
     Object.keys(DIRTY).forEach(function(k){
       if(k.charAt(0)==='g'){var og=_og[k.slice(1)];if(og){var gi=S.groups.findIndex(function(x){return String(x.id)===k.slice(1)});if(gi>=0)S.groups[gi]=og;else S.groups.push(og)}}
@@ -1439,7 +1448,7 @@ async function sbSaveGroup(g){
   var r=await sbSaveGroup0(g);
   if(r!==null){delete DIRTY['g'+g.id];dsave()}
 }
-var sbDisc=true,sbSup=true;
+var sbDisc=true,sbSup=true,sbX2=true;
 async function sbSavePerson0(p){
   if(!sbReady)return null;
   var body={
@@ -1452,14 +1461,20 @@ async function sbSavePerson0(p){
   var opt=function(){return{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=representation'},body:JSON.stringify(body)}};
   if(sbDisc)body.discount=+p.disc||0;
   if(sbSup)body.supervisor=!!p.sup;
+  if(sbX2){body.asst_supervisor=!!p.asup;body.no_bed=!!p.nobed}
   var r=await sbFetch('fm_people?on_conflict=id',opt());
+  if(r===null&&sbX2){
+    delete body.asst_supervisor;delete body.no_bed;
+    r=await sbFetch('fm_people?on_conflict=id',opt());
+    if(r!==null){sbX2=false;alert('⚠️ عمود المشرف المساعد / بدون سرير مش موجود في Supabase — محفوظ على الجهاز بس.\nشغّل السطرين دول في SQL Editor:\nALTER TABLE fm_people ADD COLUMN IF NOT EXISTS asst_supervisor BOOLEAN DEFAULT false;\nALTER TABLE fm_people ADD COLUMN IF NOT EXISTS no_bed BOOLEAN DEFAULT false;')}
+  }
   if(r===null&&sbDisc){
     delete body.discount;
     r=await sbFetch('fm_people?on_conflict=id',opt());
     if(r!==null){sbDisc=false;alert('⚠️ عمود الخصم مش موجود في Supabase — الخصم محفوظ على الجهاز بس.\nشغّل السطر ده في SQL Editor:\nALTER TABLE fm_people ADD COLUMN IF NOT EXISTS discount NUMERIC DEFAULT 0;')}
   }
   if(r===null&&sbSup){
-    delete body.supervisor;if(sbDisc)body.discount=+p.disc||0;
+    delete body.supervisor;if(sbDisc)body.discount=+p.disc||0;if(!sbX2){delete body.asst_supervisor;delete body.no_bed}
     r=await sbFetch('fm_people?on_conflict=id',opt());
     if(r!==null){sbSup=false;alert('⚠️ عمود المشرف مش موجود في Supabase — المشرف محفوظ على الجهاز بس.\nشغّل السطر ده في SQL Editor:\nALTER TABLE fm_people ADD COLUMN IF NOT EXISTS supervisor BOOLEAN DEFAULT false;')}
   }
@@ -2137,7 +2152,7 @@ $('tb').addEventListener('dblclick',async function(e){var n=e.target.closest('sp
 $('rml').onclick=function(){var g=grp(),m=roomMap(g),mode=$('pmode').value,keys=Object.keys(m).sort(function(a,b){return parseInt(a)-parseInt(b)||(a>b?1:-1)});
   if(!keys.length){alert('مفيش غرف متسجلة.');return}
   var rows=keys.map(function(k){var mem=m[k],iss=roomIssue(mem[0],g);
-    return'<tr><td>'+esc(k)+'</td><td>'+esc(roomLbl(mem[0].room)+(mem.some(function(x){return x.fam})?' (Family)':''))+'</td><td>'+mem.map(function(x){return esc(nameByMode(x,mode))+' ('+esc(x.sex||'?')+(isInf(x,g)?', Infant':'')+')'}).join('<br>')+'</td><td style="color:#991b1b">'+esc(iss)+'</td></tr>'}).join('');
+    return'<tr><td>'+esc(k)+'</td><td>'+esc(roomLbl(mem[0].room)+(mem.some(function(x){return x.fam})?' (Family)':''))+'</td><td>'+mem.map(function(x){return esc(nameByMode(x,mode))+' ('+esc(x.sex||'?')+(noBed(x,g)?', '+noBedLblEn(x,g)+' (no bed)':'')+')'}).join('<br>')+'</td><td style="color:#991b1b">'+esc(iss)+'</td></tr>'}).join('');
   var st=roomStats(g),sum=Object.keys(st).map(function(k){return esc(roomLbl(k))+': '+st[k].r}).join(' | '),un=list().filter(function(p){return!p.rno}).length;
   $('pa').innerHTML='<h2>Rooming List — '+esc(g.name)+'</h2><div class="meta">'+esc(g.trip||'')+(g.date?' | '+fmtDate(g.date):'')+' | '+sum+(un?' | Unassigned: '+un:'')+'</div><table><thead><tr><th>Room</th><th>Type</th><th>Guests</th><th>Notes</th></tr></thead><tbody>'+rows+'</tbody></table>';
   doPrint()};
@@ -2345,7 +2360,7 @@ function openEdit(id){
   $('ed-ar').value=arGet(p)||arAuto(p).t;$('ed-sex').value=p.sex||'';$('ed-dob').value=p.dob||'';$('ed-exp').value=p.exp||'';
   $('ed-room').innerHTML='<option value="">—</option>'+ROOMS.map(function(r){return'<option value="'+r[0]+'"'+(p.room===r[0]?' selected':'')+'>'+r[1]+'</option>'}).join('');
   $('ed-disc').value=p.disc||'';$('ed-rno').value=p.rno||'';$('ed-bk').value=p.bk||'';$('ed-custom').value=p.custom===''||p.custom==null?'':p.custom;
-  $('ed-sup').checked=!!p.sup;$('ed-ph').value=(pcOf(grp()).ph||{})['p'+p.id]||'';$('ed-mrz').style.display=p.mrz?'':'none';
+  $('ed-sup').checked=!!p.sup;$('ed-asup').checked=!!p.asup;$('ed-nobed').checked=!!p.nobed;$('ed-ph').value=(pcOf(grp()).ph||{})['p'+p.id]||'';$('ed-mrz').style.display=p.mrz?'':'none';
   edMrz='';$('ed-scan').value='';$('ed-scanmsg').textContent='';
   $('editdlg').showModal();$('ed-scan').focus();
 }
@@ -2376,7 +2391,7 @@ $('ed-save').onclick=async function(){
   if(su!==p.sur||gi!==p.giv)p.rev=false;
   p.sur=su;p.giv=gi;p.pno=pno;p.nat=$('ed-nat').value.trim().toUpperCase();p.sex=$('ed-sex').value;
   p.dob=$('ed-dob').value;p.exp=$('ed-exp').value;p.room=$('ed-room').value;p.rno=$('ed-rno').value.trim();p.bk=$('ed-bk').value.trim();
-  p.sup=$('ed-sup').checked;
+  p.sup=$('ed-sup').checked;p.asup=$('ed-asup').checked;if(p.sup)p.asup=false;p.nobed=$('ed-nobed').checked;
   (function(){var v=$('ed-ar').value.trim(),o=arGet(p);if(v&&v!==o)arSet(p,v,true);else if(!v||!arOk(p))arAutoSet(p,true);arSaveSoon(arGrp(p))})();
   if(edMrz){p.mrz=edMrz;p.rev=false;p.hasPass=true}
   var cv=$('ed-custom').value;p.custom=cv===''?'':+cv;
@@ -2512,9 +2527,9 @@ function printCell(p,c,i,g,mode){
   if(c==='num')return'<td class="num">'+(i+1)+'</td>';
   if(c==='name'){
     if(mode==='cols')return'<td class="nm">'+esc(p.sur)+'</td><td class="nm">'+esc(p.giv)+'</td>';
-    if(mode==='enar')return'<td class="nm">'+esc(nameFull(p))+'</td><td class="nm" dir="rtl" style="text-align:right">'+esc(arText(p)||'')+(p.sup?'<b style="color:#b3261e"> (مشرف)</b>':'')+'</td>';
+    if(mode==='enar')return'<td class="nm">'+esc(nameFull(p))+'</td><td class="nm" dir="rtl" style="text-align:right">'+esc(arText(p)||'')+(supTxt(p)?'<b style="color:#b3261e"> ('+supTxt(p)+')</b>':'')+'</td>';
     if(mode==='airline'){var _ap=(p.giv||'').trim().split(/\s+/);return'<td class="nm">'+esc(p.sur)+'</td><td class="nm">'+esc(_ap[0]||'')+'</td><td class="nm">'+esc(_ap.slice(1).join(' '))+'</td>';}
-    return'<td class="'+(mode==='mrz'?'mono':'nm')+'"'+(mode==='ar'?' dir="rtl" style="text-align:right"':'')+'>'+esc(v)+(p.sup&&mode==='ar'?'<b style="color:#b3261e"> (مشرف)</b>':'')+'</td>';
+    return'<td class="'+(mode==='mrz'?'mono':'nm')+'"'+(mode==='ar'?' dir="rtl" style="text-align:right"':'')+'>'+esc(v)+(supTxt(p)&&mode==='ar'?'<b style="color:#b3261e"> ('+supTxt(p)+')</b>':'')+'</td>';
   }
   if(c==='exp-status'){var st=expStatus(p.exp,g.date);return'<td class="c '+st.cls+'">'+esc(st.label)+'</td>'}
   if(c==='tajneed')return v?'<td class="no">'+esc(v)+'</td>':'<td></td>';
@@ -2624,12 +2639,12 @@ $('xls').onclick=function(){
     cols.forEach(function(c){
       if(c==='num')row.push(i+1);
       else if(c==='name'&&mode==='cols'){row.push(p.sur);row.push(p.giv)}
-      else if(c==='name'&&mode==='enar'){row.push(nameFull(p));row.push((arText(p)||'')+(p.sup?' (مشرف)':''))}
+      else if(c==='name'&&mode==='enar'){row.push(nameFull(p));row.push((arText(p)||'')+(supTxt(p)?' ('+supTxt(p)+')':''))}
       else if(c==='name'&&mode==='airline'){
         var _ap=(p.giv||'').trim().split(/\s+/);
         row.push(p.sur);row.push(_ap[0]||'');row.push(_ap[1]||'');
       }
-      else row.push(colValue(p,c,mode,g.date)+(c==='name'&&mode==='ar'&&p.sup?' (مشرف)':''));
+      else row.push(colValue(p,c,mode,g.date)+(c==='name'&&mode==='ar'&&supTxt(p)?' ('+supTxt(p)+')':''));
     });
     rows.push(row);
   });
@@ -2709,8 +2724,8 @@ function render(){
     var ri=roomIssue(p,g),pi=payInfo(p,g),pct=(g.minPct==null?50:g.minPct);
     if(pi.due)rowWarn='background:rgba(179,38,30,.1)';
     return'<tr data-rid="'+p.id+'" class="'+(pi.due?'rw-due':rowWarn?'rw-warn':'')+(SEL[p.id]?' sel':'')+'">'
-      +'<td style="color:var(--mut);font-size:12px">'+(i+1)+'</td>'
-      +'<td class="'+(isMrz?'mono':'ltr')+'"><span class="nm" data-id="'+p.id+'" data-cp="'+esc(display)+'" title="اضغط للكوبي">'+esc(display)+'</span>'+(p.sup?' <span title="مشرف المجموعة">👑</span>':'')+(function(){var m=missing(p,g);return m.length?' <span title="'+esc(m.join(' · '))+'" style="cursor:help">⚠️</span>':' <span title="جاهز" style="color:var(--ok)">✓</span>'})()+'</td>'
+      +'<td style="color:var(--mut);font-size:12px'+(p.bk?';border-right:5px solid '+hdBkCol(p.bk):'')+'" title="'+(p.bk?'حجز '+esc(p.bk):'')+'">'+(i+1)+'</td>'
+      +'<td class="'+(isMrz?'mono':'ltr')+'"><span class="nm" data-id="'+p.id+'" data-cp="'+esc(display)+'" title="اضغط للكوبي">'+esc(display)+'</span>'+(p.sup?' <span title="مشرف المجموعة">👑</span>':'')+(p.asup?' <span title="مشرف مساعد">🎖️</span>':'')+(p.nobed?' <span title="بدون سرير">👶</span>':'')+(function(){var m=missing(p,g);return m.length?' <span title="'+esc(m.join(' · '))+'" style="cursor:help">⚠️</span>':' <span title="جاهز" style="color:var(--ok)">✓</span>'})()+'</td>'
       +(showDet
         ?'<td class="ltr" style="font-size:12px">'+esc(p.pno||'')+'</td>'
          +'<td style="font-size:12px">'+esc(p.nat||'')+'</td>'
@@ -2821,7 +2836,11 @@ $('cur-bk-new').onclick=function(){window._curL=null;$('cur-bk').value=nextBk();
 $('bk-newbk').onclick=function(){var v=nextBk();bulkApply('حجز '+v,function(p){p.bk=v})};
 $('bk-room-ok').onclick=function(){var v=$('bk-room').value;if(!v){say('اختار نوع التسكين الأول','err');return}bulkApply('تسكين '+roomLbl(v),function(p){p.room=v})};
 $('bk-bk-ok').onclick=function(){var v=$('bk-bk').value.trim();if(!v){say('اكتب اسم الحجز الأول','err');return}bulkApply('حجز '+v,function(p){p.bk=v})};
-$('bk-sup').onclick=function(){bulkApply('تعيين مشرف',function(p){p.sup=true},'تعيين {n} كمشرف (تكلفتهم صفر)؟')};
+$('bk-asup').onclick=function(){bulkApply('تعيين مشرف مساعد',function(p){p.asup=true;p.sup=false},'تعيين {n} كمشرف مساعد؟')};
+$('bk-unasup').onclick=function(){bulkApply('إلغاء مشرف مساعد',function(p){p.asup=false})};
+$('bk-nobed').onclick=function(){bulkApply('بدون سرير',function(p){p.nobed=true},'تعليم {n} كأطفال بدون سرير (مش بيتحسبوا في سعة الغرفة)؟')};
+$('bk-unnobed').onclick=function(){bulkApply('له سرير',function(p){p.nobed=false})};
+$('bk-sup').onclick=function(){bulkApply('تعيين مشرف',function(p){p.sup=true;p.asup=false},'تعيين {n} كمشرف (تكلفتهم صفر)؟')};
 $('bk-unsup').onclick=function(){bulkApply('إلغاء مشرف',function(p){p.sup=false})};
 $('bk-grp-ok').onclick=function(){var v=+$('bk-grp').value;if(!v){say('اختار المجموعة الأول','err');return}var gg=S.groups.find(function(x){return x.id===v});bulkApply('نقل لـ '+gg.name,function(p){p.g=v;p.rno='';p.bk=''},'نقل {n} فرد لـ "'+gg.name+'"؟ (هيتمسح رقم الغرفة والحجز)')};
 $('bk-clr').onclick=function(){SEL={};render()};
@@ -3106,7 +3125,7 @@ function hdNm(p){return(((p.sur||'')+' '+(p.giv||'')).trim())||'—'}
 function hdById(id){return S.people.find(function(x){return x.id===id})}
 function hdPeople(){return list()}
 function hdMem(no){return hdPeople().filter(function(p){return String(p.rno||'')===no})}
-function hdN(mem){var g=grp();return mem.filter(function(p){return!isInf(p,g)}).length}
+function hdN(mem){var g=grp();return mem.filter(function(p){return!noBed(p,g)}).length}
 function hdD(){var g=grp();if(!g.hd||typeof g.hd!=='object')g.hd={};if(!Array.isArray(g.hd.rooms))g.hd.rooms=[];if(!Array.isArray(g.hd.links))g.hd.links=[];g.hd.lc=+g.hd.lc||0;return g.hd}
 function hdClean(){
   var d=hdD(),ids={};hdPeople().forEach(function(p){ids[p.id]=1});
@@ -3182,7 +3201,7 @@ function hdPerson(p,lm,inRoom){
   var bkm=p.bk&&!HD.sel[p.id]&&HD.selBk&&HD.selBk[p.bk];
   return'<div class="hd-p'+(HD.sel[p.id]?' sel':'')+(bkm?' bkm':'')+(l?' lk':'')+'" draggable="true" data-pid="'+p.id+'"'+(inRoom?' data-from="'+esc(String(p.rno))+'"':'')+(l?' style="--lc:'+hdCol(l)+'"':'')+'>'
     +hdSexIcon(p.sex)
-    +'<span class="hd-nm">'+(inRoom?'':'<span class="hd-en">'+esc(nameFlight(p))+'</span>')+'<span class="hd-ar">'+esc(arText(p))+(isInf(p,grp())?' <em>(رضيع)</em>':'')+(arOk(p)?'':' <i title="ترجمة تلقائية غير مؤكدة — اضغط ✏️ للمراجعة">راجع</i>')+'</span><small>'+(p.bk?'<b class="hd-bk" style="--bc:'+hdBkCol(p.bk)+'" title="نفس ملف الحجز — مش لازم نفس الغرفة">📒 '+esc(p.bk)+'</b> ':'')+'<span class="hd-pn">'+esc(p.pno||'')+'</span>'+(!inRoom&&p.room?'<span class="hd-rt">'+roomLbl(p.room)+'</span>':'')+'</small></span>'
+    +'<span class="hd-nm">'+(inRoom?'':'<span class="hd-en">'+esc(nameFlight(p))+'</span>')+'<span class="hd-ar">'+esc(arText(p))+(noBed(p,grp())?' <em>('+noBedLbl(p,grp())+(p.nobed&&!isInf(p,grp())?' — بدون سرير':'')+')</em>':'')+(arOk(p)?'':' <i title="ترجمة تلقائية غير مؤكدة — اضغط ✏️ للمراجعة">راجع</i>')+'</span><small>'+(p.bk?'<b class="hd-bk" style="--bc:'+hdBkCol(p.bk)+'" title="نفس ملف الحجز — مش لازم نفس الغرفة">📒 '+esc(p.bk)+'</b> ':'')+'<span class="hd-pn">'+esc(p.pno||'')+'</span>'+(!inRoom&&p.room?'<span class="hd-rt">'+roomLbl(p.room)+'</span>':'')+'</small></span>'
     +'<button class="hd-ed" data-edar="'+p.id+'" title="تعديل الاسم العربي">✏️</button>'
     +(l?'<button class="hd-lkb" data-unlink="'+p.id+'" title="مرتبط مع: '+esc(oth)+' — اضغط لفك ربطه">'+(l.bk.length?'📒':'🔗'+l.n)+'</button>':'')
     +(inRoom?'<button class="hd-x" data-kick="'+p.id+'" title="إخراج من الغرفة">✕</button>':'')
@@ -3208,7 +3227,7 @@ function hdTypeCards(ppl,d){
     var t=rt[0],cap=CAP[t]||0,dem=ppl.filter(function(p){return(p.room||'')===t});
     if(t===''&&!dem.length)return;
     var rs=d.rooms.filter(function(r){return(r.type||'')===t}),inc=rs.filter(function(r){return cap&&hdN(hdMem(r.no))<cap}).length;
-    var u=dem.filter(function(p){return!p.rno}),un2=u.filter(function(p){return!isInf(p,g)}).length,need=cap?Math.ceil(un2/cap):0;
+    var u=dem.filter(function(p){return!p.rno}),un2=u.filter(function(p){return!noBed(p,g)}).length,need=cap?Math.ceil(un2/cap):0;
     h+='<button class="hd-tc'+(HD.type===t?' on':'')+(t===''?' nt':'')+'" data-tp="'+t+'"><span class="t">'+rt[1]+'</span><span class="n">'+dem.length+' <small>فرد</small></span>'
       +'<span class="s">'+rs.length+' غرفة'+(inc?' ('+inc+' ناقصة)':'')+'</span>'
       +(u.length?'<span class="s w">⏳ '+u.length+' لم يُسكَّنوا'+(need?' ← '+need+' غرفة':'')+'</span>':(dem.length?'<span class="s g">✓ مسكَّنين</span>':'<span class="s">—</span>'))
@@ -3376,7 +3395,7 @@ function hdAuto(){
       if(used[p.id])return;var l=lm[p.id];
       var mem=l?l.ids.map(hdById).filter(function(x){return x&&!x.rno&&x.room===t}):[p];if(!mem.length)mem=[p];
       mem.forEach(function(x){used[x.id]=1});
-      var core=mem.filter(function(x){return!isInf(x,g)}),inf=mem.filter(function(x){return isInf(x,g)});
+      var core=mem.filter(function(x){return!noBed(x,g)}),inf=mem.filter(function(x){return noBed(x,g)});
       if(core.length<=cap){units.push({m:mem,w:core.length,mate:l?l.ids:null});return}
       for(var i=0;i<core.length;i+=cap){var ch=core.slice(i,i+cap);if(i===0)ch=ch.concat(inf);units.push({m:ch,w:Math.min(cap,core.length-i),mate:l?l.ids:null})}
     });
@@ -3411,7 +3430,7 @@ function hdFill(no){
     if(p.rno||seen[p.id])return;
     var u=hdUnit(p,lm).filter(function(x){return!x.rno});u.forEach(function(x){seen[x.id]=1});
     if(!u.length)return;
-    var core=u.filter(function(x){return!isInf(x,g)});
+    var core=u.filter(function(x){return!noBed(x,g)});
     if(!core.length||core.length>free)return;
     if(u.some(function(x){return x.room&&x.room!==r.type}))return;
     var sx={};u.forEach(function(x){if(x.sex)sx[x.sex]=1});var ks=Object.keys(sx);
@@ -3586,7 +3605,7 @@ function hdPrint(){
     rr='';
     mem.forEach(function(p,i){
       guests++;var l=lm[p.id],notes=[];
-      if(l)notes.push(ar&&!en?'مرتبط #'+l.n:'Linked #'+l.n);if(isInf(p,g))notes.push(ar&&!en?'رضيع':'Infant');
+      if(l)notes.push(ar&&!en?'مرتبط #'+l.n:'Linked #'+l.n);if(noBed(p,g))notes.push(ar&&!en?noBedLbl(p,g)+' (بدون سرير)':noBedLblEn(p,g)+' (no bed)');
       if(i===0){if(I.fam)notes.push(ar&&!en?'غرفة عائلة':'Family room');if(I.cls==='over')notes.push((ar&&!en?'زيادة +':'OVER +')+(I.n-I.cap));else if(I.cap&&I.n<I.cap)notes.push((ar&&!en?'ناقصة ':'Incomplete ')+I.n+'/'+I.cap)}
       rr+='<tr'+(i===0?' class="rf"':'')+'>'
         +(i===0?'<td rowspan="'+mem.length+'" class="num rno"><b>'+esc(r.no)+'</b>'+(r.nm?'<br><small>'+esc(r.nm)+'</small>':'')+'</td><td rowspan="'+mem.length+'" class="c">'+esc(HD_EN[r.type]||'—')+'<br><small>'+esc(roomLbl(r.type))+' · '+I.n+'/'+(I.cap||'?')+'</small></td>':'')
@@ -3641,7 +3660,7 @@ function hdPrintAr(){
         +(i===0?'<td rowspan="'+mem.length+'" class="num rno" dir="rtl"><b>'+esc(r.no)+'</b>'+(r.nm?'<br><small>'+esc(r.nm)+'</small>':'')+'</td>'
           +'<td rowspan="'+mem.length+'" class="c" dir="rtl"><b>'+esc(tl)+'</b><br><small>'+(I.fam?'غرفة عائلة · ':'')+I.n+' من '+(I.cap||'؟')+'</small></td>':'')
         +'<td class="num" dir="rtl">'+(++k)+'</td>'
-        +'<td class="ar" dir="rtl">'+esc(arText(p))+(isInf(p,g)?' <small>(رضيع)</small>':'')+'</td>'
+        +'<td class="ar" dir="rtl">'+esc(arText(p))+(noBed(p,g)?' <small>('+noBedLbl(p,g)+' — بدون سرير)</small>':'')+'</td>'
         +'<td class="c" dir="rtl">'+ageTx(p)+'</td></tr>';
     });
     rows+='<tbody class="rg">'+rr+'</tbody>';
@@ -3696,7 +3715,7 @@ function logAct(msg,g){
   }catch(e){console.error(e)}
 }
 function edDiff(o,p){
-  var L=[['sur','اللقب'],['giv','الاسم'],['pno','الجواز'],['nat','الجنسية'],['sex','الجنس'],['dob','الميلاد'],['exp','انتهاء الجواز'],['room','نوع التسكين'],['rno','الغرفة'],['bk','الحجز'],['sup','مشرف'],['custom','سعر خاص'],['disc','خصم']],r=[];
+  var L=[['sur','اللقب'],['giv','الاسم'],['pno','الجواز'],['nat','الجنسية'],['sex','الجنس'],['dob','الميلاد'],['exp','انتهاء الجواز'],['room','نوع التسكين'],['rno','الغرفة'],['bk','الحجز'],['sup','مشرف'],['asup','مشرف مساعد'],['nobed','بدون سرير'],['custom','سعر خاص'],['disc','خصم']],r=[];
   L.forEach(function(k){var a=o[k[0]],b=p[k[0]];if((a||'')!==(b||'')&&String(a||'')!==String(b||''))r.push(k[1]+': '+(a===true?'نعم':a||'—')+' ← '+(b===true?'نعم':b||'—'))});
   return r.join('، ');
 }
@@ -3766,7 +3785,8 @@ function mlPeople(g){
   if(ML.sort==='room')return by(function(a,b){var x=parseInt(a.rno),y=parseInt(b.rno);x=isNaN(x)?1e9:x;y=isNaN(y)?1e9:y;return x-y});
   if(ML.sort==='bk')return by(function(a,b){return String(a.bk||'\uffff').localeCompare(String(b.bk||'\uffff'),'ar',{numeric:true})});
   if(ML.sort==='ar')return by(function(a,b){return arText(a).localeCompare(arText(b),'ar')});
-  return ppl;
+  var _fi={};ppl.forEach(function(p,i){if(p.bk&&_fi[p.bk]==null)_fi[p.bk]=i});
+  return by(function(a,b){var x=a.bk?_fi[a.bk]:idx[a.id],y=b.bk?_fi[b.bk]:idx[b.id];return x-y});
 }
 /* مقاسات: f = الخط (pt) ، r = ارتفاع الصف (mm) — منطقة الكتابة 152mm بين اللوجو والختم */
 var ML_SZ={l:{f:14,r:8.4},m:{f:12.5,r:7.2},s:{f:11,r:6.2},xs:{f:9.5,r:5.4},xxs:{f:8.5,r:4.9}},ML_BODY=152;
@@ -3783,9 +3803,9 @@ function mlPack(ppl,sz,c,hasNote){
   function newPage(){var first=!pages.length;avail=ML_BODY-mlHead(first,hasNote)-r-2;pg={first:first,cols:[]};for(var k=0;k<c;k++)pg.cols.push([]);pages.push(pg);col=0;used=0}
   newPage();
   var balH=0;
-  if(false&&c===2){var tot=0,mx=0;ppl.forEach(function(p){var nm=mlNm(p),len=nm.length+(ML.sup&&p.sup?7:0),h=mlRowH(sz,f,len>mc?2:1);tot+=h;if(h>mx)mx=h});if(tot<=2*avail)balH=tot/2+mx*0.5}
+  if(false&&c===2){var tot=0,mx=0;ppl.forEach(function(p){var nm=mlNm(p),len=nm.length+(ML.sup&&supTxt(p)?(p.asup?13:7):0),h=mlRowH(sz,f,len>mc?2:1);tot+=h;if(h>mx)mx=h});if(tot<=2*avail)balH=tot/2+mx*0.5}
   ppl.forEach(function(p,i){
-    var nm=mlNm(p),len=nm.length+(ML.sup&&p.sup?7:0),lines=len>mc?2:1,h=mlRowH(sz,f,lines);
+    var nm=mlNm(p),len=nm.length+(ML.sup&&supTxt(p)?(p.asup?13:7):0),lines=len>mc?2:1,h=mlRowH(sz,f,lines);
     var lim=(balH&&pages.length===1)?Math.min(avail,balH):avail;
     if(used+h>lim+0.01&&pg.cols[col].length){col++;used=0;if(col>=c)newPage()}
     pg.cols[col].push({p:p,n:i+1,nm:nm,h:h});used+=h;
@@ -3844,7 +3864,7 @@ function mlBuild(){
       tbls+='<table style="'+(c===2?'width:calc(50% - 3mm)':'')+'">'+cg+'<thead><tr style="height:'+S0.r+'mm"><th style="font-size:'+hf+'pt">م</th><th style="font-size:'+hf+'pt">الاسم</th>'+(ML.pno?'<th style="font-size:'+hf+'pt">رقم الجواز</th>':'')+'</tr></thead><tbody>'
         +part.map(function(it){
           var p=it.p;
-          return'<tr data-h="'+it.h+'" style="height:'+it.h+'mm"><td class="n" style="font-size:'+Math.min(f,12)+'pt">'+it.n+'</td><td class="nm" data-f="'+f+'" style="font-size:'+f+'pt"><span>'+esc(it.nm)+(ML.sup&&p.sup?' <b style="color:#b3261e;white-space:nowrap">(مشرف)</b>':'')+'</span></td>'+(ML.pno?'<td class="pn">'+esc(p.pno||'')+'</td>':'')+'</tr>';
+          return'<tr data-h="'+it.h+'" style="height:'+it.h+'mm"><td class="n" style="font-size:'+Math.min(f,12)+'pt">'+it.n+'</td><td class="nm" data-f="'+f+'" style="font-size:'+f+'pt"><span>'+esc(it.nm)+(ML.sup&&supTxt(p)?' <b style="color:#b3261e;white-space:nowrap">('+supTxt(p)+')</b>':'')+'</span></td>'+(ML.pno?'<td class="pn">'+esc(p.pno||'')+'</td>':'')+'</tr>';
         }).join('')+'</tbody></table>';
     }
     return'<div class="pg">'+(ML.plain?'':'<img src="'+LH_SRC+'" alt="">')+'<div class="bd">'+(pages.length>1?'<div class="pl">صفحة '+(pi+1)+' من '+pages.length+'</div>':'')+head+'<div class="cols c'+c+'">'+tbls+'</div></div>'+(pi===pages.length-1?((ML.stp?'<div class="stp">'+(ML.stpImg?'<img src="'+ML.stpImg+'" alt="">':'<span class="sl">ختم الشركة</span>')+'</div>':'')+(ML.sig?'<div class="sg"><div>رئيس مجلس الإدارة</div>'+(ML.sigImg?'<img src="'+ML.sigImg+'" alt="">':'<div class="sp"></div>')+(ML.sigName?'<div class="sn">'+esc(ML.sigName)+'</div>':'')+'</div>':'')):'')+'</div>';
@@ -4096,7 +4116,7 @@ async function hdExcel(){
   rooms.forEach(function(room,ri){
     var I=hdRoomInfo(room),mem=I.mem.slice().sort(function(a,b){return(a.sex===b.sex?0:a.sex==='M'?-1:1)}),start=r;
     mem.forEach(function(p,i){
-      var l=lm[p.id],notes=[];if(l)notes.push('Linked #'+l.n);if(isInf(p,g))notes.push('Infant');
+      var l=lm[p.id],notes=[];if(l)notes.push('Linked #'+l.n);if(noBed(p,g))notes.push(noBedLblEn(p,g)+' (no bed)');
       if(i===0){if(I.fam)notes.push('Family room');if(I.cls==='over')notes.push('OVER +'+(I.n-I.cap));else if(I.cap&&I.n<I.cap)notes.push('Incomplete '+I.n+'/'+I.cap)}
       var vals=[i===0?room.no:'',i===0?(HD_EN[room.type]||'—'):'',++k];if(en)vals.push(nm(p));if(ar)vals.push(arText(p));vals.push(p.sex||'',p.pno||'',notes.join(' · '));
       var row=ws.getRow(r);
