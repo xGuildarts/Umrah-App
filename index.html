@@ -696,6 +696,8 @@ window.addEventListener('load',function(){setTimeout(ensureExcel,1500)});
     <button class="sec" id="chk-paste">📋 لصق من إكسل</button>
     <button class="sec" id="chk-sup">📄 كشف المشرف (ملف)</button>
     <button class="sec" id="chk-bk">💾 نسخة احتياطية</button>
+    <button class="sec" id="ph-dl">⬇️ إكسل أرقام التليفونات</button>
+    <button class="sec" id="ph-up">⬆️ رفع ملف الأرقام</button><input type="file" id="ph-file" accept=".xlsx,.xls,.csv" style="display:none">
   </div>
   <div id="chk-body"></div>
 </div>
@@ -4836,6 +4838,65 @@ $('srch-q').oninput=function(){var q=this.value.trim().toLowerCase(),qd=q.replac
     return'<div data-sp="'+p.id+'" style="padding:8px;border-bottom:1px solid var(--line);cursor:pointer"><b>'+esc(pnm(p))+'</b> <span class="hint">'+esc(nameFull(p))+'</span><div class="hint">'+esc(g.name||'')+' • جواز '+esc(p.pno||'—')+(p.rno?' • غرفة '+esc(p.rno):'')+(p.bk?' • حجز '+esc(p.bk):'')+'</div></div>'}).join(''):'<div class="hint" style="padding:10px">مفيش نتائج</div>'};
 $('srch-r').onclick=function(e){var d=e.target.closest('[data-sp]');if(!d)return;var p=S.people.find(function(x){return x.id===+d.dataset.sp});if(!p)return;
   $('srchdlg').close();if(S.active!==p.g){S.active=p.g;save();render()}if(window.showTab)showTab('pax');openEdit(p.id)};
+})();
+
+</script>
+<script>
+(function(){
+var XL='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+function needXL(){return window.XLSX?Promise.resolve():new Promise(function(ok,no){var s=document.createElement('script');s.src=XL;s.onload=ok;s.onerror=function(){no(new Error('مقدرتش أحمّل مكتبة الإكسل (النت؟)'))};document.head.appendChild(s)})}
+function fsafe(x){return String(x||'grp').replace(/[\\\/:*?"<>|]/g,'_')}
+function phKey(p){return 'p'+p.id}
+function lockOK(){var g=grp();if(g.locked&&!(window._unl&&Date.now()-window._unl<300000)){if(!confirm('🔒 المجموعة مقفولة. تسجّل الأرقام برضو؟'))return false;window._unl=Date.now()}return true}
+function norm(v){var d=String(v==null?'':v).replace(/[٠-٩]/g,function(c){return c.charCodeAt(0)-1632}).replace(/\D/g,'');if(/^1\d{9}$/.test(d))d='0'+d;return d}
+function okPh(d){var n=waNum(d);return n.length>=11&&n.length<=15}
+
+$('ph-dl').onclick=async function(){
+  var g=grp(),l=list();if(!l.length){say('مفيش معتمرين في المجموعة.','warn');return}
+  try{await needXL()}catch(e){say(e.message,'err');return}
+  var h=(pcOf(g).ph||{}),rows=[['م','الاسم','رقم الجواز','رقم الحجز','رقم الموبايل','كود (متغيّرش)']];
+  l.slice().sort(function(a,b){return String(a.bk||'￿').localeCompare(String(b.bk||'￿'))}).forEach(function(p,i){
+    rows.push([i+1,arText(p)||nameFull(p),p.pno||'',p.bk||'',h[phKey(p)]||(p.bk&&h[p.bk])||'',String(p.id)])});
+  var ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:5},{wch:34},{wch:14},{wch:12},{wch:18},{wch:20}];ws['!views']=[{rightToLeft:true}];
+  var wb=XLSX.utils.book_new();wb.Workbook={Views:[{RTL:true}]};XLSX.utils.book_append_sheet(wb,ws,'الأرقام');
+  var out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  dl(new Blob([out],{type:'application/octet-stream'}),'ارقام-التليفونات-'+fsafe(g.name)+'.xlsx');
+  say('✓ اتنزّل ملف الأرقام ('+l.length+' معتمر). اكتب الأرقام في عمود "رقم الموبايل" وارفعه تاني.','ok');
+};
+
+$('ph-up').onclick=function(){$('ph-file').value='';$('ph-file').click()};
+$('ph-file').onchange=async function(){
+  var f=this.files[0];if(!f)return;if(!lockOK())return;
+  try{await needXL();var wb=XLSX.read(new Uint8Array(await f.arrayBuffer()),{type:'array'});
+    var rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:'',raw:false});
+    applyPhones(rows,f.name)}catch(e){say('❌ مقدرتش أقرا الملف: '+e.message,'err')}
+};
+function applyPhones(rows,fn){
+  var g=grp(),l=list(),c=pcOf(g);c.ph=c.ph||{};
+  var hi=-1,H={id:/كود|^id$/i,pno:/جواز|passport/i,ph:/موبايل|تليفون|هاتف|فون|phone|mobile|واتس/i};
+  for(var i=0;i<Math.min(rows.length,6);i++){var r=rows[i].map(String);if(r.some(function(x){return H.ph.test(x)})){hi=i;break}}
+  if(hi<0){say('❌ مش لاقي عمود "رقم الموبايل" في الملف. استخدم الملف اللي نزّله السيستيم.','err');return}
+  var hd=rows[hi].map(String),col={};Object.keys(H).forEach(function(k){col[k]=hd.findIndex(function(x){return H[k].test(x)})});
+  var byId={},byPno={};l.forEach(function(p){byId[String(p.id)]=p;if(p.pno)byPno[nk(p.pno)]=p});
+  var set=0,same=0,blank=0,bad=[],miss=[],chg=[],todo=[];
+  rows.slice(hi+1).forEach(function(r,ix){
+    var raw=String(r[col.ph]==null?'':r[col.ph]).trim(),idv=col.id>=0?String(r[col.id]||'').trim():'',pv=col.pno>=0?nk(r[col.pno]):'';
+    if(!raw){blank++;return}
+    var p=byId[idv]||(pv&&byPno[pv]);
+    if(!p){miss.push('صف '+(hi+ix+2));return}
+    var d=norm(raw);if(!okPh(d)){bad.push(pnmx(p)+' ('+raw+')');return}
+    var old=c.ph[phKey(p)]||'';
+    if(old&&waNum(old)===waNum(d)){same++;return}
+    if(old)chg.push(pnmx(p)+': '+old+' ← '+d);
+    todo.push([p,d])});
+  if(chg.length&&!confirm('⚠️ '+chg.length+' رقم هيتغيّر عن اللي مسجّل:\n'+chg.slice(0,6).join('\n')+(chg.length>6?'\n…':'')+'\nتكمّل؟'))return;
+  todo.forEach(function(x){c.ph[phKey(x[0])]=x[1];set++});
+  if(set){save();try{sbSaveGroup(g)}catch(e){}logAct('رفع أرقام موبايل من إكسل: '+set+' رقم');render();if(window.chkRender)chkRender()}
+  var m='✓ اتسجّل '+set+' رقم'+(same?' • '+same+' زي ما هو':'')+(blank?' • '+blank+' فاضي':'')+(bad.length?' • ⚠️ '+bad.length+' رقم غلط: '+bad.slice(0,4).join('، ')+(bad.length>4?'…':''):'')+(miss.length?' • '+miss.length+' صف مش متطابق مع حد':'');
+  say(m,(bad.length||miss.length)?'warn':'ok');
+}
+function pnmx(p){return arText(p)||nameFull(p)}
+window._applyPhones=applyPhones;
 })();
 
 </script>
