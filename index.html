@@ -865,7 +865,7 @@ window.addEventListener('load',function(){setTimeout(ensureExcel,1500)});
     <div class="row" style="margin-top:8px">
       <button id="id-pdf">⬇️ تحميل PDF</button>
       <button id="id-zip">⬇️ تحميل JPG (ZIP)</button>
-      <button id="id-psd">⬇️ PSD (المعتمر المختار في المعاينة)</button>
+      <button id="id-psd">⬇️ PSD (المعتمر المختار) — حسب خانة المحتوى: وش / ضهر / الاتنين</button>
       <button class="sec" id="id-psdzip">⬇️ PSD للكل (ZIP)</button>
     </div>
     <p class="hint" style="margin:8px 0 0">الكارنيه 10×10 سم: 300 DPI = 1181 بكسل، 600 DPI = 2362، 900 DPI = 3543 (الأرقام والأسماء بتترسم بالدقة المختارة، والقالب الأصلي 1181 بكسل). ملف الـ PSD فيه طبقة للقالب وطبقة <b>نص حقيقي قابل للتعديل</b> لكل خانة (اسم، تأشيرة، جواز، ...) — دبل كليك على الطبقة بالأداة T وعدّل. الخط المطلوب Tajawal ExtraBold منصّب على الجهاز، والعربي محتاج فوتوشوب بدعم الشرق الأوسط (Middle Eastern) وبيفتح في فوتوشوب بنفس المقاس. اطبع بحجم فعلي 100% (Actual size) من غير Fit to page. ملف الـ ZIP فيه الوش مرة واحدة + ضهر كل معتمر باسمه.</p>
@@ -4535,17 +4535,20 @@ async function makeZip(){
 
 /* ── PSD (طبقات: قالب + طبقة لكل خانة) ── */
 var PSD_FONT='Tajawal-ExtraBold';
+/* نفس منطق drawVal بس بيرجّع الأسطر + العرض عشان نحط كل سطر كطبقة نص (ثابتة من الحافة اليمين) */
 function psdFit(txt){
   txt=String(txt||'').trim();var cv=document.createElement('canvas').getContext('2d');
   cv.direction=hasAr(txt)?'rtl':'ltr';var fs=46;
   while(fs>30){cv.font=FONT(fs);if(cv.measureText(txt).width<=BOXW)break;fs-=2}
   cv.font=FONT(fs);
-  if(cv.measureText(txt).width<=BOXW)return{lines:[txt],fs:fs,dy:2};
+  if(cv.measureText(txt).width<=BOXW)return{fs:fs,items:[{t:txt,dy:2,w:cv.measureText(txt).width}]};
   var w=txt.split(/\s+/),best=null;
   for(var i=1;i<w.length;i++){var a=w.slice(0,i).join(' '),b=w.slice(i).join(' '),m=Math.max(cv.measureText(a).width,cv.measureText(b).width);if(!best||m<best.m)best={a:a,b:b,m:m}}
-  if(!best)best={a:txt,b:''};
+  if(!best)best={a:txt,b:'',m:0};
   fs=30;do{cv.font=FONT(fs);fs-=1}while(fs>18&&Math.max(cv.measureText(best.a).width,cv.measureText(best.b).width)>BOXW);
-  return{lines:best.b?[best.a,best.b]:[best.a],fs:fs,dy:best.b?-15:-15};
+  cv.font=FONT(fs);
+  var it=[{t:best.a,dy:best.b?-15:2,w:cv.measureText(best.a).width}];if(best.b)it.push({t:best.b,dy:17,w:cv.measureText(best.b).width});
+  return{fs:fs,items:it};
 }
 function psdDoc(r,k,front){
   var W=Math.round(1181*k),bg=mkCanvas(k);
@@ -4555,17 +4558,22 @@ function psdDoc(r,k,front){
     var c=idc(),vals=[r.name,r.visa,r.pno,c.sup,c.ph,c.med,c.mak,c.agent];
     vals.forEach(function(v,i){
       if(!String(v||'').trim())return;
-      var cv=mkCanvas(k),x=cv.getContext('2d');x.fillStyle='#0b2a5b';drawVal(x,v,ROWS[i]);
-      var x0=Math.max(0,Math.floor((RIGHT-BOXW-16)*k)),y0=Math.max(0,Math.floor((ROWS[i]-46)*k));
-      var w=Math.min(W-x0,Math.ceil((BOXW+32)*k)),h=Math.min(W-y0,Math.ceil(92*k));
-      var lc=document.createElement('canvas');lc.width=w;lc.height=h;
-      lc.getContext('2d').drawImage(cv,x0,y0,w,h,0,0,w,h);
-      var lay={name:PSD_LBL[i],left:x0,top:y0,canvas:lc},tf=psdFit(v);
-      /* طبقة نص حقيقية قابلة للتعديل في فوتوشوب (الصورة تحتها بتحافظ على الشكل لحد ما تعدّل) */
-      lay.text={text:tf.lines.join('\r'),transform:[1,0,0,1,RIGHT*k,(ROWS[i]+tf.dy+tf.fs*0.35)*k],antiAlias:'smooth',orientation:'horizontal',
-        style:{font:{name:PSD_FONT},fontSize:tf.fs*k,fillColor:{r:11,g:42,b:91},autoLeading:tf.lines.length<2,leading:tf.lines.length>1?32*k:undefined,fauxBold:false},
-        paragraphStyle:{justification:'right'}};
-      kids.push(lay);
+      var tf=psdFit(v);
+      tf.items.forEach(function(it,j){
+        /* الرسم (صورة الطبقة): نفس شكل drawVal بالظبط لسطر واحد */
+        var x0=Math.max(0,Math.floor((RIGHT-BOXW-16)*k)),y0=Math.max(0,Math.floor((ROWS[i]+it.dy-34)*k));
+        var w=Math.min(W-x0,Math.ceil((BOXW+32)*k)),h=Math.min(W-y0,Math.ceil(68*k));
+        var lc=document.createElement('canvas');lc.width=w;lc.height=h;var x=lc.getContext('2d');
+        x.scale(k,k);x.translate(-x0/k,-y0/k);
+        x.fillStyle='#0b2a5b';x.direction=hasAr(it.t)?'rtl':'ltr';x.textAlign='right';x.textBaseline='middle';x.font=FONT(tf.fs);
+        x.fillText(it.t,RIGHT,ROWS[i]+it.dy);
+        var lay={name:PSD_LBL[i]+(j?' - سطر 2':''),left:x0,top:y0,canvas:lc};
+        /* طبقة نص حقيقية: نقطة البداية يسار النص = الحافة اليمين - عرض النص (فوتوشوب بيعتبرها بداية النص) */
+        lay.text={text:it.t,transform:[1,0,0,1,(RIGHT-it.w)*k,(ROWS[i]+it.dy+tf.fs*0.35)*k],antiAlias:'smooth',orientation:'horizontal',
+          style:{font:{name:PSD_FONT},fontSize:tf.fs*k,fillColor:{r:11,g:42,b:91},autoLeading:true,fauxBold:false},
+          paragraphStyle:{justification:'left'}};
+        kids.push(lay);
+      });
     });
   }
   var comp=front?bg:backCanvas(r,k);
@@ -4586,8 +4594,10 @@ async function makePsd(all){
     if(!all){
       var id=$('id-pv-sel').value,r=R.find(function(x){return String(x.p.id)===id})||R[0];
       st('جاري تجهيز PSD...');await new Promise(function(f){setTimeout(f,0)});
-      var nm='ID_'+fname(r.name||r.pno)+'.psd';dl(psdBlob(r,S,false),nm);
-      st('✓ اتحمّل '+nm+' — '+(1181*S)+'×'+(1181*S)+' بكسل، '+(300*S)+' DPI، طبقة لكل خانة.','ok');
+      var md=$('id-mode').value,base='ID_'+fname(r.name||r.pno),got=[];
+      if(md!=='back'){dl(psdBlob(null,S,true),'ID_الوش.psd');got.push('الوش');if(md==='both')await new Promise(function(f){setTimeout(f,700)})}
+      if(md!=='front'){dl(psdBlob(r,S,false),base+'.psd');got.push('الضهر')}
+      st('✓ اتحمّل PSD ('+got.join(' + ')+') — '+(1181*S)+'×'+(1181*S)+' بكسل، '+(300*S)+' DPI.','ok');
     }else{
       await needZip();
       var mode=$('id-mode').value,z=new JSZip(),n=0,tot=(mode==='front'?1:R.length)+(mode==='back'?0:1);
