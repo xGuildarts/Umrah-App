@@ -4393,12 +4393,25 @@ function idTable(){
       +'<td>'+tags.join(' ')+'</td></tr>';
   }).join('');
   var orphans=Object.keys(c.v).filter(function(k){return!used[k]});
-  var dts={};Object.keys(c.v).forEach(function(k){var v=c.v[k];dts[v.from+'→'+v.until]=1});
-  var info='<b>'+R.length+'</b> معتمر — جاهز: <b style="color:var(--ok)">'+(R.length-miss)+'</b>'
-    +(miss?' — من غير تأشيرة: <b style="color:var(--bad)">'+miss+'</b>':'')
-    +(unc?' — أسماء عربي محتاجة مراجعة: <b style="color:var(--warn)">'+unc+'</b>':'');
-  if(orphans.length)info+='<br><span style="color:var(--warn)">⚠️ '+orphans.length+' تأشيرة مالهاش معتمر في المجموعة دي (جواز مختلف): '+orphans.slice(0,8).map(function(k){return esc(k)+' ('+esc(c.v[k].no)+')'}).join('، ')+(orphans.length>8?'…':'')+'</span>';
-  if(Object.keys(dts).length>1)info+='<br><span style="color:var(--warn)">⚠️ تواريخ صلاحية التأشيرات مش واحدة: '+Object.keys(dts).map(esc).join(' | ')+'</span>';
+  var byK={};R.forEach(function(r){if(r.pno)byK[nk(r.pno)]=r});
+  function lst(a,n){n=n||14;return a.slice(0,n).join('، ')+(a.length>n?' … (+'+(a.length-n)+')':'')}
+  function who(r){return '<b>'+esc(r.name||'—')+'</b> <span class="ltr" dir="ltr">'+esc(r.pno||'بدون جواز')+'</span>'}
+  function ed(a,b){var m=[],i,j;for(i=0;i<=a.length;i++){m[i]=[i]}for(j=1;j<=b.length;j++)m[0][j]=j;for(i=1;i<=a.length;i++)for(j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return m[a.length][b.length]}
+  var noV=R.filter(function(r){return!r.visa}),noP=R.filter(function(r){return!r.pno}),uncR=R.filter(function(r){return!r.ok});
+  var info='<b>'+R.length+'</b> معتمر — جاهز: <b style="color:var(--ok)">'+(R.length-miss)+'</b>'+(miss?' — من غير تأشيرة: <b style="color:var(--bad)">'+miss+'</b>':'');
+  var box='display:block;margin-top:6px;padding:6px 8px;border-radius:8px;border:1px solid ';
+  if(noP.length)info+='<span style="'+box+'var(--bad);color:var(--bad)">⛔ مفيش رقم جواز ('+noP.length+'): '+lst(noP.map(function(r){return '<b>'+esc(r.name||'—')+'</b>'}))+'</span>';
+  if(noV.length){
+    info+='<span style="'+box+'var(--bad)"><b style="color:var(--bad)">⛔ من غير تأشيرة ('+noV.length+'):</b><br>'+noV.map(function(r){
+      var k=nk(r.pno),guess=k?orphans.filter(function(o){return ed(o,k)<=2}):[];
+      return '• '+who(r)+(guess.length?' <span style="color:var(--warn)">← ممكن تأشيرته مقروءة بجواز غلطان: '+guess.map(function(o){return '<span class="ltr" dir="ltr">'+esc(o)+' ('+esc(c.v[o].no)+')</span>'}).join('، ')+'</span>':'')}).slice(0,40).join('<br>')+(noV.length>40?'<br>…':'')+'</span>'}
+  if(orphans.length)info+='<span style="'+box+'var(--warn)"><b style="color:var(--warn)">⚠️ '+orphans.length+' تأشيرة مالهاش معتمر في المجموعة دي:</b><br>'+orphans.slice(0,30).map(function(k){var v=c.v[k],near=R.filter(function(r){return r.pno&&!r.visa&&ed(nk(r.pno),k)<=2});
+      return '• جواز <span class="ltr" dir="ltr">'+esc(k)+'</span> — تأشيرة <span class="ltr" dir="ltr">'+esc(v.no)+'</span>'+(v.src?' <small>('+esc(v.src)+')</small>':'')+(near.length?' <span style="color:var(--ok)">← قريبة من: '+near.map(function(r){return '<b>'+esc(r.name)+'</b> ('+esc(r.pno)+')'}).join('، ')+'</span>':' <small>(تأكد إنها لمجموعة تانية)</small>')}).join('<br>')+(orphans.length>30?'<br>…':'')+'</span>';
+  var dg={};Object.keys(c.v).forEach(function(k){var v=c.v[k],key=(v.from||'؟')+' → '+(v.until||'؟');(dg[key]=dg[key]||[]).push(k)});
+  var dks=Object.keys(dg).sort(function(x,y){return dg[y].length-dg[x].length});
+  if(dks.length>1){info+='<span style="'+box+'var(--warn)"><b style="color:var(--warn)">⚠️ تواريخ صلاحية التأشيرات مش واحدة:</b><br>'+dks.map(function(d,i){var ks=dg[d],unread=d.indexOf('؟')>=0;
+      return '• <b>'+esc(d)+'</b> — '+ks.length+' تأشيرة'+(i===0&&!unread?' <small>(الأغلبية)</small>':'')+(unread?' <span style="color:var(--bad)">(التاريخ ما اتقراش من الملف — راجع التأشيرة نفسها)</span>':'')+(i>0||unread?': '+lst(ks.map(function(k){var r=byK[k];return r?'<b>'+esc(r.name)+'</b>':'<span class="ltr" dir="ltr">'+esc(k)+'</span>'}),12):'')}).join('<br>')+'</span>'}
+  if(uncR.length)info+='<span style="'+box+'var(--warn)">⚠️ اسم عربي محتاج مراجعة ('+uncR.length+'): '+lst(uncR.map(function(r){return '<b>'+esc(r.name||'—')+'</b>'}))+'</span>';
   $('id-sum').innerHTML=info;
   var sel=$('id-pv-sel'),cur=sel.value;
   sel.innerHTML=R.map(function(r,i){return'<option value="'+r.p.id+'">'+(i+1)+' — '+esc(r.name)+'</option>'}).join('');
