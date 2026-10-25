@@ -4568,10 +4568,10 @@ function psdDoc(r,k,front){
         x.fillStyle='#0b2a5b';x.direction=hasAr(it.t)?'rtl':'ltr';x.textAlign='right';x.textBaseline='middle';x.font=FONT(tf.fs);
         x.fillText(it.t,RIGHT,ROWS[i]+it.dy);
         var lay={name:PSD_LBL[i]+(j?' - سطر 2':''),left:x0,top:y0,canvas:lc};
-        /* طبقة نص حقيقية: نقطة البداية يسار النص = الحافة اليمين - عرض النص (فوتوشوب بيعتبرها بداية النص) */
-        lay.text={text:it.t,transform:[1,0,0,1,(RIGHT-it.w)*k,(ROWS[i]+it.dy+tf.fs*0.35)*k],antiAlias:'smooth',orientation:'horizontal',
+        /* طبقة نص حقيقية: محاذاة منتصف (فوتوشوب CS5 بيعكس يمين/يسار) ونقطة المنتصف = الحافة اليمين - نص عرض النص */
+        lay.text={text:it.t,transform:[1,0,0,1,(RIGHT-it.w/2)*k,(ROWS[i]+it.dy+tf.fs*0.35)*k],antiAlias:'smooth',orientation:'horizontal',
           style:{font:{name:PSD_FONT},fontSize:tf.fs*k,fillColor:{r:11,g:42,b:91},autoLeading:true,fauxBold:false},
-          paragraphStyle:{justification:'left'}};
+          paragraphStyle:{justification:'center'}};
         kids.push(lay);
       });
     });
