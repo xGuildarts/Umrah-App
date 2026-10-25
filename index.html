@@ -4900,5 +4900,23 @@ window._applyPhones=applyPhones;
 })();
 
 </script>
+<script>
+(function(){
+var last=null;
+function lbl(){var c=$('id-card');if(!c)return null;var e=$('id-gl');if(!e){e=document.createElement('div');e.id='id-gl';e.style.cssText='margin:0 0 8px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-weight:700;background:var(--card,transparent)';var t=c.querySelector('.sec-t');t?t.after(e):c.prepend(e)}return e}
+function sync(force){
+  var g=grp();if(!g)return;var e=lbl();if(e)e.textContent='🗂️ المجموعة: '+g.name+' — '+list().length+' معتمر | تأشيرات متقرأة: '+Object.keys((idc(g).v)||{}).length;
+  if(last===g.id&&!force)return;
+  var ch=last!==null&&last!==g.id;last=g.id;
+  if(ch){var f=$('id-file');if(f)f.value='';try{st('اتغيّرت المجموعة لـ «'+g.name+'» — الكارنيه بيعرض بياناتها هي بس.','')}catch(x){}}
+  var vis=$('id-card')&&!$('id-card').classList.contains('tab-hide');
+  if(ch&&vis&&window.idRefresh){try{window.idRefresh()}catch(x){}}
+}
+var _r=window.render;window.render=function(){var r=_r.apply(this,arguments);try{sync(false)}catch(e){}return r};
+var _ir=window.idRefresh;if(_ir)window.idRefresh=function(){var r=_ir.apply(this,arguments);try{sync(true)}catch(e){}return r};
+sync(true);
+})();
+
+</script>
 </body>
 </html>
