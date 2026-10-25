@@ -1434,7 +1434,7 @@ async function sbLoad(){
   if(!gs||!ps||pend>0)return;
   if(gs.length){
     var _og={};S.groups.forEach(function(x){_og[x.id]=x});
-    S.groups=gs.map(function(g){return{id:g.id,name:g.name,trip:g.trip||'',date:g.date||'',pr:g.prices||{},minPct:g.min_pct==null?50:+g.min_pct,tk:(g.tk&&Object.keys(g.tk).length?g.tk:(_og[g.id]||{}).tk)||{},hd:(g.tk&&g.tk.__hd)||(_og[g.id]||{}).hd,pc:(g.tk&&g.tk.__pc)||(_og[g.id]||{}).pc||{mode:'pct',amt:0,per:{}},ex:exMerge(g.tk&&g.tk.__ex,(_og[g.id]||{}).ex),idc:(g.tk&&g.tk.__idc)||(_og[g.id]||{}).idc}});
+    S.groups=gs.map(function(g){return{id:g.id,name:g.name,trip:g.trip||'',date:g.date||'',pr:g.prices||{},minPct:g.min_pct==null?50:+g.min_pct,tk:(g.tk&&Object.keys(g.tk).length?g.tk:(_og[g.id]||{}).tk)||{},hd:(g.tk&&g.tk.__hd)||(_og[g.id]||{}).hd,pc:(g.tk&&g.tk.__pc)||(_og[g.id]||{}).pc||{mode:'pct',amt:0,per:{}},ex:exMerge(g.tk&&g.tk.__ex,(_og[g.id]||{}).ex),idc:(g.tk&&g.tk.__idc)||(_og[g.id]||{}).idc,locked:!!((g.tk&&g.tk.__lk)||(_og[g.id]||{}).locked),lockedAt:(g.tk&&g.tk.__lk)||(_og[g.id]||{}).lockedAt}});
     var _old={};S.people.forEach(function(x){_old[x.id]=x});
     S.people=ps.filter(function(p){return DELQ.indexOf(p.id)<0}).map(function(p){return{
       id:p.id,ua:p.updated_at||'',g:p.group_id,sur:p.surname,giv:p.given,pno:p.pno||'',
@@ -1459,7 +1459,7 @@ async function sbSaveGroup0(g){
   var body={id:g.id,name:g.name,trip:g.trip||'',date:g.date||null,prices:g.pr||{},min_pct:g.minPct==null?50:g.minPct};
   var opt=function(){return{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)}};
   if(sbTk&&g.hd&&g.hd.ar){try{var _sv=await sbFetch('fm_groups?id=eq.'+g.id+'&select=tk'),_sh=_sv&&_sv[0]&&_sv[0].tk&&_sv[0].tk.__hd;if(_sh&&_sh.ar){g.hd.arok=g.hd.arok||{};Object.keys(_sh.ar).forEach(function(k){if(_sh.arok&&_sh.arok[k]&&!g.hd.arok[k]){g.hd.ar[k]=_sh.ar[k];g.hd.arok[k]=1}})}}catch(e){}}
-  if(sbTk)body.tk=Object.assign({},g.tk||{},g.hd?{__hd:g.hd}:{},g.pc?{__pc:g.pc}:{},g.ex?{__ex:g.ex}:{},g.idc?{__idc:g.idc}:{});
+  if(sbTk)body.tk=Object.assign({},g.tk||{},g.hd?{__hd:g.hd}:{},g.pc?{__pc:g.pc}:{},g.ex?{__ex:g.ex}:{},g.idc?{__idc:g.idc}:{},g.locked?{__lk:g.lockedAt||1}:{});
   var r=await sbFetch('fm_groups?on_conflict=id',opt());
   if(r===null&&sbTk){
     delete body.tk;
