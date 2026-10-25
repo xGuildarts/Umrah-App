@@ -868,7 +868,7 @@ window.addEventListener('load',function(){setTimeout(ensureExcel,1500)});
       <button id="id-psd">⬇️ PSD (المعتمر المختار في المعاينة)</button>
       <button class="sec" id="id-psdzip">⬇️ PSD للكل (ZIP)</button>
     </div>
-    <p class="hint" style="margin:8px 0 0">الكارنيه 10×10 سم: 300 DPI = 1181 بكسل، 600 DPI = 2362، 900 DPI = 3543 (الأرقام والأسماء بتترسم بالدقة المختارة، والقالب الأصلي 1181 بكسل). ملف الـ PSD فيه طبقة للقالب وطبقة منفصلة لكل خانة (اسم، تأشيرة، جواز، ...) وبيفتح في فوتوشوب بنفس المقاس. اطبع بحجم فعلي 100% (Actual size) من غير Fit to page. ملف الـ ZIP فيه الوش مرة واحدة + ضهر كل معتمر باسمه.</p>
+    <p class="hint" style="margin:8px 0 0">الكارنيه 10×10 سم: 300 DPI = 1181 بكسل، 600 DPI = 2362، 900 DPI = 3543 (الأرقام والأسماء بتترسم بالدقة المختارة، والقالب الأصلي 1181 بكسل). ملف الـ PSD فيه طبقة للقالب وطبقة <b>نص حقيقي قابل للتعديل</b> لكل خانة (اسم، تأشيرة، جواز، ...) — دبل كليك على الطبقة بالأداة T وعدّل. الخط المطلوب Tajawal ExtraBold منصّب على الجهاز، والعربي محتاج فوتوشوب بدعم الشرق الأوسط (Middle Eastern) وبيفتح في فوتوشوب بنفس المقاس. اطبع بحجم فعلي 100% (Actual size) من غير Fit to page. ملف الـ ZIP فيه الوش مرة واحدة + ضهر كل معتمر باسمه.</p>
   </div>
   <div class="row" style="margin-top:10px">
     <label style="font-size:13px">👁️ معاينة: <select id="id-pv-sel" style="max-width:260px"></select></label>
@@ -4534,6 +4534,19 @@ async function makeZip(){
 }
 
 /* ── PSD (طبقات: قالب + طبقة لكل خانة) ── */
+var PSD_FONT='Tajawal-ExtraBold';
+function psdFit(txt){
+  txt=String(txt||'').trim();var cv=document.createElement('canvas').getContext('2d');
+  cv.direction=hasAr(txt)?'rtl':'ltr';var fs=46;
+  while(fs>30){cv.font=FONT(fs);if(cv.measureText(txt).width<=BOXW)break;fs-=2}
+  cv.font=FONT(fs);
+  if(cv.measureText(txt).width<=BOXW)return{lines:[txt],fs:fs,dy:2};
+  var w=txt.split(/\s+/),best=null;
+  for(var i=1;i<w.length;i++){var a=w.slice(0,i).join(' '),b=w.slice(i).join(' '),m=Math.max(cv.measureText(a).width,cv.measureText(b).width);if(!best||m<best.m)best={a:a,b:b,m:m}}
+  if(!best)best={a:txt,b:''};
+  fs=30;do{cv.font=FONT(fs);fs-=1}while(fs>18&&Math.max(cv.measureText(best.a).width,cv.measureText(best.b).width)>BOXW);
+  return{lines:best.b?[best.a,best.b]:[best.a],fs:fs,dy:best.b?-15:-15};
+}
 function psdDoc(r,k,front){
   var W=Math.round(1181*k),bg=mkCanvas(k);
   bg.getContext('2d').drawImage(front?IMG.f:IMG.b,0,0,1181,1181);
@@ -4547,7 +4560,12 @@ function psdDoc(r,k,front){
       var w=Math.min(W-x0,Math.ceil((BOXW+32)*k)),h=Math.min(W-y0,Math.ceil(92*k));
       var lc=document.createElement('canvas');lc.width=w;lc.height=h;
       lc.getContext('2d').drawImage(cv,x0,y0,w,h,0,0,w,h);
-      kids.push({name:PSD_LBL[i],left:x0,top:y0,canvas:lc});
+      var lay={name:PSD_LBL[i],left:x0,top:y0,canvas:lc},tf=psdFit(v);
+      /* طبقة نص حقيقية قابلة للتعديل في فوتوشوب (الصورة تحتها بتحافظ على الشكل لحد ما تعدّل) */
+      lay.text={text:tf.lines.join('\r'),transform:[1,0,0,1,RIGHT*k,(ROWS[i]+tf.dy+tf.fs*0.35)*k],antiAlias:'smooth',orientation:'horizontal',
+        style:{font:{name:PSD_FONT},fontSize:tf.fs*k,fillColor:{r:11,g:42,b:91},autoLeading:tf.lines.length<2,leading:tf.lines.length>1?32*k:undefined,fauxBold:false},
+        paragraphStyle:{justification:'right'}};
+      kids.push(lay);
     });
   }
   var comp=front?bg:backCanvas(r,k);
