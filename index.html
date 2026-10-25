@@ -685,8 +685,34 @@ window.addEventListener('load',function(){setTimeout(ensureExcel,1500)});
   <button type="button" role="tab" data-go="meal">🍽️ الاعاشة</button>
   <button type="button" role="tab" data-go="letter">✉️ الخطابات</button>
   <button type="button" role="tab" data-go="id">🪪 كارنيه المعتمر</button>
+  <button type="button" role="tab" data-go="chk">✅ مراجعة وأدوات</button>
 </nav>
 
+<div class="card" id="chk-card" data-tab="chk">
+  <div class="sec-t">✅ مراجعة قبل السفر وأدوات</div>
+  <div class="row" style="gap:6px;margin-bottom:10px;flex-wrap:wrap">
+    <button id="chk-refresh">🔄 تحديث المراجعة</button>
+    <button class="sec" id="chk-lock">🔒 قفل المجموعة</button>
+    <button class="sec" id="chk-paste">📋 لصق من إكسل</button>
+    <button class="sec" id="chk-sup">📄 كشف المشرف (ملف)</button>
+    <button class="sec" id="chk-bk">💾 نسخة احتياطية</button>
+  </div>
+  <div id="chk-body"></div>
+</div>
+<dialog id="pastedlg" style="max-width:860px;width:95vw;border:1px solid var(--line);border-radius:12px;padding:16px">
+  <h4 style="margin:0 0 6px">📋 لصق معتمرين من إكسل</h4>
+  <p class="hint" style="margin:0 0 8px">انسخ الصفوف من إكسل والصقها هنا. الأعمدة (لو مفيش عناوين): <b>الاسم | رقم الجواز | الجنس | تاريخ الميلاد | انتهاء الجواز | رقم الحجز | الموبايل</b>. لو أول صف فيه عناوين (اسم، جواز، جنس، ميلاد، انتهاء، حجز، موبايل، غرفة) بيترتب لوحده. الاسم الإنجليزي: الاسم الأخير = اللقب والباقي الاسم الأول. لو الاسم عربي بيتسجّل كاسم عربي ومحتاج تكتب الإنجليزي بعدين.</p>
+  <textarea id="paste-ta" dir="auto" style="width:100%;height:120px" placeholder="الصق هنا..."></textarea>
+  <div class="row" style="margin:8px 0;gap:6px"><button id="paste-prev">👁️ معاينة</button><span id="paste-msg" class="hint"></span></div>
+  <div style="max-height:260px;overflow:auto"><table id="paste-tb" style="width:100%;font-size:12px"></table></div>
+  <div class="row" style="justify-content:flex-end;gap:6px;margin-top:10px"><button class="sec" id="paste-x">إغلاق</button><button id="paste-go" disabled>➕ إضافة الصالح</button></div>
+</dialog>
+<dialog id="srchdlg" style="max-width:620px;width:95vw;border:1px solid var(--line);border-radius:12px;padding:14px">
+  <input id="srch-q" placeholder="🔍 ابحث: اسم / جواز / موبايل / رقم غرفة / رقم حجز" style="width:100%;font-size:15px;padding:8px" autocomplete="off">
+  <div id="srch-r" style="max-height:60vh;overflow:auto;margin-top:8px"></div>
+  <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="sec" id="srch-x">إغلاق (Esc)</button></div>
+</dialog>
+<button id="srch-fab" title="بحث (Ctrl+K)" style="position:fixed;left:14px;bottom:14px;z-index:50;border-radius:999px;padding:10px 14px;box-shadow:0 2px 10px rgba(0,0,0,.25)">🔍</button>
 <!-- Groups -->
 <div class="card" data-tab="grp">
   <div class="sec-t">🗂️ المجموعة والرحلة</div>
@@ -2289,7 +2315,7 @@ $('rc-go').onclick=rcPrint;$('rc-x').onclick=function(){$('rcdlg').close()};
 function readyOpen(){
   var g=grp(),l=list(),rooms=hdD().rooms,inc=0;
   rooms.forEach(function(r){var I=hdRoomInfo(r);if(I.mem.length&&I.cap&&I.n<I.cap)inc++});
-  var R=[['❌ جواز فيه مشكلة','pass','pass'],['📎 ناقص أوراق / تجنيد','docs','docs'],['💰 مطلوب سداد','pay','pay'],['🔍 اسم لسه ماتراجعش','norev','norev'],['🛏️ بدون رقم غرفة','noroom','noroom']].map(function(x){return[x[0],l.filter(function(p){return fltOK(p,g,x[1])}).length,x[2]]});
+  var R=[['❌ جواز فيه مشكلة','pass','pass'],['📎 ناقص أوراق / تجنيد','docs','docs'],['🔍 اسم لسه ماتراجعش','norev','norev'],['🛏️ بدون رقم غرفة','noroom','noroom']].map(function(x){return[x[0],l.filter(function(p){return fltOK(p,g,x[1])}).length,x[2]]});
   R.push(['🔤 اسم عربي ترجمة غير مراجَعة',l.filter(function(p){return!arOk(p)}).length,'ar']);R.push(['🧩 غرف ناقصة',inc,'hd']);
   var ok=R.every(function(r){return!r[1]});
   $('rd-body').innerHTML=(ok?'<div style="color:var(--ok);font-weight:800;padding:8px">✓ الرحلة جاهزة — '+l.length+' فرد</div>':'')+R.map(function(r){return'<div class="row" style="justify-content:space-between;padding:6px 4px;border-bottom:1px solid var(--line)"><span>'+r[0]+'</span><span><b style="color:'+(r[1]?'var(--bad)':'var(--ok)')+'">'+(r[1]||'✓')+'</b> '+(r[1]?'<button class="sec" data-rd="'+r[2]+'" style="font-size:12px;padding:2px 9px">عرض</button>':'')+'</span></div>'}).join('');
@@ -2698,7 +2724,7 @@ function render(){
   // summary warning bar
   var expWarn=l.filter(function(p){var s=expStatus(p.exp,g.date);return s.cls!==''}).length;
   var nB=l.filter(function(p){return expStatus(p.exp,g.date).cls==='tag-bad'}).length,nDoc=l.filter(function(p){return!p.photo||!p.passportDoc}).length,pays=l.filter(function(p){var q=payInfo(p,g);return q.due&&(!q.bk||q.lead)}),tot=pays.reduce(function(a,p){return a+payInfo(p,g).amt},0);
-  $('sumbar').innerHTML=(l.length?((nB?'<span style="color:var(--bad)">⛔ جوازات فيها مشكلة: '+nB+'</span> &nbsp;':'')+(nDoc?'<span style="color:var(--warn)">📎 ناقص أوراق: '+nDoc+'</span> &nbsp;':'')+(pays.length?'<span style="color:var(--bad)">💰 مطلوب سداد: '+pays.length+(tot?' — '+tot.toLocaleString('en')+' '+CUR:'')+'</span>':'')||'<span style="color:var(--ok)">✓ مفيش ملاحظات</span>')+' &nbsp;<span style="color:var(--mut)">🛂 الجواز معانا: '+l.filter(function(p){return p.hasPass}).length+'/'+l.length+'</span>'+(function(){try{var t=+localStorage.getItem('fm_lastbk')||0,dd=Math.floor((Date.now()-t)/864e5);return l.length&&(!t||dd>=2)?' &nbsp;<span style="color:var(--warn);cursor:pointer" onclick="document.getElementById(\'sb-backup\').click()" title="اضغط لتنزيل نسخة">💾 '+(t?'آخر نسخة من '+dd+' يوم':'ماعملتش نسخة احتياطية')+'</span>':''}catch(e){return''}})()+(!g.date?' &nbsp;<span style="color:var(--warn)">📅 حدد تاريخ الرحلة عشان فحص الجواز يبقى دقيق</span>':''):'');
+  $('sumbar').innerHTML=(l.length?((nB?'<span style="color:var(--bad)">⛔ جوازات فيها مشكلة: '+nB+'</span> &nbsp;':'')+(nDoc?'<span style="color:var(--warn)">📎 ناقص أوراق: '+nDoc+'</span> &nbsp;':'')+''||'<span style="color:var(--ok)">✓ مفيش ملاحظات</span>')+' &nbsp;<span style="color:var(--mut)">🛂 الجواز معانا: '+l.filter(function(p){return p.hasPass}).length+'/'+l.length+'</span>'+(function(){try{var t=+localStorage.getItem('fm_lastbk')||0,dd=Math.floor((Date.now()-t)/864e5);return l.length&&(!t||dd>=2)?' &nbsp;<span style="color:var(--warn);cursor:pointer" onclick="document.getElementById(\'sb-backup\').click()" title="اضغط لتنزيل نسخة">💾 '+(t?'آخر نسخة من '+dd+' يوم':'ماعملتش نسخة احتياطية')+'</span>':''}catch(e){return''}})()+(!g.date?' &nbsp;<span style="color:var(--warn)">📅 حدد تاريخ الرحلة عشان فحص الجواز يبقى دقيق</span>':''):'');
   // thead
   var opts=S.groups.map(function(x){return'<option value="'+x.id+'">'+esc(x.name)+'</option>'}).join('');
   $('thead-row').innerHTML='<tr>'
@@ -4626,7 +4652,7 @@ $('id-pv-btn').onclick=preview;$('id-pv-sel').onchange=preview;
 $('id-pdf').onclick=makePdf;$('id-zip').onclick=makeZip;
 $('id-psd').onclick=function(){makePsd(false)};$('id-psdzip').onclick=function(){makePsd(true)};
 
-window.idRefresh=function(){idLoad();idTable();preview()};
+window.idRefresh=function(){idLoad();idTable();preview()};window.idc=idc;window.nk=nk;window.dl=dl;
 var _r0=window.render;
 if(typeof _r0==='function'){window.render=function(){var r=_r0.apply(this,arguments);try{var cd=$('id-card');if(cd&&!cd.classList.contains('tab-hide')){idLoad();idTable()}}catch(e){}return r};}
 idLoad();idTable();
@@ -4635,13 +4661,14 @@ idLoad();idTable();
 </script>
 <script>
 (function(){
-  var KEY='am_active_tab', names=['pax','grp','meal','letter','id'];
+  var KEY='am_active_tab', names=['pax','grp','meal','letter','id','chk'];
   var btns=[].slice.call(document.querySelectorAll('#tabs-bar [data-go]'));
   function show(t,remember){
     if(names.indexOf(t)<0) t='pax';
     [].forEach.call(document.querySelectorAll('[data-tab]'),function(el){ el.classList.toggle('tab-hide',el.getAttribute('data-tab')!==t); });
     btns.forEach(function(b){ b.setAttribute('aria-selected',b.getAttribute('data-go')===t?'true':'false'); });
     if(remember){ try{localStorage.setItem(KEY,t)}catch(e){} }
+    if(t==='chk'&&window.chkRender){ try{window.chkRender()}catch(e){console.error(e)} }
     if(t==='id'&&window.idRefresh){ try{window.idRefresh()}catch(e){console.error(e)} }
   }
   btns.forEach(function(b){ b.addEventListener('click',function(){ show(b.getAttribute('data-go'),true); window.scrollTo({top:0}); }); });
@@ -4649,6 +4676,168 @@ idLoad();idTable();
   show(start,false);
   window.showTab=function(t){ show(t,true); };
 })();
+</script>
+<script>
+(function(){
+'use strict';
+function g0(){return grp()}
+function pnm(p){return arText(p)||nameFull(p)}
+function phOf(p,g){var h=(pcOf(g).ph||{});return h['p'+p.id]||(p.bk&&h[p.bk])||''}
+
+/* ───────── 1) المراجعة (من غير مدفوعات) ───────── */
+function checks(){
+  var g=g0(),l=list(),c=idc(g),out=[],hasV=Object.keys(c.v||{}).length>0;
+  function add(sev,title,ids,txt){if((ids&&ids.length)||txt)out.push({sev:sev,t:title,ids:ids||[],txt:txt||''})}
+  function by(f){return l.filter(f).map(function(p){return p.id})}
+  add('bad','جواز من غير رقم',by(function(p){return!p.pno}));
+  add('bad','جواز منتهي / مرفوض',by(function(p){return expStatus(p.exp,g.date).cls==='tag-bad'}));
+  add('warn','جواز قرب ينتهي',by(function(p){return expStatus(p.exp,g.date).cls==='tag-warn'}));
+  add('warn','من غير جنس',by(function(p){return!p.sex}));
+  add('warn','من غير تاريخ ميلاد',by(function(p){return!p.dob}));
+  if(hasV)add('bad','من غير رقم تأشيرة',by(function(p){return p.pno&&!c.v[nk(p.pno)]}));
+  else if(l.length)add('warn','التأشيرات',[],'لسه ملف التأشيرات ما اترفعش (تبويب كارنيه المعتمر)');
+  add('warn','من غير رقم غرفة',by(function(p){return!p.rno}));
+  add('warn','نوع التسكين مش محدد',by(function(p){return!p.room}));
+  add('warn','اسم عربي لسه ماتراجعش',by(function(p){return!arOk(p)}));
+  add('warn','ناقص أوراق (صورة / جواز)',by(function(p){return!p.photo||!p.passportDoc}));
+  /* موبايل: مرة لكل حجز */
+  var seen={},nph=[];
+  l.forEach(function(p){var k=p.bk||('p'+p.id);if(seen[k])return;seen[k]=1;
+    var has=p.bk?l.some(function(m){return m.bk===p.bk&&phOf(m,g)}):!!phOf(p,g);if(!has)nph.push(p.id)});
+  add('warn','حجز من غير رقم موبايل (واحد من كل حجز)',nph);
+  /* تكرار موبايل بين حجوزات مختلفة */
+  var pm={};l.forEach(function(p){var n=waNum(phOf(p,g));if(!n)return;var k=p.bk||('p'+p.id);(pm[n]=pm[n]||{})[k]=(pm[n][k]||[]).concat(p.id)});
+  var dp=[];Object.keys(pm).forEach(function(n){var ks=Object.keys(pm[n]);if(ks.length>1)ks.forEach(function(k){dp=dp.concat(pm[n][k])})});
+  add('warn','نفس الموبايل في حجوزات مختلفة',dp);
+  /* تكرار جواز */
+  var pc={};l.forEach(function(p){if(p.pno)(pc[p.pno]=pc[p.pno]||[]).push(p.id)});
+  var dd=[];Object.keys(pc).forEach(function(k){if(pc[k].length>1)dd=dd.concat(pc[k])});
+  add('bad','جواز مكرر',dd);
+  /* غرف */
+  var rm=roomMap(g),over=[],under=[];
+  Object.keys(rm).forEach(function(k){var mem=rm[k],ty=mem[0].room,cap=CAP[ty];if(!cap)return;var n=mem.filter(function(x){return!noBed(x,g)}).length;
+    if(n>cap)over.push('غرفة '+k+' ('+roomLbl(ty)+'): '+n+' من '+cap);else if(n<cap)under.push('غرفة '+k+' ('+roomLbl(ty)+'): ناقص '+(cap-n)+' سرير')});
+  add('bad','غرفة زيادة عن سعتها',[],over.join(' • '));
+  add('warn','غرفة ناقصة',[],under.join(' • '));
+  /* بيانات الرحلة / الكارنيه */
+  var miss=[];if(!g.date)miss.push('تاريخ السفر');if(!(c.med||'').trim())miss.push('فندق المدينة');if(!(c.mak||'').trim())miss.push('فندق مكة');if(!(c.agent||'').trim())miss.push('الوكيل السعودي');
+  add('warn','بيانات المجموعة ناقصة',[],miss.join(' • '));
+  return out;
+}
+window.chkRender=function(){
+  var g=g0(),l=list(),r=checks(),nb=r.filter(function(x){return x.sev==='bad'}).length,nw=r.filter(function(x){return x.sev==='warn'}).length;
+  var h='<div style="margin-bottom:10px;font-weight:800;font-size:15px">'+esc(g.name)+' — '+l.length+' فرد '+(g.locked?'<span style="color:var(--warn)"> 🔒 مقفولة</span>':'')+'</div>';
+  if(!r.length)h+='<div style="color:var(--ok);font-weight:800;padding:10px;border:1px solid var(--ok);border-radius:10px">✓ كل حاجة تمام — جاهز للسفر</div>';
+  else h+='<div class="hint" style="margin-bottom:8px">'+(nb?'<b style="color:var(--bad)">⛔ '+nb+' مشكلة لازم تتحل</b> &nbsp;':'')+(nw?'<b style="color:var(--warn)">⚠️ '+nw+' ملاحظة</b>':'')+'</div>';
+  h+=r.map(function(x){var col=x.sev==='bad'?'var(--bad)':'var(--warn)';
+    return '<div style="border:1px solid var(--line);border-right:4px solid '+col+';border-radius:8px;padding:8px 10px;margin-bottom:6px"><div style="font-weight:700">'+(x.sev==='bad'?'⛔ ':'⚠️ ')+x.t+(x.ids.length?' <span style="color:'+col+'">('+x.ids.length+')</span>':'')+'</div>'
+     +(x.txt?'<div style="font-size:12.5px;margin-top:3px">'+esc(x.txt)+'</div>':'')
+     +(x.ids.length?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">'+x.ids.slice(0,60).map(function(id){var p=S.people.find(function(q){return q.id===id});return p?'<button class="sec" data-edit="'+id+'" style="font-size:12px;padding:2px 8px">'+esc(pnm(p))+'</button>':''}).join('')+(x.ids.length>60?'<span class="hint">+'+(x.ids.length-60)+'</span>':'')+'</div>':'')+'</div>'}).join('');
+  $('chk-body').innerHTML=h;
+  $('chk-lock').textContent=g.locked?'🔓 فك القفل':'🔒 قفل المجموعة';
+};
+document.addEventListener('click',function(e){var b=e.target.closest('#chk-body [data-edit]');if(b)openEdit(+b.dataset.edit)});
+$('chk-refresh').onclick=window.chkRender;
+$('chk-bk').onclick=function(){bkFile(false)};
+
+/* ───────── 2) قفل المجموعة ───────── */
+$('chk-lock').onclick=function(){var g=g0();
+  if(g.locked){if(!confirm('فك قفل '+g.name+'؟'))return;g.locked=false;delete g.lockedAt;logAct('فك قفل المجموعة');}
+  else{var r=checks().filter(function(x){return x.sev==='bad'}).length;
+    if(!confirm('قفل '+g.name+'؟'+(r?'\n⚠️ لسه فيه '+r+' مشكلة في المراجعة.':'')+'\nهتتنزل نسخة احتياطية، وأي تعديل بعد كده هيطلب تأكيد.'))return;
+    bkFile(false);g.locked=true;g.lockedAt=Date.now();logAct('قفل المجموعة');}
+  window._unl=0;save();try{sbSaveGroup(g)}catch(e){}render();window.chkRender()};
+function lockedNow(){var g=g0();return g&&g.locked&&!(window._unl&&Date.now()-window._unl<300000)}
+function askUnlock(){if(!lockedNow())return true;if(confirm('🔒 المجموعة مقفولة. تعدّل برضو؟ (هيتفتح 5 دقايق)')){window._unl=Date.now();return true}return false}
+['ed-save','hd-save','hd-auto','madd'].forEach(function(id){var el=$(id);if(el)el.addEventListener('click',function(e){if(!askUnlock()){e.stopImmediatePropagation();e.preventDefault()}},true)});
+document.addEventListener('click',function(e){var b=e.target.closest('button[id^="bk-"]');if(b&&!/^bk-(un)?sel|bk-all|bk-none|bk-clear/.test(b.id)&&!askUnlock()){e.stopImmediatePropagation();e.preventDefault()}},true);
+var _ap=window.addPerson;window.addPerson=function(p){if(!askUnlock())return Promise.resolve(false);return _ap.apply(this,arguments)};
+var _rd=window.render;window.render=function(){var r=_rd.apply(this,arguments);try{var g=g0(),t=$('ttl');if(t&&g.locked&&t.innerHTML.indexOf('🔒')<0)t.innerHTML+=' <span style="color:var(--warn);font-size:13px">🔒 مقفولة</span>'}catch(e){}return r};
+
+/* ───────── 3) تنبيه تكرار الموبايل عند الحفظ ───────── */
+$('ed-save').addEventListener('click',function(e){
+  try{var g=g0(),n=waNum($('ed-ph').value);if(n.length<11)return;var p=S.people.find(function(x){return x.id===edId});if(!p)return;
+    var h=pcOf(g).ph||{},hit=Object.keys(h).filter(function(k){if(k==='p'+p.id||(p.bk&&k===p.bk))return false;return waNum(h[k])===n});
+    var who=[];hit.forEach(function(k){var q=k.charAt(0)==='p'&&/^p\d+$/.test(k)?S.people.find(function(x){return 'p'+x.id===k}):null;
+      if(q&&q.bk&&p.bk&&q.bk===p.bk)return;who.push(q?pnm(q):('حجز '+k))});
+    if(who.length&&!confirm('⚠️ نفس رقم الموبايل متسجّل لـ: '+who.slice(0,4).join('، ')+'\nتكمّل الحفظ؟')){e.stopImmediatePropagation();e.preventDefault()}}catch(x){}
+},true);
+
+/* ───────── 4) لصق من إكسل ───────── */
+var PV=[];
+function pDate(s){s=String(s||'').trim();if(!s)return'';var m;
+  if((m=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/)))return m[1]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[3]).slice(-2);
+  if((m=s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/)))return m[3]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[1]).slice(-2);
+  if(/^\d{5}$/.test(s)){var d=new Date(Date.UTC(1899,11,30)+(+s)*864e5);return d.toISOString().slice(0,10)}return''}
+function pSex(s){s=String(s||'').trim().toLowerCase();if(/^(m|male|ذكر|ر|رجل)/.test(s))return'M';if(/^(f|female|انثى|أنثى|ث|سيدة)/.test(s))return'F';return''}
+function parsePaste(txt){
+  var rows=txt.replace(/\r/g,'').split('\n').filter(function(r){return r.trim()}).map(function(r){return r.split('\t').map(function(c){return c.trim()})});
+  if(!rows.length)return[];
+  var map={name:0,pno:1,sex:2,dob:3,exp:4,bk:5,ph:6,room:-1},H={name:/اسم|name/i,pno:/جواز|passport|pno/i,sex:/جنس|sex|gender/i,dob:/ميلاد|dob|birth/i,exp:/انتهاء|expiry|exp/i,bk:/حجز|booking/i,ph:/موبايل|تليفون|هاتف|phone|mobile|واتس/i,room:/غرفة|room/i};
+  var hd=rows[0],isH=Object.keys(H).filter(function(k){return hd.some(function(c){return H[k].test(c)})}).length>=2;
+  if(isH){map={name:-1,pno:-1,sex:-1,dob:-1,exp:-1,bk:-1,ph:-1,room:-1};Object.keys(H).forEach(function(k){hd.forEach(function(c,i){if(map[k]<0&&H[k].test(c))map[k]=i})});rows=rows.slice(1)}
+  function gv(r,k){return map[k]>=0?(r[map[k]]||''):''}
+  return rows.map(function(r){var nm=gv(r,'name').replace(/\s+/g,' ').trim(),ar=/[\u0600-\u06FF]/.test(nm),pno=gv(r,'pno').toUpperCase().replace(/\s/g,'');
+    var w=nm.split(' '),sur=ar?'':(w.length>1?w[w.length-1]:w[0]).toUpperCase(),giv=ar?'':(w.length>1?w.slice(0,-1).join(' '):'').toUpperCase();
+    var o={nm:nm,ar:ar,sur:sur,giv:giv,pno:pno,sex:pSex(gv(r,'sex')),dob:pDate(gv(r,'dob')),exp:pDate(gv(r,'exp')),bk:gv(r,'bk'),ph:gv(r,'ph'),rno:gv(r,'room'),err:''};
+    if(!nm)o.err='من غير اسم';else if(!pno)o.err='من غير رقم جواز';
+    else if(S.people.some(function(x){return x.pno===pno}))o.err='الجواز متسجل قبل كده';
+    return o});
+}
+$('chk-paste').onclick=function(){$('paste-ta').value='';$('paste-tb').innerHTML='';$('paste-msg').textContent='';$('paste-go').disabled=true;PV=[];$('pastedlg').showModal()};
+$('paste-x').onclick=function(){$('pastedlg').close()};
+$('paste-prev').onclick=function(){PV=parsePaste($('paste-ta').value);
+  var seen={};PV.forEach(function(o){if(!o.err&&o.pno){if(seen[o.pno])o.err='مكرر في الصق';seen[o.pno]=1}});
+  var ok=PV.filter(function(o){return!o.err}).length;
+  $('paste-tb').innerHTML='<tr><th>#</th><th>الاسم</th><th>الجواز</th><th>جنس</th><th>ميلاد</th><th>انتهاء</th><th>حجز</th><th>موبايل</th><th>حالة</th></tr>'+PV.map(function(o,i){return'<tr style="'+(o.err?'color:var(--bad)':'')+'"><td>'+(i+1)+'</td><td>'+esc(o.nm)+'</td><td dir="ltr">'+esc(o.pno)+'</td><td>'+o.sex+'</td><td>'+o.dob+'</td><td>'+o.exp+'</td><td>'+esc(o.bk)+'</td><td dir="ltr">'+esc(o.ph)+'</td><td>'+(o.err||'✓')+'</td></tr>'}).join('');
+  $('paste-msg').textContent=PV.length?(ok+' صالح من '+PV.length):'مفيش صفوف';$('paste-go').disabled=!ok};
+$('paste-go').onclick=async function(){
+  if(!askUnlock())return;var g=g0(),n=0,c=pcOf(g);c.ph=c.ph||{};this.disabled=true;
+  for(var i=0;i<PV.length;i++){var o=PV[i];if(o.err)continue;
+    var p={sur:o.sur,giv:o.giv,pno:o.pno,nat:'',sex:o.sex,dob:o.dob,exp:o.exp,photo:false,passportDoc:false,tajneed:false,hasPass:false};
+    if(o.bk)p.bk=o.bk;if(o.rno)p.rno=o.rno;
+    if(o.ar){p.sur='';p.giv=''}
+    S.people.push(p);p.id=newId()+i;p.g=g.id;
+    if(o.ar){p.sur=o.nm;p.giv=''}
+    try{arAutoSet(p)}catch(e){}
+    if(o.ph)c.ph['p'+p.id]=o.ph;
+    n++;try{await sbSavePerson(p)}catch(e){}}
+  save();render();logAct('لصق من إكسل: '+n+' فرد');$('pastedlg').close();say('✓ اتضاف '+n+' فرد من الإكسل — راجع الأسماء الإنجليزي والغرف','ok');window.chkRender()};
+
+/* ───────── 5) كشف المشرف (ملف HTML من غير فلوس) ───────── */
+$('chk-sup').onclick=function(){
+  var g=g0(),c=idc(g),l=list().slice().sort(function(a,b){return(+a.rno||9999)-(+b.rno||9999)||pnm(a).localeCompare(pnm(b),'ar')});
+  var rows=l.map(function(p,i){var v=c.v[nk(p.pno)];return'<tr><td>'+(i+1)+'</td><td>'+esc(pnm(p))+(supTxt(p)?' <b style="color:#b3261e">('+supTxt(p)+')</b>':'')+'</td><td dir="ltr">'+esc(p.pno||'')+'</td><td>'+(p.sex==='F'?'أنثى':p.sex==='M'?'ذكر':'')+'</td><td>'+esc(p.rno||'')+(p.room?' <small>'+esc(roomLbl(p.room))+'</small>':'')+(noBed(p,g)?' 👶':'')+'</td><td>'+esc(p.bk||'')+'</td><td dir="ltr">'+esc(phOf(p,g))+'</td><td dir="ltr">'+esc(v?v.no:'')+'</td></tr>'}).join('');
+  var h='<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>كشف المشرف — '+esc(g.name)+'</title><style>body{font-family:Tahoma,Arial,sans-serif;margin:12px;color:#111}h2{margin:0 0 4px}.m{color:#555;font-size:13px;margin-bottom:8px}input{width:100%;padding:8px;font-size:15px;margin:6px 0}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border:1px solid #ccc;padding:5px 7px;text-align:right}th{background:#eef2f7;position:sticky;top:0}.w{overflow:auto}</style></head><body><h2>كشف '+esc(g.name)+'</h2><div class="m">'+esc(g.trip||'')+' '+(g.date?'— '+esc(fmtDate(g.date)):'')+' | فندق المدينة: '+esc(c.med||'—')+' | فندق مكة: '+esc(c.mak||'—')+' | العدد: '+l.length+'</div><input id="q" placeholder="🔍 ابحث بالاسم / الجواز / الغرفة / الموبايل" oninput="var v=this.value.toLowerCase();document.querySelectorAll(\'tbody tr\').forEach(function(r){r.style.display=r.textContent.toLowerCase().indexOf(v)<0?\'none\':\'\'})"><div class="w"><table><thead><tr><th>#</th><th>الاسم</th><th>الجواز</th><th>الجنس</th><th>الغرفة</th><th>الحجز</th><th>الموبايل</th><th>التأشيرة</th></tr></thead><tbody>'+rows+'</tbody></table></div></body></html>';
+  dl(new Blob([h],{type:'text/html'}),'كشف-المشرف-'+(g.name||'group').replace(/[\\\/:*?"<>|]/g,'_')+'.html');say('✓ اتنزّل كشف المشرف (من غير أي بيانات مالية) — ابعته على الواتساب','ok')};
+
+/* ───────── 6) قوالب واتساب سريعة (من غير فلوس) ───────── */
+(function(){var ta=$('wa-m');if(!ta)return;var sel=document.createElement('select');sel.id='wa-qt';sel.style.cssText='width:100%;margin:0 0 6px';
+  sel.innerHTML='<option value="">⚡ قوالب سريعة…</option><option value="conf">✅ تأكيد الحجز</option><option value="visa">🛂 التأشيرة جاهزة</option><option value="fl">✈️ بيانات الطيران</option><option value="docs">📎 تذكير بالأوراق</option><option value="hot">🏨 الفنادق والتسكين</option>';
+  ta.parentNode.insertBefore(sel,ta);
+  sel.onchange=function(){if(!sel.value)return;var g=g0(),c=idc(g),b=waCurB();if(!b)return;
+    var names=b.mem.map(function(p){return pnm(p)}).join('، '),tr=(g.trip||g.name)+(g.date?' ('+fmtDate(g.date)+')':''),co=pcOf(g).co||'المامون انترناشيونال',rooms=b.mem.map(function(p){return p.rno?(pnm(p)+': غرفة '+p.rno):''}).filter(Boolean).join('\n');
+    var T={conf:'السلام عليكم ورحمة الله 🌙\nتم تأكيد حجز العمرة — '+tr+'\nالأفراد ('+b.mem.length+'): '+names+'\n\nشكرًا لحضرتك 🤍\n'+co,
+      visa:'السلام عليكم 🌙\nتأشيرة العمرة جاهزة للأفراد: '+names+'\nمرفق التأشيرة PDF — '+tr+'\n\n'+co,
+      fl:'السلام عليكم 🌙\nبيانات الطيران — '+tr+'\nالأفراد: '+names+'\nالرحلة: ……  | الموعد: ……  | الصالة: ……\nيُرجى الحضور للمطار قبل الإقلاع بـ 4 ساعات.\n\n'+co,
+      docs:'السلام عليكم 🌙\nتذكير: برجاء إرسال صورة الجواز (سارية 6 شهور على الأقل) وصورة شخصية بخلفية بيضاء للأفراد: '+names+'\nمجموعة '+tr+'\n\n'+co,
+      hot:'السلام عليكم 🌙\nالتسكين — '+tr+'\nفندق المدينة: '+(c.med||'……')+'\nفندق مكة: '+(c.mak||'……')+(rooms?'\n\n'+rooms:'')+'\n\n'+co};
+    ta.value=T[sel.value]||ta.value;sel.value=''};
+})();
+
+/* ───────── 7) بحث موحّد ───────── */
+function openSrch(){$('srch-q').value='';$('srch-r').innerHTML='';$('srchdlg').showModal();setTimeout(function(){$('srch-q').focus()},50)}
+$('srch-fab').onclick=openSrch;$('srch-x').onclick=function(){$('srchdlg').close()};
+document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openSrch()}});
+$('srch-q').oninput=function(){var q=this.value.trim().toLowerCase(),qd=q.replace(/\D/g,'');if(q.length<2){$('srch-r').innerHTML='';return}
+  var res=S.people.filter(function(p){var g=S.groups.find(function(x){return x.id===p.g})||{},ph=((g.pc||{}).ph||{}),phn=String(ph['p'+p.id]||(p.bk&&ph[p.bk])||'');
+    return(nameFull(p)+' '+(arGet(p)||'')+' '+(p.pno||'')+' '+(p.bk?'حجز '+p.bk:'')+' '+(p.rno?'غرفة '+p.rno:'')).toLowerCase().indexOf(q)>=0||(qd.length>=4&&phn.replace(/\D/g,'').indexOf(qd)>=0)}).slice(0,40);
+  $('srch-r').innerHTML=res.length?res.map(function(p){var g=S.groups.find(function(x){return x.id===p.g})||{};
+    return'<div data-sp="'+p.id+'" style="padding:8px;border-bottom:1px solid var(--line);cursor:pointer"><b>'+esc(pnm(p))+'</b> <span class="hint">'+esc(nameFull(p))+'</span><div class="hint">'+esc(g.name||'')+' • جواز '+esc(p.pno||'—')+(p.rno?' • غرفة '+esc(p.rno):'')+(p.bk?' • حجز '+esc(p.bk):'')+'</div></div>'}).join(''):'<div class="hint" style="padding:10px">مفيش نتائج</div>'};
+$('srch-r').onclick=function(e){var d=e.target.closest('[data-sp]');if(!d)return;var p=S.people.find(function(x){return x.id===+d.dataset.sp});if(!p)return;
+  $('srchdlg').close();if(S.active!==p.g){S.active=p.g;save();render()}if(window.showTab)showTab('pax');openEdit(p.id)};
+})();
+
 </script>
 </body>
 </html>
