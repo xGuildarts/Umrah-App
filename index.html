@@ -4634,15 +4634,31 @@ function psdMulti(rs,k){
   });
   return{width:W*n,height:W,canvas:cv,children:kids,imageResources:{resolutionInfo:{horizontalResolution:300*k,horizontalResolutionUnit:'PPI',widthUnit:'Centimeters',verticalResolution:300*k,verticalResolutionUnit:'PPI',heightUnit:'Centimeters'}}};
 }
+/* ورقة A4 بنفس مقاسات ملف الـ PSD المرجعي: 2480×3508 بكسل @300DPI، كارنيه 1202×1146، هامش 35، عمودين (وش | ضهر) */
+var SHEET={PW:2480,PH:3508,M:35,CW:1202,CH:1146,X2:1237};
 function psdSheet(rs,k){
-  var W=Math.round(1181*k),n=rs.length,cv=document.createElement('canvas');cv.width=W*2;cv.height=W*n;
-  var x=cv.getContext('2d'),kids=[],fx=frontCanvas(k);
+  var n=rs.length,CW=Math.round(SHEET.CW*k),CH=Math.round(SHEET.CH*k),M=Math.round(SHEET.M*k),X2=Math.round(SHEET.X2*k),
+      PW=Math.round(SHEET.PW*k),PH=Math.round((n<=3?SHEET.PH:2*SHEET.M+SHEET.CH*n)*k),
+      W=Math.round(1181*k),sx=CW/W,sy=CH/W;
+  function cvs(w,h){var c=document.createElement('canvas');c.width=w;c.height=h;return c}
+  function fit(src,w,h){var c=cvs(w,h),g=c.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(src,0,0,w,h);return c}
+  var cv=cvs(PW,PH),x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,PW,PH);
+  var bgl=cvs(PW,PH),bx=bgl.getContext('2d');bx.fillStyle='#fff';bx.fillRect(0,0,PW,PH);
+  var fx=fit(frontCanvas(k),CW,CH),kids=[{name:'Background',left:0,top:0,canvas:bgl}];
   rs.forEach(function(r,i){
-    x.drawImage(backCanvas(r,k),0,i*W);x.drawImage(fx,W,i*W);
-    var d=psdDoc(r,k,false,0,true,i*W);
-    kids.push({name:(i+1)+' — '+(r.name||r.pno||''),opened:true,children:d.children.concat([{name:'الضهر - القالب (ثابت)',left:W,top:i*W,canvas:fx}])});
+    var y=M+i*CH;
+    x.imageSmoothingQuality='high';x.drawImage(backCanvas(r,k),M,y,CW,CH);x.drawImage(fx,X2,y,CW,CH);
+    var d=psdDoc(r,k,false,0,true,0),ch=[];
+    d.children.forEach(function(c,j){
+      if(j===0){ch.push({name:c.name,left:M,top:y,canvas:fit(c.canvas,CW,CH)});return}
+      var L={name:c.name,left:M+Math.round(c.left*sx),top:y+Math.round(c.top*sy),canvas:fit(c.canvas,Math.max(1,Math.round(c.canvas.width*sx)),Math.max(1,Math.round(c.canvas.height*sy)))};
+      if(c.text){var t=c.text.transform;L.text=Object.assign({},c.text,{transform:[sx,0,0,sy,M+t[4]*sx,y+t[5]*sy]})}
+      ch.push(L);
+    });
+    ch.push({name:'الضهر - القالب (ثابت)',left:X2,top:y,canvas:fx});
+    kids.push({name:(i+1)+' — '+(r.name||r.pno||''),opened:true,children:ch});
   });
-  return{width:W*2,height:W*n,canvas:cv,children:kids,imageResources:{resolutionInfo:{horizontalResolution:300*k,horizontalResolutionUnit:'PPI',widthUnit:'Centimeters',verticalResolution:300*k,verticalResolutionUnit:'PPI',heightUnit:'Centimeters'}}};
+  return{width:PW,height:PH,canvas:cv,children:kids,imageResources:{resolutionInfo:{horizontalResolution:300*k,horizontalResolutionUnit:'PPI',widthUnit:'Centimeters',verticalResolution:300*k,verticalResolutionUnit:'PPI',heightUnit:'Centimeters'}}};
 }
 function psdSheetBlob(rs,k){return new Blob([agPsd.writePsd(psdSheet(rs,k))],{type:'image/vnd.adobe.photoshop'})}
 function isSheet(){var e=$('id-psdlay');return !!e&&e.value==='sheet'}
@@ -4665,12 +4681,12 @@ async function makePsd(all){
       st('جاري تجهيز PSD...');await new Promise(function(f){setTimeout(f,0)});
       var md=$('id-mode').value,base='ID_'+fname(r.name||r.pno),got=[];
       if(md!=='front'){var N=perN(S);
-        if(isSheet()){var si0=R.indexOf(r),ch0=R.slice(si0,si0+N);dl(psdSheetBlob(ch0,S),'ورقة_'+ch0.length+'معتمر_'+fname(r.name||r.pno)+'.psd');got.push('ورقة: '+ch0.length+' صف (وش | ضهر)');md='sheet'}
+        if(isSheet()){var si0=R.indexOf(r),ch0=R.slice(si0,si0+N);dl(psdSheetBlob(ch0,S),'1.psd');got.push('ورقة A4: '+ch0.length+' معتمر (وش | ضهر)');md='sheet'}
         else if(N>1){var si=R.indexOf(r),ch=R.slice(si,si+N);dl(psdMultiBlob(ch,S),'ID_'+ch.length+'معتمر_'+fname(r.name||r.pno)+'.psd');got.push('الوش ('+ch.length+' معتمر في ملف)')}
         else{dl(psdBlob(r,S,false),base+'.psd');got.push('الوش')}
         if(md==='both'&&!isSheet())await new Promise(function(f){setTimeout(f,700)})}
       if(md!=='back'&&md!=='sheet'){dl(psdBlob(null,S,true),'ID_الضهر.psd');got.push('الضهر')}
-      st('✓ اتحمّل PSD ('+got.join(' + ')+') — '+(1181*S)+'×'+(1181*S)+' بكسل، '+(300*S)+' DPI.','ok');
+      st('✓ اتحمّل PSD ('+got.join(' + ')+') — '+(isSheet()&&md==='sheet'?(2480*S)+'×'+(3508*S)+' بكسل (A4)':(1181*S)+'×'+(1181*S)+' بكسل')+'، '+(300*S)+' DPI.','ok');
     }else{
       await needZip();
       var mode=$('id-mode').value,z=new JSZip(),n=0,tot=(mode==='front'?1:R.length)+(mode==='back'?0:1);
@@ -4679,7 +4695,7 @@ async function makePsd(all){
         var N=perN(S);
         if(isSheet()){
           for(var i=0;i<R.length;i+=N){var ch=R.slice(i,i+N);
-            z.file('ورقة_'+('0'+(i+1)).slice(-3)+'-'+('0'+(i+ch.length)).slice(-3)+'_'+fname(ch[0].name||ch[0].pno)+'.psd',psdSheetBlob(ch,S));
+            z.file((Math.floor(i/N)+1)+'.psd',psdSheetBlob(ch,S));
             n++;st('جاري تجهيز ورقة PSD '+Math.ceil((i+1)/N)+'/'+Math.ceil(R.length/N)+'...');
             await new Promise(function(f){setTimeout(f,0)});
           }
