@@ -898,6 +898,8 @@ window.addEventListener('load',function(){setTimeout(ensureExcel,1500)});
       <button id="id-zip">⬇️ تحميل JPG (ZIP)</button>
       <button id="id-psd">⬇️ PSD (المعتمر المختار) — حسب خانة المحتوى: وش / ضهر / الاتنين</button>
       <button class="sec" id="id-psdzip">⬇️ PSD للكل (ZIP)</button>
+      <button class="sec" id="id-shjpg">🖼️ عينة JPG ورقة (المختار)</button>
+      <button class="sec" id="id-shjpgzip">🖼️ عينة JPG ورقة للكل (ZIP)</button>
     </div>
     <p class="hint" style="margin:8px 0 0">الكارنيه 10×10 سم: 300 DPI = 1181 بكسل، 600 DPI = 2362، 900 DPI = 3543 (الأرقام والأسماء بتترسم بالدقة المختارة، والقالب الأصلي 1181 بكسل). ملف الـ PSD فيه طبقة للقالب وطبقة <b>نص حقيقي قابل للتعديل</b> لكل خانة (اسم، تأشيرة، جواز، ...) — دبل كليك على الطبقة بالأداة T وعدّل. الخط المطلوب Tajawal ExtraBold منصّب على الجهاز، والعربي محتاج فوتوشوب بدعم الشرق الأوسط (Middle Eastern) وبيفتح في فوتوشوب بنفس المقاس. اطبع بحجم فعلي 100% (Actual size) من غير Fit to page. ملف الـ ZIP فيه الوش مرة واحدة + ضهر كل معتمر باسمه.</p>
   </div>
@@ -4727,6 +4729,42 @@ $('id-read').onclick=function(){
 $('id-clear').onclick=function(){if(confirm('مسح كل أرقام التأشيرات المحفوظة للمجموعة دي؟')){idc().v={};save();sbSaveGroup(grp());idTable();st('اتمسحت.')}};
 $('id-pv-btn').onclick=preview;$('id-pv-sel').onchange=preview;
 $('id-pdf').onclick=makePdf;$('id-zip').onclick=makeZip;
+
+/* ── عينة JPG بنفس شكل ورقة الـ PSD بالظبط (A4، وش | ضهر، نفس عدد الصفوف) ── */
+function sheetComposite(rs,k){
+  var n=rs.length,CW=Math.round(SHEET.CW*k),CH=Math.round(SHEET.CH*k),M=Math.round(SHEET.M*k),X2=Math.round(SHEET.X2*k),
+      PW=Math.round(SHEET.PW*k),PH=Math.round((n<=3?SHEET.PH:2*SHEET.M+SHEET.CH*n)*k);
+  var cv=document.createElement('canvas');cv.width=PW;cv.height=PH;var x=cv.getContext('2d');
+  x.fillStyle='#fff';x.fillRect(0,0,PW,PH);x.imageSmoothingQuality='high';
+  var fx=frontCanvas(k);
+  rs.forEach(function(r,i){var y=M+i*CH;x.drawImage(backCanvas(r,k),M,y,CW,CH);x.drawImage(fx,X2,y,CW,CH)});
+  return cv;
+}
+async function makeSheetJpg(all){
+  if(busy)return;var R=recs();if(!R.length){alert('المجموعة فاضية.');return}
+  var S=sc(),N=perN(S),Qv=Math.min(1,Math.max(.5,(+($('id-q')||{}).value||100)/100));
+  busy=true;
+  try{
+    await assets();
+    if(!all){
+      var id=$('id-pv-sel').value,r=R.find(function(x){return String(x.p.id)===id})||R[0],si=R.indexOf(r),ch=R.slice(si,si+N);
+      st('جاري تجهيز عينة JPG...');await new Promise(function(f){setTimeout(f,0)});
+      dl(await toBlob(sheetComposite(ch,S),Qv,300*S),'1.jpg');
+      st('✓ اتحمّلت عينة JPG ورقة: '+ch.length+' معتمر — '+(2480*S)+'×'+(3508*S)+' بكسل (A4)، '+(300*S)+' DPI.','ok');
+    }else{
+      await needZip();var z=new JSZip(),tot=Math.ceil(R.length/N);
+      for(var i=0;i<R.length;i+=N){
+        var c2=R.slice(i,i+N),no=Math.floor(i/N)+1;
+        z.file(no+'.jpg',await toBlob(sheetComposite(c2,S),Qv,300*S));
+        st('جاري تجهيز عينة JPG '+no+'/'+tot+'...');await new Promise(function(f){setTimeout(f,0)});
+      }
+      var blob=await z.generateAsync({type:'blob',compression:'STORE'}),nm='ID_'+fname(grp().name)+'_ورق_JPG.zip';dl(blob,nm);
+      st('✓ اتحمّل '+nm+' ('+(blob.size/1048576).toFixed(1)+' MB) — '+tot+' ورقة، كل ورقة '+N+' معتمرين.','ok');
+    }
+  }catch(e){console.error(e);st('✗ '+e.message,'err')}
+  busy=false;
+}
+$('id-shjpg').onclick=function(){makeSheetJpg(false)};$('id-shjpgzip').onclick=function(){makeSheetJpg(true)};
 $('id-psd').onclick=function(){makePsd(false)};$('id-psdzip').onclick=function(){makePsd(true)};
 
 window.idRefresh=function(){idLoad();idTable();preview()};window.idc=idc;window.nk=nk;window.dl=dl;
