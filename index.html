@@ -887,7 +887,8 @@ window.addEventListener('load',function(){setTimeout(ensureExcel,1500)});
     <h4>🖨️ الطباعة والتحميل</h4>
     <div class="row" style="font-size:13px">
       <label>المحتوى <select id="id-mode"><option value="both">وش + ضهر (بالتبادل)</option><option value="back">الوش بس (بيانات كل معتمر)</option><option value="front">الضهر بس (الثابت — صفحة واحدة)</option></select></label>
-    <label>عدد المعتمرين في ملف PSD <select id="id-per"><option value="1">1 (ملف لكل معتمر)</option><option value="2">2 في ملف</option><option value="3">3 في ملف</option><option value="4">4 في ملف</option><option value="5">5 في ملف</option><option value="6">6 في ملف</option></select></label>
+    <label>تخطيط PSD <select id="id-psdlay"><option value="sheet">ورقة: كل معتمر صف (وش | ضهر جنب بعض) — زي الصورة</option><option value="strip">الوش بس (شريط أفقي / ملف لكل معتمر)</option></select></label>
+    <label>عدد المعتمرين في ملف PSD <select id="id-per"><option value="1">1 (ملف لكل معتمر)</option><option value="2">2 في الصفحة / الملف</option><option value="3" selected>3 في الصفحة / الملف</option><option value="4">4 في الصفحة / الملف</option><option value="5">5 في الصفحة / الملف</option><option value="6">6 في الصفحة / الملف</option><option value="7">7 في الصفحة / الملف</option><option value="8">8 في الصفحة / الملف</option><option value="9">9 في الصفحة / الملف</option><option value="10">10 في الصفحة / الملف</option></select></label>
       <label>ترتيب PDF <select id="id-lay"><option value="page">10×10 سم — كارنيه في كل صفحة</option><option value="a4">A4 — 4 كارنيهات في الصفحة للقص</option></select></label>
       <label>الدقة <select id="id-res"><option value="1">300 DPI (عادية)</option><option value="2" selected>600 DPI (عالية)</option><option value="3">900 DPI (قصوى)</option></select></label>
       <label>جودة JPG <input id="id-q" type="number" min="50" max="100" value="100" style="width:62px">%</label>
@@ -4595,10 +4596,10 @@ function psdFit(txt){
   var it=[{t:best.a,dy:best.b?-15:2,w:cv.measureText(best.a).width}];if(best.b)it.push({t:best.b,dy:17,w:cv.measureText(best.b).width});
   return{fs:fs,items:it};
 }
-function psdDoc(r,k,front,ox,nocomp){
-  ox=ox||0;var W=Math.round(1181*k),bg=mkCanvas(k);
+function psdDoc(r,k,front,ox,nocomp,oy){
+  ox=ox||0;oy=oy||0;var W=Math.round(1181*k),bg=mkCanvas(k);
   bg.getContext('2d').drawImage(front?IMG.f:IMG.b,0,0,1181,1181);
-  var kids=[{name:front?'الضهر - القالب (ثابت)':'الوش - القالب',left:0,top:0,canvas:bg}];kids[0].left=ox;
+  var kids=[{name:front?'الضهر - القالب (ثابت)':'الوش - القالب',left:0,top:0,canvas:bg}];kids[0].left=ox;kids[0].top=oy;
   if(!front){
     var c=idc(),vals=[r.name,r.visa,r.pno,c.sup,c.ph,c.med,c.mak,c.agent];
     vals.forEach(function(v,i){
@@ -4612,9 +4613,9 @@ function psdDoc(r,k,front,ox,nocomp){
         x.scale(k,k);x.translate(-x0/k,-y0/k);
         x.fillStyle='#0b2a5b';x.direction=hasAr(it.t)?'rtl':'ltr';x.textAlign='right';x.textBaseline='middle';x.font=FONT(tf.fs);
         x.fillText(it.t,RIGHT,ROWS[i]+it.dy);
-        var lay={name:PSD_LBL[i]+(j?' - سطر 2':''),left:x0+ox,top:y0,canvas:lc};
+        var lay={name:PSD_LBL[i]+(j?' - سطر 2':''),left:x0+ox,top:y0+oy,canvas:lc};
         /* طبقة نص حقيقية: محاذاة منتصف (فوتوشوب CS5 بيعكس يمين/يسار) ونقطة المنتصف = الحافة اليمين - نص عرض النص */
-        lay.text={text:it.t,transform:[1,0,0,1,(RIGHT-it.w/2)*k+ox,(ROWS[i]+it.dy+tf.fs*0.35)*k],antiAlias:'smooth',orientation:'horizontal',
+        lay.text={text:it.t,transform:[1,0,0,1,(RIGHT-it.w/2)*k+ox,(ROWS[i]+it.dy+tf.fs*0.35)*k+oy],antiAlias:'smooth',orientation:'horizontal',
           style:{font:{name:PSD_FONT},fontSize:tf.fs*k,fillColor:{r:11,g:42,b:91},autoLeading:true,fauxBold:false},
           paragraphStyle:{justification:'center'}};
         kids.push(lay);
@@ -4633,8 +4634,20 @@ function psdMulti(rs,k){
   });
   return{width:W*n,height:W,canvas:cv,children:kids,imageResources:{resolutionInfo:{horizontalResolution:300*k,horizontalResolutionUnit:'PPI',widthUnit:'Centimeters',verticalResolution:300*k,verticalResolutionUnit:'PPI',heightUnit:'Centimeters'}}};
 }
+function psdSheet(rs,k){
+  var W=Math.round(1181*k),n=rs.length,cv=document.createElement('canvas');cv.width=W*2;cv.height=W*n;
+  var x=cv.getContext('2d'),kids=[],fx=frontCanvas(k);
+  rs.forEach(function(r,i){
+    x.drawImage(backCanvas(r,k),0,i*W);x.drawImage(fx,W,i*W);
+    var d=psdDoc(r,k,false,0,true,i*W);
+    kids.push({name:(i+1)+' — '+(r.name||r.pno||''),opened:true,children:d.children.concat([{name:'الضهر - القالب (ثابت)',left:W,top:i*W,canvas:fx}])});
+  });
+  return{width:W*2,height:W*n,canvas:cv,children:kids,imageResources:{resolutionInfo:{horizontalResolution:300*k,horizontalResolutionUnit:'PPI',widthUnit:'Centimeters',verticalResolution:300*k,verticalResolutionUnit:'PPI',heightUnit:'Centimeters'}}};
+}
+function psdSheetBlob(rs,k){return new Blob([agPsd.writePsd(psdSheet(rs,k))],{type:'image/vnd.adobe.photoshop'})}
+function isSheet(){var e=$('id-psdlay');return !!e&&e.value==='sheet'}
 function psdMultiBlob(rs,k){return new Blob([agPsd.writePsd(psdMulti(rs,k))],{type:'image/vnd.adobe.photoshop'})}
-function perN(S){var n=+($('id-per')||{}).value||1;var mx=Math.max(1,Math.floor(30000/Math.round(1181*S)));return Math.min(n,mx)}
+function perN(S){var _n=+($('id-per')||{}).value||1,_W=Math.round(1181*S),_mx=Math.max(1,Math.floor(30000/_W));if(_n>_mx&&typeof st==='function')st('⚠ على الدقة دي أقصى عدد صفوف '+_mx+' (حد فوتوشوب 30000 بكسل) — اتخفّض العدد لـ '+_mx+'، الجودة والمقاس زي ما هم.','warn');var n=+($('id-per')||{}).value||1;var mx=Math.max(1,Math.floor(30000/Math.round(1181*S)));return Math.min(n,mx)}
 function psdBlob(r,k,front){return new Blob([agPsd.writePsd(psdDoc(r,k,front))],{type:'image/vnd.adobe.photoshop'})}
 async function makePsd(all){
   if(busy)return;var R=recs();if(!R.length){alert('المجموعة فاضية.');return}
@@ -4652,18 +4665,25 @@ async function makePsd(all){
       st('جاري تجهيز PSD...');await new Promise(function(f){setTimeout(f,0)});
       var md=$('id-mode').value,base='ID_'+fname(r.name||r.pno),got=[];
       if(md!=='front'){var N=perN(S);
-        if(N>1){var si=R.indexOf(r),ch=R.slice(si,si+N);dl(psdMultiBlob(ch,S),'ID_'+ch.length+'معتمر_'+fname(r.name||r.pno)+'.psd');got.push('الوش ('+ch.length+' معتمر في ملف)')}
+        if(isSheet()){var si0=R.indexOf(r),ch0=R.slice(si0,si0+N);dl(psdSheetBlob(ch0,S),'ورقة_'+ch0.length+'معتمر_'+fname(r.name||r.pno)+'.psd');got.push('ورقة: '+ch0.length+' صف (وش | ضهر)');md='sheet'}
+        else if(N>1){var si=R.indexOf(r),ch=R.slice(si,si+N);dl(psdMultiBlob(ch,S),'ID_'+ch.length+'معتمر_'+fname(r.name||r.pno)+'.psd');got.push('الوش ('+ch.length+' معتمر في ملف)')}
         else{dl(psdBlob(r,S,false),base+'.psd');got.push('الوش')}
-        if(md==='both')await new Promise(function(f){setTimeout(f,700)})}
-      if(md!=='back'){dl(psdBlob(null,S,true),'ID_الضهر.psd');got.push('الضهر')}
+        if(md==='both'&&!isSheet())await new Promise(function(f){setTimeout(f,700)})}
+      if(md!=='back'&&md!=='sheet'){dl(psdBlob(null,S,true),'ID_الضهر.psd');got.push('الضهر')}
       st('✓ اتحمّل PSD ('+got.join(' + ')+') — '+(1181*S)+'×'+(1181*S)+' بكسل، '+(300*S)+' DPI.','ok');
     }else{
       await needZip();
       var mode=$('id-mode').value,z=new JSZip(),n=0,tot=(mode==='front'?1:R.length)+(mode==='back'?0:1);
-      if(mode!=='back'){z.file('00_الضهر.psd',psdBlob(null,S,true));n++}
+      if(mode!=='back'&&!isSheet()){z.file('00_الضهر.psd',psdBlob(null,S,true));n++}
       if(mode!=='front'){
         var N=perN(S);
-        if(N>1){
+        if(isSheet()){
+          for(var i=0;i<R.length;i+=N){var ch=R.slice(i,i+N);
+            z.file('ورقة_'+('0'+(i+1)).slice(-3)+'-'+('0'+(i+ch.length)).slice(-3)+'_'+fname(ch[0].name||ch[0].pno)+'.psd',psdSheetBlob(ch,S));
+            n++;st('جاري تجهيز ورقة PSD '+Math.ceil((i+1)/N)+'/'+Math.ceil(R.length/N)+'...');
+            await new Promise(function(f){setTimeout(f,0)});
+          }
+        }else if(N>1){
           for(var i=0;i<R.length;i+=N){var ch=R.slice(i,i+N);
             z.file(('0'+(i+1)).slice(-3)+'-'+('0'+(i+ch.length)).slice(-3)+'_'+fname(ch[0].name||ch[0].pno)+'.psd',psdMultiBlob(ch,S));
             n++;st('جاري تجهيز ملف PSD '+Math.ceil((i+1)/N)+'/'+Math.ceil(R.length/N)+'...');
