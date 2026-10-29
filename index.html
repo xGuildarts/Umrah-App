@@ -2760,7 +2760,7 @@ function render(){
       +'<td style="color:var(--mut);font-size:12px'+(p.bk?';border-right:5px solid '+hdBkCol(p.bk):'')+'" title="'+(p.bk?'حجز '+esc(p.bk):'')+'">'+(i+1)+'</td>'
       +'<td class="'+(isMrz?'mono':'ltr')+'"><span class="nm" data-id="'+p.id+'" data-cp="'+esc(display)+'" title="اضغط للكوبي">'+esc(display)+'</span>'+(p.sup?' <span title="مشرف المجموعة">👑</span>':'')+(p.asup?' <span title="مشرف مساعد">🎖️</span>':'')+(p.nobed?' <span title="بدون سرير">👶</span>':'')+(function(){var m=missing(p,g);return m.length?' <span title="'+esc(m.join(' · '))+'" style="cursor:help">⚠️</span>':' <span title="جاهز" style="color:var(--ok)">✓</span>'})()+'</td>'
       +(showDet
-        ?'<td class="ltr" style="font-size:12px">'+esc(p.pno||'')+'</td>'
+        ?'<td class="ltr" style="font-size:12px">'+(p.pno?'<span class="nm" data-cp="'+esc(p.pno)+'" title="اضغط للكوبي">'+esc(p.pno)+'</span>':'')+'</td>'
          +'<td style="font-size:12px">'+esc(p.nat||'')+'</td>'
          +'<td style="font-size:12px">'+esc(p.sex||'')+'</td>'
          +'<td class="ltr" style="font-size:12px">'+esc(fmtDate(p.dob))+(function(){var a=ageAt(p.dob,g.date);return a===null?'':' <span style="color:var(--mut)">('+a+(a<2?' 👶':a<12?' 🧒':'')+')</span>'})()+'</td>'
