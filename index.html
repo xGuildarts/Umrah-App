@@ -939,7 +939,9 @@ window.addEventListener('load',function(){setTimeout(ensureExcel,1500)});
     <div class="row">
       <label style="font-size:12px;color:var(--mut)">عرض الاسم:</label>
       <select id="vmode" style="font-size:12px;padding:4px 7px">
-        <option value="full">كامل</option>
+        <option value="full">إنجليزي (كامل)</option>
+        <option value="ar">عربي فقط</option>
+        <option value="enar">إنجليزي + عربي</option>
         <option value="flight">ترتيب طيران</option>
         <option value="mrz">MRZ</option>
       </select>
@@ -1618,7 +1620,7 @@ function nameByMode(p,mode){
   if(mode==='flight')return nameFlight(p);
   if(mode==='mrz')return nameMRZ(p);
   if(mode==='ar')return arText(p)||nameFull(p);
-  return nameFull(p);
+  return nameFull(p); /* enar: الإنجليزي هو الأساسي والعربي بيتعرض تحته */
 }
 
 /* ══════════════════════════════════════════
@@ -2462,7 +2464,8 @@ $('autorm').onclick=async function(){
   showUndo('تم تسكين '+ch.length+' فرد',async function(){ch.forEach(function(p){p.rno=''});save();render();for(var i=0;i<ch.length;i++)await sbSavePerson(ch[i])});
   for(var i=0;i<ch.length;i++)await sbSavePerson(ch[i]);
 };
-$('vmode').onchange=function(){render()};
+try{var _vm=localStorage.getItem('fm_vmode');if(_vm&&$('vmode').querySelector('option[value="'+_vm+'"]'))$('vmode').value=_vm}catch(e){}
+$('vmode').onchange=function(){try{localStorage.setItem('fm_vmode',this.value)}catch(e){}render()};
 $('show-details').onchange=function(){render()};
 
 /* ══════════════════════════════════════════
@@ -2745,7 +2748,7 @@ function render(){
   var opts=S.groups.map(function(x){return'<option value="'+x.id+'">'+esc(x.name)+'</option>'}).join('');
   $('thead-row').innerHTML='<tr>'
     +'<th style="width:30px">#</th>'
-    +'<th class="ltr">Name</th>'
+    +(mode==='ar'?'<th>الاسم بالعربي</th>':mode==='enar'?'<th class="ltr">Name <small style="font-weight:400">/ الاسم بالعربي</small></th>':'<th class="ltr">Name</th>')
     +(showDet?'<th class="ltr">Passport No.</th><th>الجنسية</th><th>الجنس</th><th class="ltr">الميلاد</th><th class="ltr">انتهاء الجواز</th><th>الحالة</th>':'')
     +'<th style="width:30px" title="صورة خلفية بيضاء">📷</th>'
     +'<th style="width:30px" title="صورة جواز">🆔</th>'
@@ -2767,7 +2770,7 @@ function render(){
     if(pi.due)rowWarn='background:rgba(179,38,30,.1)';
     return'<tr data-rid="'+p.id+'" class="'+(pi.due?'rw-due':rowWarn?'rw-warn':'')+(SEL[p.id]?' sel':'')+'">'
       +'<td style="color:var(--mut);font-size:12px'+(p.bk?';border-right:5px solid '+hdBkCol(p.bk):'')+'" title="'+(p.bk?'حجز '+esc(p.bk):'')+'">'+(i+1)+'</td>'
-      +'<td class="'+(isMrz?'mono':'ltr')+'"><span class="nm" data-id="'+p.id+'" data-cp="'+esc(display)+'" title="اضغط للكوبي">'+esc(display)+'</span>'+(p.sup?' <span title="مشرف المجموعة">👑</span>':'')+(p.asup?' <span title="مشرف مساعد">🎖️</span>':'')+(p.nobed?' <span title="بدون سرير">👶</span>':'')+(function(){var m=missing(p,g);return m.length?' <span title="'+esc(m.join(' · '))+'" style="cursor:help">⚠️</span>':' <span title="جاهز" style="color:var(--ok)">✓</span>'})()+'</td>'
+      +'<td class="'+(mode==='ar'?'':isMrz?'mono':'ltr')+'"'+(mode==='ar'?' dir="rtl"':'')+'><span class="nm" data-id="'+p.id+'" data-cp="'+esc(display)+'" title="اضغط للكوبي">'+esc(display)+'</span>'+(mode==='enar'?'<br><span class="nm" dir="rtl" data-cp="'+esc(arText(p)||'')+'" title="اضغط لنسخ الاسم العربي" style="font-size:13px;font-weight:600;color:var(--ink-2)">'+esc(arText(p)||'—')+'</span>':'')+(p.sup?' <span title="مشرف المجموعة">👑</span>':'')+(p.asup?' <span title="مشرف مساعد">🎖️</span>':'')+(p.nobed?' <span title="بدون سرير">👶</span>':'')+(function(){var m=missing(p,g);return m.length?' <span title="'+esc(m.join(' · '))+'" style="cursor:help">⚠️</span>':' <span title="جاهز" style="color:var(--ok)">✓</span>'})()+'</td>'
       +(showDet
         ?'<td class="ltr" style="font-size:12px">'+(p.pno?'<span class="nm" data-cp="'+esc(p.pno)+'" title="اضغط للكوبي">'+esc(p.pno)+'</span>':'')+'</td>'
          +'<td style="font-size:12px">'+esc(p.nat||'')+'</td>'
