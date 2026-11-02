@@ -722,7 +722,9 @@ window.addEventListener('load',function(){setTimeout(ensureExcel,1500)});
   <div class="row">
     <label for="gsel" style="font-size:13px">المجموعة:</label>
     <select id="gsel"></select>
-    <span id="gcnt" class="grp-badge">0/50</span>
+    <input id="gnm" placeholder="اسم الرحلة / المجموعة" title="اكتب الاسم الجديد واضغط Enter أو اخرج من الخانة" style="min-width:150px;font-size:13px;font-weight:700">
+    <span id="gcnt" class="grp-badge" title="عدد الأفراد / السعة">0/50</span>
+    <label style="font-size:12px;display:flex;align-items:center;gap:4px" title="السعة (عدد الأفراد المسموح) — غيّرها براحتك لكل رحلة">السعة <input id="gcap" type="number" min="1" max="999" value="50" style="width:64px;font-size:13px"></label>
     <input id="gtrip" placeholder="وجهة الرحلة" style="flex:1;min-width:130px;font-size:13px">
     <input id="gdate" type="date" style="font-size:13px" title="تاريخ الرحلة — بيُستخدم لحساب صلاحية الجواز">
     <button class="sec" id="gnew" style="font-size:13px;padding:6px 10px">+ جديدة</button>
@@ -1441,7 +1443,7 @@ async function sbLoad(){
   if(!gs||!ps||pend>0)return;
   if(gs.length){
     var _og={};S.groups.forEach(function(x){_og[x.id]=x});
-    S.groups=gs.map(function(g){return{id:g.id,name:g.name,trip:g.trip||'',date:g.date||'',pr:g.prices||{},minPct:g.min_pct==null?50:+g.min_pct,tk:(g.tk&&Object.keys(g.tk).length?g.tk:(_og[g.id]||{}).tk)||{},hd:(g.tk&&g.tk.__hd)||(_og[g.id]||{}).hd,pc:(g.tk&&g.tk.__pc)||(_og[g.id]||{}).pc||{mode:'pct',amt:0,per:{}},ex:exMerge(g.tk&&g.tk.__ex,(_og[g.id]||{}).ex),idc:(g.tk&&g.tk.__idc)||(_og[g.id]||{}).idc,locked:!!((g.tk&&g.tk.__lk)||(_og[g.id]||{}).locked),lockedAt:(g.tk&&g.tk.__lk)||(_og[g.id]||{}).lockedAt}});
+    S.groups=gs.map(function(g){return{id:g.id,name:g.name,trip:g.trip||'',date:g.date||'',pr:g.prices||{},minPct:g.min_pct==null?50:+g.min_pct,tk:(g.tk&&Object.keys(g.tk).length?g.tk:(_og[g.id]||{}).tk)||{},hd:(g.tk&&g.tk.__hd)||(_og[g.id]||{}).hd,pc:(g.tk&&g.tk.__pc)||(_og[g.id]||{}).pc||{mode:'pct',amt:0,per:{}},ex:exMerge(g.tk&&g.tk.__ex,(_og[g.id]||{}).ex),idc:(g.tk&&g.tk.__idc)||(_og[g.id]||{}).idc,cap:(g.tk&&g.tk.__cap)||(_og[g.id]||{}).cap,locked:!!((g.tk&&g.tk.__lk)||(_og[g.id]||{}).locked),lockedAt:(g.tk&&g.tk.__lk)||(_og[g.id]||{}).lockedAt}});
     var _old={};S.people.forEach(function(x){_old[x.id]=x});
     S.people=ps.filter(function(p){return DELQ.indexOf(p.id)<0}).map(function(p){return{
       id:p.id,ua:p.updated_at||'',g:p.group_id,sur:p.surname,giv:p.given,pno:p.pno||'',
@@ -1466,7 +1468,7 @@ async function sbSaveGroup0(g){
   var body={id:g.id,name:g.name,trip:g.trip||'',date:g.date||null,prices:g.pr||{},min_pct:g.minPct==null?50:g.minPct};
   var opt=function(){return{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)}};
   if(sbTk&&g.hd&&g.hd.ar){try{var _sv=await sbFetch('fm_groups?id=eq.'+g.id+'&select=tk'),_sh=_sv&&_sv[0]&&_sv[0].tk&&_sv[0].tk.__hd;if(_sh&&_sh.ar){g.hd.arok=g.hd.arok||{};Object.keys(_sh.ar).forEach(function(k){if(_sh.arok&&_sh.arok[k]&&!g.hd.arok[k]){g.hd.ar[k]=_sh.ar[k];g.hd.arok[k]=1}})}}catch(e){}}
-  if(sbTk)body.tk=Object.assign({},g.tk||{},g.hd?{__hd:g.hd}:{},g.pc?{__pc:g.pc}:{},g.ex?{__ex:g.ex}:{},g.idc?{__idc:g.idc}:{},g.locked?{__lk:g.lockedAt||1}:{});
+  if(sbTk)body.tk=Object.assign({},g.tk||{},g.hd?{__hd:g.hd}:{},g.pc?{__pc:g.pc}:{},g.ex?{__ex:g.ex}:{},g.idc?{__idc:g.idc}:{},g.locked?{__lk:g.lockedAt||1}:{},g.cap?{__cap:g.cap}:{});
   var r=await sbFetch('fm_groups?on_conflict=id',opt());
   if(r===null&&sbTk){
     delete body.tk;
@@ -2072,6 +2074,9 @@ $('tk-print').onclick=function(){
 ══════════════════════════════════════════ */
 $('gsel').onchange=function(){S.active=+this.value;save();render();tkLoad();box.focus()};
 $('gtrip').oninput=function(){grp().trip=this.value;save();sbSaveGroup(grp())};
+$('gnm').onchange=async function(){var g=grp(),n=this.value.trim();if(!n){this.value=g.name;return}if(n===g.name)return;var _on=g.name;g.name=n;logAct('إعادة تسمية مجموعة: '+_on+' ← '+n);save();render();await sbSaveGroup(g)};
+$('gnm').onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();this.blur()}};
+$('gcap').onchange=async function(){var g=grp(),v=parseInt(this.value);if(!(v>=1))v=50;v=Math.min(999,v);g.cap=v;this.value=v;logAct('تغيير سعة المجموعة: '+v);save();render();await sbSaveGroup(g)};
 $('gdate').oninput=function(){grp().date=this.value;save();render();sbSaveGroup(grp())};
 $('prices').oninput=function(e){var i=e.target,g=grp();
   if(i.id==='minmode'){pcOf(g).mode=i.value}else if(i.id==='minamt'){pcOf(g).amt=+i.value||0}else if(i.dataset.room){g.pr=g.pr||{};g.pr[i.dataset.room]=+i.value||0}else g.minPct=+i.value;
@@ -2082,6 +2087,7 @@ $('sortby').onchange=function(){render()};
 $('gnew').onclick=async function(){
   var n=prompt('اسم المجموعة الجديدة:');if(!n||!n.trim())return;
   var g={id:newId(),name:n.trim(),trip:'',date:''};
+  var _c=parseInt(prompt('عدد الأفراد في الرحلة (السعة):','50'));if(_c>=1)g.cap=Math.min(999,_c);
   S.groups.push(g);S.active=g.id;logAct('مجموعة جديدة: '+g.name,g);save();
 render();box.focus();
   await sbSaveGroup(g);
@@ -2723,8 +2729,11 @@ function render(){
   (function(){var c=pcOf(g);if(document.activeElement!==$('minmode'))$('minmode').value=c.mode;if(document.activeElement!==$('minamt'))$('minamt').value=c.amt||'';$('minpct-l').style.display=c.mode==='amt'?'none':'';$('minamt-l').style.display=c.mode==='amt'?'':'none'})();
   // badge
   var cnt=l.length,badge=$('gcnt');
-  badge.textContent=cnt+'/50';
-  badge.className='grp-badge'+(cnt>50?' over':cnt>=45?' warn':'');
+  var CAPG=(+g.cap>0)?+g.cap:50;
+  badge.textContent=cnt+'/'+CAPG;
+  badge.className='grp-badge'+(cnt>CAPG?' over':cnt>=CAPG-Math.max(1,Math.round(CAPG*0.1))?' warn':'');
+  if($('gcap')&&document.activeElement!==$('gcap'))$('gcap').value=CAPG;
+  if($('gnm')&&document.activeElement!==$('gnm'))$('gnm').value=g.name||'';
   // title
   $('ttl').innerHTML=esc(g.name)+(g.trip?' <span style="color:var(--mut);font-weight:400;font-size:13px">— '+esc(g.trip)+'</span>':'');
   $('empty').style.display=l.length?'none':'block';
