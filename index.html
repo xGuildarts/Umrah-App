@@ -747,6 +747,7 @@ window.alert=function(m){window.uiAlert(m)};
 })();
 </script>
 
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#12284a"><meta name="mobile-web-app-capable" content="yes"><link rel="icon" href="icon-192.png">
 </head>
 <body>
 <div id="save-warn" role="alert">⚠️ <span>الحفظ على الجهاز فشل (مساحة المتصفح؟) — البيانات المعدّلة دلوقتي ممكن تضيع لو قفلت الصفحة.</span><button id="sw-bk">💾 نزّل Backup دلوقتي</button></div>
@@ -1004,6 +1005,8 @@ window.alert=function(m){window.uiAlert(m)};
       <button class="sec" id="id-psdzip">⬇️ PSD للكل (ZIP)</button>
       <button class="sec" id="id-shjpg">🖼️ عينة JPG ورقة (المختار)</button>
       <button class="sec" id="id-shjpgzip">🖼️ عينة JPG ورقة للكل (ZIP)</button>
+      <button class="sec" id="id-shpdf">📄 عينة PDF ورقة (المختار)</button>
+      <button class="sec" id="id-shpdfall">📄 PDF ورقة للكل (ملف واحد)</button>
     </div>
     <p class="hint" style="margin:8px 0 0">الكارنيه 10×10 سم: 300 DPI = 1181 بكسل، 600 DPI = 2362، 900 DPI = 3543 (الأرقام والأسماء بتترسم بالدقة المختارة، والقالب الأصلي 1181 بكسل). ملف الـ PSD فيه طبقة للقالب وطبقة <b>نص حقيقي قابل للتعديل</b> لكل خانة (اسم، تأشيرة، جواز، ...) — دبل كليك على الطبقة بالأداة T وعدّل. الخط المطلوب Tajawal ExtraBold منصّب على الجهاز، والعربي محتاج فوتوشوب بدعم الشرق الأوسط (Middle Eastern) وبيفتح في فوتوشوب بنفس المقاس. اطبع بحجم فعلي 100% (Actual size) من غير Fit to page. ملف الـ ZIP فيه الوش مرة واحدة + ضهر كل معتمر باسمه.</p>
   </div>
@@ -1528,13 +1531,14 @@ async function sbFetch(path,opts){
     return txt?JSON.parse(txt):[];
   }catch(e){
     console.error('SB',e);sbFailCount++;
-    if(sbReady)setSbStatus('⚠️ فشل الحفظ على السيرفر ('+sbFailCount+') — الداتا محفوظة محلياً','err');
+    if(sbReady)setSbStatus(navigator.onLine===false?'📴 أوفلاين — شغال على الجهاز وهيتزامن لما النت يرجع':'⚠️ فشل الحفظ على السيرفر ('+sbFailCount+') — الداتا محفوظة محلياً',navigator.onLine===false?'loading':'err');
     return null;
   }finally{pend--}
 }
 function setSbStatus(t,c){var el=$('sb-status');el.textContent='⬤ '+t;el.className=c}
 async function sbConnect(){
   if(!SB.url||!SB.key){setSbStatus('غير متصل','');sbReady=false;return}
+  if(navigator.onLine===false){setSbStatus('📴 أوفلاين — شغال على الجهاز وهيتزامن لما النت يرجع','loading');sbReady=false;return}
   setSbStatus('جاري الاتصال...','loading');
   var r=await sbFetch('fm_groups?select=id&limit=1');
   if(r!==null){setSbStatus('✓ متصل','ok');sbReady=true;await sbLoad()}
@@ -4917,6 +4921,35 @@ async function makeSheetJpg(all){
   busy=false;
 }
 $('id-shjpg').onclick=function(){makeSheetJpg(false)};$('id-shjpgzip').onclick=function(){makeSheetJpg(true)};
+/* ── PDF بجودة عالية بنفس شكل ورقة الـ PSD (A4، وش | ضهر، 3 معتمرين أو أكتر في الصفحة) ── */
+async function makeSheetPdf(all){
+  if(busy)return;var R=recs();if(!R.length){alert('المجموعة فاضية.');return}
+  var S=sc(),N=perN(S),Qv=Math.min(1,Math.max(.5,(+($('id-q')||{}).value||100)/100));
+  var chunks=[];
+  if(all){for(var i=0;i<R.length;i+=N)chunks.push(R.slice(i,i+N))}
+  else{var id=$('id-pv-sel').value,r=R.find(function(x){return String(x.p.id)===id})||R[0],si=R.indexOf(r);chunks.push(R.slice(si,si+N))}
+  var est=chunks.length*1.6*S*S;
+  if(est>350&&!await uiConfirm('الـ PDF هيطلع تقريبًا '+Math.round(est)+' MB ('+chunks.length+' صفحة بدقة '+(300*S)+' DPI) وممكن المتصفح يبطّأ.\nتكمّل، ولا تنزّل الدقة؟',{ok:'كمّل',title:'ملف كبير'}))return;
+  busy=true;
+  try{
+    await assets();await needJsPdf();
+    var J=window.jspdf.jsPDF,doc=null;
+    for(var c=0;c<chunks.length;c++){
+      var ch=chunks[c],rows=ch.length,hmm=rows<=3?297:(2*SHEET.M+SHEET.CH*rows)/300*25.4,fmt=[210,hmm];
+      st('جاري تجهيز PDF '+(c+1)+'/'+chunks.length+'...');await new Promise(function(f){setTimeout(f,0)});
+      var cv=sheetComposite(ch,S),url=cv.toDataURL('image/jpeg',Qv);
+      if(!doc)doc=new J({unit:'mm',format:fmt,orientation:'portrait',compress:true});else doc.addPage(fmt,'portrait');
+      doc.addImage(url,'JPEG',0,0,210,hmm,undefined,'NONE');
+      cv.width=cv.height=1;
+    }
+    var nm=all?('ID_'+fname(grp().name)+'_ورق.pdf'):'1.pdf';
+    doc.save(nm);
+    st('✓ اتحمّل '+nm+' — '+chunks.length+' صفحة A4، '+(300*S)+' DPI، '+(all?'كل صفحة '+N+' معتمرين':chunks[0].length+' معتمر')+' — اطبع بمقاس فعلي 100%.','ok');
+  }catch(e){console.error(e);st('✗ '+e.message,'err')}
+  busy=false;
+}
+$('id-shpdf').onclick=function(){makeSheetPdf(false)};$('id-shpdfall').onclick=function(){makeSheetPdf(true)};
+
 $('id-psd').onclick=async function(){await makePsd(false)};$('id-psdzip').onclick=async function(){await makePsd(true)};
 
 window.idRefresh=function(){idLoad();idTable();preview()};window.idc=idc;window.nk=nk;window.dl=dl;
@@ -5813,6 +5846,49 @@ E('wf-fv').onchange=function(){if(this.files.length)upVisas([].slice.call(this.f
 E('wf-l').onclick=links;E('wf-s').onclick=share;
 [E('wf-v'),E('wf-a')].forEach(function(x){x.addEventListener('change',function(){cache=null;st('')})});
 new MutationObserver(function(){if(dlg.open){cache=null;st('');try{refresh()}catch(e){}}}).observe(dlg,{attributes:true,attributeFilter:['open']});
+})();
+</script>
+
+<style id="net-css">
+#netpill{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:2147483000;background:#12284a;color:#fff;padding:9px 18px;border-radius:999px;font-size:13px;font-weight:700;box-shadow:0 8px 28px rgba(8,20,45,.35);display:none;align-items:center;gap:8px;max-width:92vw;cursor:default}
+#netpill.on{display:flex}
+#netpill.off{background:#b45309}
+#netpill.syn{background:#1e7d3a}
+#netpill small{font-weight:500;opacity:.9}
+</style>
+<script id="net-js">
+(function(){
+var pill=null,hideT=0;
+function P(){if(!pill){pill=document.createElement('div');pill.id='netpill';document.body.appendChild(pill)}return pill}
+function pend(){try{return Object.keys(DIRTY).length+DELQ.length}catch(e){return 0}}
+function show(cls,html,ms){var p=P();clearTimeout(hideT);p.className='on '+cls;p.innerHTML=html;if(ms)hideT=setTimeout(refresh,ms)}
+function refresh(){
+  var n=pend();
+  if(navigator.onLine===false)show('off','📴 أوفلاين — شغال على الجهاز<small>'+(n?' ('+n+' تعديل مستني النت)':' — كل حاجة بتتحفظ محليًا وهتتزامن لما النت يرجع')+'</small>');
+  else if(n&&typeof SB!=='undefined'&&SB.url)show('off','🔄 '+n+' تعديل مستني المزامنة<small> — بيتحاول تلقائيًا</small>');
+  else P().className='';
+}
+async function sync(){
+  if(typeof SB==='undefined'||!SB.url||navigator.onLine===false)return;
+  var before=pend();
+  try{
+    if(!sbReady){await sbConnect()}else{await sbFlush();await sbLoad()}
+  }catch(e){console.error(e)}
+  var after=pend();
+  if(before>after){show('syn','✅ اتزامن '+(before-after)+' تعديل مع السيرفر'+(after?'<small> — فاضل '+after+'</small>':''),4500);try{dshow()}catch(e){}}
+  else refresh();
+}
+window.addEventListener('offline',function(){try{if(SB.url)setSbStatus('📴 أوفلاين — شغال على الجهاز وهيتزامن لما النت يرجع','loading')}catch(e){}refresh()});
+window.addEventListener('online',function(){show('syn','🌐 النت رجع — بيتزامن...');setTimeout(sync,1200)});
+setInterval(function(){if(document.hidden)return;if(navigator.onLine===false){refresh();return}if(typeof SB!=='undefined'&&SB.url&&(!sbReady||pend()>0))sync();else refresh()},20000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden){refresh();if(pend()||!sbReady)sync()}});
+refresh();
+/* حماية بيانات المتصفح من المسح التلقائي */
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+/* Service Worker: تشغيل الموقع بدون نت */
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
+  window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(e){console.warn('SW',e)})});
+}
 })();
 </script>
 </body>
