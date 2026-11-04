@@ -3978,7 +3978,8 @@ function mlPeople(g){
   return by(function(a,b){var x=a.bk?_fi[a.bk]:idx[a.id],y=b.bk?_fi[b.bk]:idx[b.id];return x-y});
 }
 /* مقاسات: f = الخط (pt) ، r = ارتفاع الصف (mm) — منطقة الكتابة 152mm بين اللوجو والختم */
-var ML_SZ={l:{f:14,r:8.4},m:{f:12.5,r:7.2},s:{f:11,r:6.2},xs:{f:9.5,r:5.4},xxs:{f:8.5,r:4.9}},ML_BODY=152;
+var ML_SZ={l:{f:14,r:8.4},m:{f:12.5,r:7.2},s:{f:11,r:6.2},xs:{f:9.5,r:5.4},xxs:{f:8.5,r:4.9},x3:{f:7.5,r:4.3},x4:{f:6.5,r:3.8}},ML_BODY=152;
+function mlBodyH(){return ML.stp?142:ML_BODY}/* لو الختم متفعّل نسيب مكانه (بيبدأ عند 194mm) فالأسماء متنزلش فوقه */
 function mlHead(first,hasNote){return first?(7+(ML.showTitle?9:0)+(ML.showSub?9:0)+(hasNote?6:0)):10}
 function mlFont(sz,c){var f=ML_SZ[sz].f;return(c===2&&sz!=='c')?Math.min(f,12):f}
 /* أقصى عدد حروف في سطر واحد (تقدير متحفّظ) */
@@ -3989,7 +3990,7 @@ function mlNm(p){return arText(p)||nameFull(p)}
 /* توزيع الأسماء على الصفحات والأعمدة حسب ارتفاع كل صف (الاسم الطويل = سطرين) */
 function mlPack(ppl,sz,c,hasNote){
   var f=mlFont(sz,c),mc=mlMaxCh(f,c),r=ML_SZ[sz].r,pages=[],pg=null,col=0,used=0,avail=0;
-  function newPage(){var first=!pages.length;avail=ML_BODY-mlHead(first,hasNote)-r-2;pg={first:first,cols:[]};for(var k=0;k<c;k++)pg.cols.push([]);pages.push(pg);col=0;used=0}
+  function newPage(){var first=!pages.length;avail=mlBodyH()-mlHead(first,hasNote)-r-2;pg={first:first,cols:[]};for(var k=0;k<c;k++)pg.cols.push([]);pages.push(pg);col=0;used=0}
   newPage();
   var balH=0;
   if(false&&c===2){var tot=0,mx=0;ppl.forEach(function(p){var nm=mlNm(p),len=nm.length+(ML.sup&&supTxt(p)?(p.asup?13:7):0),h=mlRowH(sz,f,len>mc?2:1);tot+=h;if(h>mx)mx=h});if(tot<=2*avail)balH=tot/2+mx*0.5}
@@ -4001,15 +4002,18 @@ function mlPack(ppl,sz,c,hasNote){
   });
   return{pages:pages,np:pages.length,sz:sz,c:c,f:f};
 }
-function mlLayout(ppl,hasNote){
-  var one=ML.fit==='one',sizes=ML.size==='auto'?(one?['l','m','s','xs','xxs']:['l','m','s']):[ML.size];
-  if(ML.fpt>0){var cf=Math.min(24,Math.max(7,+ML.fpt));ML_SZ.c={f:cf,r:Math.max(4,Math.round(cf*0.58*10)/10)};sizes=['c']}
+function mlLayout(ppl,hasNote,_auto){
+  var one=ML.fit==='one',ALL=['l','m','s','xs','xxs','x3','x4'],sizes=ML.size==='auto'?(one?ALL:['l','m','s']):[ML.size];
+  if(one&&ML.size!=='auto'&&ALL.indexOf(ML.size)>-1)sizes=ALL.slice(ALL.indexOf(ML.size));
+  if(ML.fpt>0&&!_auto){var cf=Math.min(24,Math.max(7,+ML.fpt));ML_SZ.c={f:cf,r:Math.max(4,Math.round(cf*0.58*10)/10)};sizes=['c']}
+  if(_auto&&one)sizes=ALL;
   var cols=ML.cols==='auto'?[1,2]:[+ML.cols],best=null;
   for(var a=0;a<sizes.length;a++)for(var b=0;b<cols.length;b++){
     var L=mlPack(ppl,sizes[a],cols[b],hasNote);
     if(!best||L.np<best.np)best=L;
     if(one&&L.np===1)return L; /* أكبر خط يدخّل الكل في ورقة واحدة */
   }
+  if(one&&best.np>1&&!_auto)return mlLayout(ppl,hasNote,true); /* الخط/الأعمدة المحددة مش كفاية → جرّب كل المقاسات والأعمدة */
   return best;
 }
 var ML_CSS='@page{size:A4;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff}'
@@ -4068,7 +4072,7 @@ function mlInfo(){
     var g=mlGroup(),all=S.people.filter(function(p){return p.g===g.id}),n=all.length;
     if(!n){el.innerHTML='<span class="w">⚠️ الرحلة دي مفيهاش معتمرين.</span>';return}
     var L=mlLayout(mlPeople(g),!!(ML.note&&ML.note.trim())),unrev=all.filter(function(p){return!arOk(p)}).length,np=L.np;
-    var szN=L.sz==='c'?(L.f+'pt'):{l:'كبير',m:'متوسط',s:'صغير',xs:'صغير جدًا',xxs:'صغير جدًا'}[L.sz];
+    var szN=L.sz==='c'?(L.f+'pt'):{l:'كبير',m:'متوسط',s:'صغير',xs:'صغير جدًا',xxs:'صغير جدًا',x3:'صغير جدًا',x4:'أصغر حجم'}[L.sz];
     el.innerHTML='👥 <b>'+n+'</b> معتمر — هيتطبع <b>'+np+'</b> '+(np===1?'صفحة':np===2?'صفحتين':'صفحات')+' ('+(L.c===2?'عمودين':'عمود واحد')+'، خط '+szN+'، الأسماء الطويلة بتنزل في سطرين)'
       +(ML.fit==='one'&&np>1?' &nbsp; <span class="w">⚠️ مش هينفع كله في ورقة واحدة — قلّل الملاحظة أو اختار «عادي»</span>':'')
       +(unrev?' &nbsp; <span class="w">⚠️ '+unrev+' اسم عربي ترجمة تلقائية لسه ماتراجعتش</span>':' &nbsp; <span style="color:var(--ok);font-weight:700">✓ كل الأسماء العربي متراجعة</span>');
