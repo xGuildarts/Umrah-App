@@ -967,6 +967,19 @@ window.alert=function(m){window.uiAlert(m)};
   <p class="hint" style="margin:8px 0 0">نفس إعدادات طباعة الاعاشة: A4 والهوامش (Margins) = None، وفعّل Background graphics لو الورقة طلعت من غير خلفية.</p>
 </div>
 
+<!-- دليل العمرة المختصر (بهوية الشركة) -->
+<div class="card" id="guide-card" data-tab="letter">
+  <div class="sec-t">🕋 دليل العمرة المختصر <small>(صفحة A4 واحدة بهوية الشركة — اطبعها أي وقت وسلّمها للمعتمرين)</small></div>
+  <div class="row" style="margin-top:6px;font-size:13px;gap:14px">
+    <label style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="gd-plain"> الطباعة على ورقة الشركة الجاهزة (من غير خلفية الورقة)</label>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <button id="gd-prev" class="sec">👁️ معاينة</button>
+    <button id="gd-print">🖨️ طباعة الدليل</button>
+  </div>
+  <p class="hint" style="margin:8px 0 0">A4 والهوامش (Margins) = None، وفعّل Background graphics. الخط بيتظبط لوحده عشان الدليل يدخل في ورقة واحدة.</p>
+</div>
+
 <!-- ID card / كارنيه المعتمر -->
 <div class="card" id="id-card" data-tab="id">
   <div class="sec-t">🆔 كارنيه المعتمر (ID) <small>(وش وضهر — الوش فيه بيانات كل معتمر وبيتملى تلقائي، والضهر ثابت)</small></div>
@@ -4127,7 +4140,7 @@ async function mlPrint(){
   if(!img||img.complete)ready();else{img.onload=ready;img.onerror=ready}
   logAct('طباعة كشف اعاشة — '+b.g.name+' ('+b.n+' معتمر)',b.g);
 }
-$('ml-print').onclick=mlPrint;$('ml-pgo').onclick=async function(){$('mldlg').close();if(window.ML_MODE==='letter')ltPrint();else await mlPrint()};
+$('ml-print').onclick=mlPrint;$('ml-pgo').onclick=async function(){$('mldlg').close();if(window.ML_MODE==='letter')ltPrint();else if(window.ML_MODE==='guide')gdPrint();else await mlPrint()};
 
 /* ═════════════ خطاب / إيميل رسمي على ورقة الشركة ═════════════ */
 var LT={to:'',subj:'',body:'',close:'',date:true,dtx:'',size:'m',fpt:0};
@@ -4201,6 +4214,64 @@ function ltInit(){
   $('lt-clear').onclick=async function(){if(!await uiConfirm('تمسح نص الخطاب؟'))return;LT.to=LT.subj=LT.body=LT.close='';LT.dtx=ltToday();ltSave();ltInit()};
 }
 ltInit();
+
+/* ═════════════ دليل العمرة المختصر — بهوية الشركة ═════════════ */
+var GD={plain:false};
+try{var _g=JSON.parse(localStorage.getItem('fm_guide')||'{}');if(_g.plain)GD.plain=true}catch(e){}
+function gdSave(){try{localStorage.setItem('fm_guide',JSON.stringify(GD))}catch(e){}}
+var GD_STEPS=[
+ {t:'الإحرام (من الميقات)',b:['اغتسل وتطيّب في بدنك <b>قبل</b> الإحرام فقط، والرجال يلبسون إزار ورداء أبيضين','انوِ بقلبك وقل: <b>«لبيك اللهم عمرة»</b> وكرّر التلبية حتى ترى الكعبة'],d:'لبيك اللهم لبيك، لبيك لا شريك لك لبيك، إن الحمد والنعمة لك والملك، لا شريك لك'},
+ {t:'الطواف حول الكعبة — ٧ أشواط',b:['ابدأ من <b>الحجر الأسود</b> (أشِر إليه وقل: بسم الله والله أكبر) والكعبة عن يسارك، وتنتهي عنده','الرجال: يكشفون الكتف الأيمن (اضطباع) ويُسرعون في الثلاثة الأولى (رمل)','بين الركن اليماني والحجر الأسود قل:'],d:'ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار'},
+ {t:'ركعتا الطواف + زمزم',b:['صلِّ ركعتين خلف <b>مقام إبراهيم</b> (الكافرون في الأولى، والإخلاص في الثانية)','اشرب من ماء زمزم وادعُ بما شئت']},
+ {t:'السعي بين الصفا والمروة — ٧ أشواط',b:['ابدأ من <b>الصفا</b> وانتهِ عند <b>المروة</b> (الذهاب شوط، والعودة شوط)','الرجال: يُهرولون بين العلمين الأخضرين، والنساء يمشين','أكثر من الدعاء والذكر طوال السعي']},
+ {t:'الحلق أو التقصير = تحلّلت من الإحرام',b:['الرجال: حلق الرأس (أفضل) أو تقصير الشعر من كل الرأس','النساء: تقصّ قدر أنملة من أطراف الشعر']}
+];
+var GD_CSS='.bd{top:44mm;height:194mm}'
+ +'.gd{display:flex;flex-direction:column;gap:2mm;font-size:var(--f,10pt);line-height:1.5;color:#12284a}'
+ +'.gh{text-align:center;background:#12284a;color:#fff;border-radius:3mm;padding:2.6mm 4mm 3mm;border-bottom:1.2mm solid #e8743b}'
+ +'.gt{font-size:2em;font-weight:800;line-height:1.3}.gs{font-size:1em;opacity:.92}'
+ +'.gp{display:inline-block;margin-top:1.5mm;background:#1b8fd2;color:#fff;border-radius:5mm;padding:.7mm 5mm;font-weight:700}'
+ +'.st{display:flex;border:.3mm solid #cfe0ee;border-radius:2.5mm;background:#f4f9fd;overflow:hidden;break-inside:avoid}'
+ +'.sn{width:11mm;flex:none;color:#fff;font-weight:800;font-size:1.7em;display:flex;align-items:center;justify-content:center}'
+ +'.st.o .sn{background:#e8743b}.st.u .sn{background:#1b8fd2}'
+ +'.sb{flex:1;padding:1.5mm 3.5mm 1.7mm}.sh{font-weight:800;font-size:1.18em;margin-bottom:.5mm}'
+ +'.sb ul{margin:0;padding:0;list-style:none}.sb li{position:relative;padding-right:3.6mm}'
+ +'.sb li:before{content:"";position:absolute;right:0;top:.62em;width:1.5mm;height:1.5mm;border-radius:50%;background:#e8743b}'
+ +'.du{margin-top:1.1mm;border:.3mm dashed #1b8fd2;border-radius:2mm;background:#fff;padding:.7mm 3mm;font-weight:700}'
+ +'.gx{border:.3mm solid #f0c8b8;background:#fdf0ea;border-radius:2.5mm;padding:1.5mm 3.5mm}'
+ +'.gx h3{margin:0 0 .5mm;font-size:1.12em;color:#b3261e}.gx b{color:#12284a}'
+ +'.gf{text-align:center;font-weight:800;margin-top:.5mm}.gf div+div{font-size:.92em;font-weight:700;color:#3b4a63}';
+var GD_FIT='function fitGd(){var g=document.querySelector(".gd");if(!g)return;var f=11.5;g.style.setProperty("--f",f+"pt");var H=g.parentNode.clientHeight;while(g.scrollHeight>H+1&&f>7){f-=.25;g.style.setProperty("--f",f+"pt")}}window.fitGd=fitGd;window.addEventListener("load",function(){fitGd();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitGd)});';
+function gdBuild(){
+  var ar=['١','٢','٣','٤','٥'];
+  var steps=GD_STEPS.map(function(s,i){
+    return '<div class="st '+(i%2?'u':'o')+'"><div class="sn">'+ar[i]+'</div><div class="sb"><div class="sh">'+s.t+'</div><ul>'+s.b.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>'+(s.d?'<div class="du">'+s.d+'</div>':'')+'</div></div>';
+  }).join('');
+  var body='<div class="gd"><div class="gh"><div class="gt">🕋 دليل العمرة المختصر</div><div class="gs">خمس خطوات بس وعمرتك تمت بإذن الله</div><div class="gp">تقدمه لكم أسرة شركة المأمون إنترناشيونال ترافل</div></div>'
+    +steps
+    +'<div class="gx"><h3>⛔ ممنوعات الإحرام (حتى الحلق أو التقصير)</h3><div>قص الشعر والأظافر • الطيب والعطور • الجماع ومقدماته • عقد النكاح • الصيد وقطع الشجر</div><div><b>الرجال:</b> المخيط وتغطية الرأس &nbsp;•&nbsp; <b>النساء:</b> النقاب والقفازان</div></div>'
+    +'<div class="gf"><div>تقبّل الله منا ومنكم صالح الأعمال 🤲</div><div>أسرة شركة المأمون إنترناشيونال ترافل تتمنى لكم عمرة مقبولة وسعياً مشكوراً</div></div></div>';
+  var html='<div class="pg">'+(GD.plain?'':'<img src="'+LH_SRC+'" alt="">')+'<div class="bd">'+body+'</div></div>';
+  return '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>دليل العمرة المختصر</title>'
+    +'<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"><style>'+ML_CSS+GD_CSS+'</style></head><body>'+html+'<script>'+GD_FIT+'<\/script></body></html>';
+}
+$('gd-plain').checked=!!GD.plain;
+$('gd-plain').onchange=function(){GD.plain=this.checked;gdSave()};
+$('gd-prev').onclick=function(){
+  window.ML_MODE='guide';var fr=$('ml-frame');fr.onload=null;
+  $('ml-pi').textContent='دليل العمرة المختصر · صفحة واحدة';
+  fr.srcdoc=gdBuild();$('mldlg').showModal();
+};
+function gdPrint(){
+  var f=document.createElement('iframe');f.setAttribute('aria-hidden','true');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(f);
+  var w=f.contentWindow,d=w.document;d.open();d.write(gdBuild());d.close();
+  var go=function(){try{if(w.fitGd)w.fitGd();w.focus();w.print()}catch(e){alert('الطباعة فشلت: '+e.message)}setTimeout(function(){f.remove()},120000)};
+  var img=d.querySelector('img'),ready=function(){var fr=(d.fonts&&d.fonts.ready)?Promise.race([d.fonts.ready,new Promise(function(r){setTimeout(r,1800)})]):Promise.resolve();fr.then(function(){setTimeout(go,150)})};
+  if(!img||img.complete)ready();else{img.onload=ready;img.onerror=ready}
+  try{logAct('طباعة دليل العمرة المختصر')}catch(e){}
+}
+$('gd-print').onclick=gdPrint;
 
 /* ═════════════ غرفة جديدة: اسأل عن النوع ═════════════ */
 var NR_ICON={single:'1',double:'2',triple:'3',quad:'4',quint:'5'};
