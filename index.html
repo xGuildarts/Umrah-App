@@ -999,7 +999,7 @@ window.alert=function(m){window.uiAlert(m)};
   <div id="id-st" class="hint" style="margin:8px 0 0;font-weight:700;min-height:20px"></div>
   <div id="id-sum" style="font-size:13px;margin:6px 0"></div>
   <div class="tbl-wrap" style="max-height:46vh;overflow:auto"><table>
-    <thead><tr><th>#</th><th>الاسم بالعربي (قابل للتعديل)</th><th class="ltr">رقم الجواز</th><th class="ltr">رقم التأشيرة</th><th>الحالة</th></tr></thead>
+    <thead><tr><th>#</th><th>الاسم بالعربي (قابل للتعديل)</th><th class="ltr">رقم الجواز</th><th class="ltr">رقم التأشيرة</th><th>هاتف المشرف</th><th>الحالة</th></tr></thead>
     <tbody id="id-tb"></tbody></table></div>
   <div class="exp-panel">
     <h4>🖨️ الطباعة والتحميل</h4>
@@ -1010,6 +1010,7 @@ window.alert=function(m){window.uiAlert(m)};
       <label>ترتيب PDF <select id="id-lay"><option value="page">10×10 سم — كارنيه في كل صفحة</option><option value="a4">A4 — 4 كارنيهات في الصفحة للقص</option></select></label>
       <label>الدقة <select id="id-res"><option value="1">300 DPI (عادية)</option><option value="2" selected>600 DPI (عالية)</option><option value="3">900 DPI (قصوى)</option></select></label>
       <label>جودة JPG <input id="id-q" type="number" min="50" max="100" value="100" style="width:62px">%</label>
+      <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="id-flip"> اختياري: اقلب الكارنيه (Mirror)</label>
     </div>
     <div class="row" style="margin-top:8px">
       <button id="id-pdf">⬇️ تحميل PDF</button>
@@ -4628,7 +4629,7 @@ function idTable(){
       +'<td><input class="id-nm" value="'+esc(r.name)+'" dir="rtl" style="width:230px"></td>'
       +'<td class="ltr">'+esc(r.pno)+'</td>'
       +'<td class="ltr"><input class="id-vs" value="'+esc(r.visa)+'" dir="ltr" inputmode="numeric" style="width:120px" placeholder="رقم التأشيرة"></td>'
-      +'<td>'+tags.join(' ')+'</td></tr>';
+      +'<td class="ltr">'+spCell(r)+'</td>'+'<td>'+tags.join(' ')+'</td></tr>';
   }).join('');
   var orphans=Object.keys(c.v).filter(function(k){return!used[k]});
   var byK={};R.forEach(function(r){if(r.pno)byK[nk(r.pno)]=r});
@@ -4665,6 +4666,11 @@ $('id-tb').addEventListener('change',function(e){
     if(v)c.v[k]=Object.assign({},c.v[k]||{},{no:v,src:'يدوي'});else delete c.v[k];
     save();clearTimeout(_T);_T=setTimeout(function(){sbSaveGroup(grp())},600);
   }
+  else if(e.target.classList.contains('id-sp')){
+    var c2=idc();c2.sp=c2.sp&&typeof c2.sp==='object'?c2.sp:{};var pv=e.target.value.replace(/[^\d+]/g,'');
+    if(pv)c2.sp[String(p.id)]=pv;else delete c2.sp[String(p.id)];
+    save();clearTimeout(_T);_T=setTimeout(function(){sbSaveGroup(grp())},600);
+  }
   idTable();
 });
 
@@ -4699,9 +4705,16 @@ function drawVal(ctx,txt,cy){
   ctx.fillText(best.a,RIGHT,cy-15);if(best.b)ctx.fillText(best.b,RIGHT,cy+17);
 }
 function sc(){var e=$('id-res');return Math.min(3,Math.max(1,Math.round(+(e&&e.value)||2)))}
-function mkCanvas(k){k=k||1;var cv=document.createElement('canvas');cv.width=cv.height=Math.round(1181*k);var x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.scale(k,k);return cv}
+function flipOn(){var e=$('id-flip');return!!(e&&e.checked)}
+function mkCanvas(k){k=k||1;var cv=document.createElement('canvas');cv.width=cv.height=Math.round(1181*k);var x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.scale(k,k);if(flipOn()){x.translate(1181,0);x.scale(-1,1)}return cv}
 function frontCanvas(k){var cv=mkCanvas(k);cv.getContext('2d').drawImage(IMG.f,0,0,1181,1181);return cv}
-function drawBackVals(x,r){var c=idc();x.fillStyle='#0b2a5b';[r.name,r.visa,r.pno,c.sup,c.ph,c.med,c.mak,c.agent].forEach(function(v,i){drawVal(x,v,ROWS[i])})}
+function isSup(p){return!!(p&&(p.sup||p.asup))}
+function supPhone(p){var c=idc();return(c.sp&&c.sp[String(p.id)])||''}
+function spCell(r){if(!isSup(r.p))return'<span class="hint">—</span>';return'<input class="id-sp" value="'+esc(supPhone(r.p))+'" dir="ltr" inputmode="tel" style="width:130px" placeholder="رقم المشرف">'}
+/* المشرف: هوية ثابتة لكل المشرفين والشركة، والمتغيّر الوحيد رقم هاتفه */
+function drawBackVals(x,r){var c=idc();x.fillStyle='#0b2a5b';
+  if(isSup(r.p)){[supTxt(r.p),'','',c.sup,supPhone(r.p)||c.ph,c.med,c.mak,c.agent].forEach(function(v,i){drawVal(x,v,ROWS[i])});return}
+  [r.name,r.visa,r.pno,c.sup,c.ph,c.med,c.mak,c.agent].forEach(function(v,i){drawVal(x,v,ROWS[i])})}
 function backTpl(k){var cv=mkCanvas(k);cv.getContext('2d').drawImage(IMG.b,0,0,1181,1181);return cv}
 function backCanvas(r,k){var cv=backTpl(k);drawBackVals(cv.getContext('2d'),r);return cv}
 function textCanvas(r,k){var cv=mkCanvas(k);drawBackVals(cv.getContext('2d'),r);return cv}
@@ -4958,7 +4971,7 @@ $('id-read').onclick=function(){
   readFiles([].slice.call(f)).catch(function(e){console.error(e);st('✗ '+e.message,'err')});
 };
 $('id-clear').onclick=async function(){if(await uiConfirm('مسح كل أرقام التأشيرات المحفوظة للمجموعة دي؟')){idc().v={};save();sbSaveGroup(grp());idTable();st('اتمسحت.')}};
-$('id-pv-btn').onclick=preview;$('id-pv-sel').onchange=preview;
+$('id-pv-btn').onclick=preview;$('id-pv-sel').onchange=preview;$('id-flip').onchange=preview;
 $('id-pdf').onclick=makePdf;$('id-zip').onclick=makeZip;
 
 /* ── عينة JPG بنفس شكل ورقة الـ PSD بالظبط (A4، وش | ضهر، نفس عدد الصفوف) ── */
