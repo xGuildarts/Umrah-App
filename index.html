@@ -1011,6 +1011,7 @@ window.alert=function(m){window.uiAlert(m)};
       <label>الدقة <select id="id-res"><option value="1">300 DPI (عادية)</option><option value="2" selected>600 DPI (عالية)</option><option value="3">900 DPI (قصوى)</option></select></label>
       <label>جودة JPG <input id="id-q" type="number" min="50" max="100" value="100" style="width:62px">%</label>
       <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="id-flip"> اختياري: اقلب الكارنيه (Mirror)</label>
+      <label>إزاحة القيم في الـ Mirror <input id="id-mx" type="number" value="0" step="5" style="width:70px"> px</label>
     </div>
     <div class="row" style="margin-top:8px">
       <button id="id-pdf">⬇️ تحميل PDF</button>
@@ -4690,19 +4691,20 @@ async function assets(){
 }
 function FONT(px){return'800 '+px+'px Tajawal,"IBM Plex Sans Arabic",Tahoma,Arial,sans-serif'}
 function hasAr(s){return/[\u0600-\u06FF]/.test(s)}
+function VR(){var e=$('id-mx');var o=e?parseFloat(e.value)||0:0;return RIGHT+(flipOn()?o:0)}
 function drawVal(ctx,txt,cy){
   txt=String(txt||'').trim();if(!txt)return;
   ctx.direction=hasAr(txt)?'rtl':'ltr';ctx.textAlign='right';ctx.textBaseline='middle';
   var fs=46;
   while(fs>30){ctx.font=FONT(fs);if(ctx.measureText(txt).width<=BOXW)break;fs-=2}
   ctx.font=FONT(fs);
-  if(ctx.measureText(txt).width<=BOXW){ctx.fillText(txt,RIGHT,cy+2);return}
+  if(ctx.measureText(txt).width<=BOXW){ctx.fillText(txt,VR(),cy+2);return}
   /* طويل: سطرين */
   var w=txt.split(/\s+/),best=null;
   for(var i=1;i<w.length;i++){var a=w.slice(0,i).join(' '),b=w.slice(i).join(' '),m=Math.max(ctx.measureText(a).width,ctx.measureText(b).width);if(!best||m<best.m)best={a:a,b:b,m:m}}
   if(!best){best={a:txt,b:'',m:0}}
   fs=30;do{ctx.font=FONT(fs);fs-=1}while(fs>18&&Math.max(ctx.measureText(best.a).width,ctx.measureText(best.b).width)>BOXW);
-  ctx.fillText(best.a,RIGHT,cy-15);if(best.b)ctx.fillText(best.b,RIGHT,cy+17);
+  ctx.fillText(best.a,VR(),cy-15);if(best.b)ctx.fillText(best.b,VR(),cy+17);
 }
 function sc(){var e=$('id-res');return Math.min(3,Math.max(1,Math.round(+(e&&e.value)||2)))}
 function flipOn(){var e=$('id-flip');return!!(e&&e.checked)}
@@ -4971,7 +4973,7 @@ $('id-read').onclick=function(){
   readFiles([].slice.call(f)).catch(function(e){console.error(e);st('✗ '+e.message,'err')});
 };
 $('id-clear').onclick=async function(){if(await uiConfirm('مسح كل أرقام التأشيرات المحفوظة للمجموعة دي؟')){idc().v={};save();sbSaveGroup(grp());idTable();st('اتمسحت.')}};
-$('id-pv-btn').onclick=preview;$('id-pv-sel').onchange=preview;$('id-flip').onchange=preview;
+$('id-pv-btn').onclick=preview;$('id-pv-sel').onchange=preview;$('id-flip').onchange=preview;$('id-mx').onchange=preview;
 $('id-pdf').onclick=makePdf;$('id-zip').onclick=makeZip;
 
 /* ── عينة JPG بنفس شكل ورقة الـ PSD بالظبط (A4، وش | ضهر، نفس عدد الصفوف) ── */
