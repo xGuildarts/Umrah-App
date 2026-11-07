@@ -4871,6 +4871,8 @@ function psdDoc(r,k,front,ox,nocomp,oy){
       });
     });
   }
+  /* في وضع المعكوس: الضهر بيتحفظ كطبقة صورة واحدة مقلوبة (القالب + البيانات مع بعض) بدل طبقات نص منفصلة، عشان فوتوشوب ما يطلبش Update layer وعشان الكتابة تفضل في مكانها */
+  if(!front&&flipOn()){kids=[{name:'الضهر - معكوس (Mirror)',left:ox,top:oy,canvas:backCanvas(r,k)}]}
   var comp=nocomp?null:(front?bg:backCanvas(r,k));
   return{width:W,height:W,canvas:comp,children:kids,imageResources:{resolutionInfo:{horizontalResolution:300*k,horizontalResolutionUnit:'PPI',widthUnit:'Centimeters',verticalResolution:300*k,verticalResolutionUnit:'PPI',heightUnit:'Centimeters'}}};
 }
