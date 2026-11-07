@@ -4917,7 +4917,14 @@ function psdMultiBlob(rs,k){return new Blob([agPsd.writePsd(psdMulti(rs,k))],{ty
 function perN(S){var _n=+($('id-per')||{}).value||1,_W=Math.round(1181*S),_mx=Math.max(1,Math.floor(30000/_W));if(_n>_mx&&typeof st==='function')st('⚠ على الدقة دي أقصى عدد صفوف '+_mx+' (حد فوتوشوب 30000 بكسل) — اتخفّض العدد لـ '+_mx+'، الجودة والمقاس زي ما هم.','warn');var n=+($('id-per')||{}).value||1;var mx=Math.max(1,Math.floor(30000/Math.round(1181*S)));return Math.min(n,mx)}
 function psdBlob(r,k,front){return new Blob([agPsd.writePsd(psdDoc(r,k,front))],{type:'image/vnd.adobe.photoshop'})}
 async function makePsd(all){
-  if(busy)return;var R=recs();if(!R.length){alert('المجموعة فاضية.');return}
+  if(busy)return;var RAW=recs();if(!RAW.length){alert('المجموعة فاضية.');return}
+  /* المعتمر اللي تأشيرته لسه مطلعتش ما يدخلش ملفات PSD الكاملة، ويتعرض اسمه بس */
+  var hasV=function(x){return!!String(x.visa||'').trim()};
+  var R=RAW.filter(hasV),skip=RAW.filter(function(x){return!hasV(x)});
+  var pid=$('id-pv-sel').value,pk=RAW.find(function(x){return String(x.p.id)===pid})||RAW[0];
+  if(!all&&!hasV(pk)){alert('تأشيرة '+(pk.name||pk.pno)+' لسه مطلعتش، مش هينفع يتحمل PSD ليه لحد ما تطلع.');return}
+  if(!R.length){alert('كل المعتمرين لسه مطلعتش تأشيراتهم.');return}
+  if(all&&skip.length){alert('المعتمرين دول اتشالوا من الملف لأن تأشيرتهم لسه مطلعتش:\n'+skip.map(function(x){return x.name||x.pno}).join('\n')+'\n\nاختارهم لوحدهم بعد ما تطلع تأشيرتهم.')}
   var S=sc();
   if(all){
     if(!await precheck(R))return;
@@ -4928,7 +4935,7 @@ async function makePsd(all){
   try{
     await assets();await needPsd();
     if(!all){
-      var id=$('id-pv-sel').value,r=R.find(function(x){return String(x.p.id)===id})||R[0];
+      var r=pk;
       st('جاري تجهيز PSD...');await new Promise(function(f){setTimeout(f,0)});
       var md=$('id-mode').value,base='ID_'+fname(r.name||r.pno),got=[];
       if(md!=='front'){var N=perN(S);
