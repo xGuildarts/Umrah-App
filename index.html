@@ -1011,7 +1011,6 @@ window.alert=function(m){window.uiAlert(m)};
       <label>الدقة <select id="id-res"><option value="1">300 DPI (عادية)</option><option value="2" selected>600 DPI (عالية)</option><option value="3">900 DPI (قصوى)</option></select></label>
       <label>جودة JPG <input id="id-q" type="number" min="50" max="100" value="100" style="width:62px">%</label>
       <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="id-flip"> اختياري: اقلب الكارنيه (Mirror)</label>
-      <label>إزاحة القيم في الـ Mirror <input id="id-mx" type="number" value="-30" step="5" style="width:70px"> px</label>
     </div>
     <div class="row" style="margin-top:8px">
       <button id="id-pdf">⬇️ تحميل PDF</button>
@@ -4691,7 +4690,7 @@ async function assets(){
 }
 function FONT(px){return'800 '+px+'px Tajawal,"IBM Plex Sans Arabic",Tahoma,Arial,sans-serif'}
 function hasAr(s){return/[\u0600-\u06FF]/.test(s)}
-function VR(){var e=$('id-mx');var o=e?parseFloat(e.value)||0:0;return RIGHT+(flipOn()?o:0)}
+function VR(){return RIGHT}
 function drawVal(ctx,txt,cy){
   txt=String(txt||'').trim();if(!txt)return;
   ctx.direction=hasAr(txt)?'rtl':'ltr';ctx.textAlign='right';ctx.textBaseline='middle';
@@ -4717,9 +4716,11 @@ function spCell(r){if(!isSup(r.p))return'<span class="hint">—</span>';return'<
 function drawBackVals(x,r){var c=idc();x.fillStyle='#0b2a5b';
   if(isSup(r.p)){[supTxt(r.p),'','',c.sup,supPhone(r.p)||c.ph,c.med,c.mak,c.agent].forEach(function(v,i){drawVal(x,v,ROWS[i])});return}
   [r.name,r.visa,r.pno,c.sup,c.ph,c.med,c.mak,c.agent].forEach(function(v,i){drawVal(x,v,ROWS[i])})}
-function backTpl(k){var cv=mkCanvas(k);cv.getContext('2d').drawImage(IMG.b,0,0,1181,1181);return cv}
-function backCanvas(r,k){var cv=backTpl(k);drawBackVals(cv.getContext('2d'),r);return cv}
-function textCanvas(r,k){var cv=mkCanvas(k);drawBackVals(cv.getContext('2d'),r);return cv}
+function mkRaw(k){k=k||1;var cv=document.createElement('canvas');cv.width=cv.height=Math.round(1181*k);var x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.scale(k,k);return cv}
+function mirrorInto(src,k){var cv=mkRaw(k);var x=cv.getContext('2d');if(flipOn()){x.translate(1181,0);x.scale(-1,1)}x.drawImage(src,0,0,1181,1181);return cv}
+function backTpl(k){var cv=mkRaw(k);cv.getContext('2d').drawImage(IMG.b,0,0,1181,1181);return mirrorInto(cv,k)}
+function backCanvas(r,k){var cv=mkRaw(k);var x=cv.getContext('2d');x.drawImage(IMG.b,0,0,1181,1181);drawBackVals(x,r);return mirrorInto(cv,k)}
+function textCanvas(r,k){var cv=mkRaw(k);drawBackVals(cv.getContext('2d'),r);return mirrorInto(cv,k)}
 function toBlob(cv,q,dpi){dpi=dpi||300;
   return new Promise(function(res){cv.toBlob(async function(b){
     try{var u=new Uint8Array(await b.arrayBuffer());
@@ -4973,7 +4974,7 @@ $('id-read').onclick=function(){
   readFiles([].slice.call(f)).catch(function(e){console.error(e);st('✗ '+e.message,'err')});
 };
 $('id-clear').onclick=async function(){if(await uiConfirm('مسح كل أرقام التأشيرات المحفوظة للمجموعة دي؟')){idc().v={};save();sbSaveGroup(grp());idTable();st('اتمسحت.')}};
-$('id-pv-btn').onclick=preview;$('id-pv-sel').onchange=preview;$('id-flip').onchange=preview;$('id-mx').onchange=preview;
+$('id-pv-btn').onclick=preview;$('id-pv-sel').onchange=preview;$('id-flip').onchange=preview;
 $('id-pdf').onclick=makePdf;$('id-zip').onclick=makeZip;
 
 /* ── عينة JPG بنفس شكل ورقة الـ PSD بالظبط (A4، وش | ضهر، نفس عدد الصفوف) ── */
