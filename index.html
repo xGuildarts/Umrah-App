@@ -1000,7 +1000,7 @@ window.alert=function(m){window.uiAlert(m)};
   <div id="id-st" class="hint" style="margin:8px 0 0;font-weight:700;min-height:20px"></div>
   <div id="id-sum" style="font-size:13px;margin:6px 0"></div>
   <div class="tbl-wrap" style="max-height:46vh;overflow:auto"><table>
-    <thead><tr><th>#</th><th>الاسم بالعربي (قابل للتعديل)</th><th class="ltr">رقم الجواز</th><th class="ltr">رقم التأشيرة</th><th>الحالة</th></tr></thead>
+    <thead><tr><th>#</th><th title="علّم عشان تختاره في تحميل PSD">✓</th><th>الاسم بالعربي (قابل للتعديل)</th><th class="ltr">رقم الجواز</th><th class="ltr">رقم التأشيرة</th><th>الحالة</th></tr></thead>
     <tbody id="id-tb"></tbody></table></div>
   <div class="exp-panel">
     <h4>🖨️ الطباعة والتحميل</h4>
@@ -1014,10 +1014,11 @@ window.alert=function(m){window.uiAlert(m)};
       <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="id-flip"> اختياري: اقلب الكارنيه (Mirror)</label>
     </div>
     <div class="row" style="margin-top:8px">
+      <button class="sec" id="id-selall">☑️ تحديد الكل</button><button class="sec" id="id-selnone">⬜ مسح التحديد</button><span id="id-selinfo" class="hint" style="align-self:center"></span>
       <button id="id-pdf">⬇️ تحميل PDF</button>
       <button id="id-zip">⬇️ تحميل JPG (ZIP)</button>
       <button id="id-psd">⬇️ PSD (المعتمر المختار) — حسب خانة المحتوى: وش / ضهر / الاتنين</button>
-      <button class="sec" id="id-psdzip">⬇️ PSD للكل (ZIP)</button>
+      <button class="sec" id="id-psdzip">⬇️ PSD للمحدد (أو الكل لو مفيش تحديد) — ZIP</button>
       <button class="sec" id="id-shjpg">🖼️ عينة JPG ورقة (المختار)</button>
       <button class="sec" id="id-shjpgzip">🖼️ عينة JPG ورقة للكل (ZIP)</button>
       <button class="sec" id="id-shpdf">📄 عينة PDF ورقة (المختار)</button>
@@ -4625,9 +4626,13 @@ function recs(){
     return{p:p,name:arText(p),pno:p.pno||'',visa:v?v.no:'',v:v,ok:arOk(p)};
   });
 }
+/* المعتمرين المختارين لتحميل PSD (لو فاضي = الكل) */
+var IDSEL={};
+function idSelInfo(){var el=$('id-selinfo');if(!el)return;var n=recs().filter(function(r){return IDSEL[r.p.id]}).length;el.textContent=n?('المحدد: '+n+' معتمر'):'مفيش تحديد = هيتحمل الكل'}
 function idTable(){
   var tb=$('id-tb');if(!tb)return;
   var c=idc(),R=recs(),miss=0,unc=0,used={};
+  idSelInfo();
   tb.innerHTML=R.map(function(r,i){
     if(r.v)used[nk(r.pno)]=1;
     var tags=[];
@@ -4636,6 +4641,7 @@ function idTable(){
     if(!r.ok){unc++;tags.push('<span class="tag-exp tag-warn">اسم عربي غير مؤكد</span>')}
     if(!tags.length)tags.push('<span class="tag-exp tag-ok">جاهز</span>');
     return'<tr data-pid="'+r.p.id+'"><td>'+(i+1)+'</td>'
+      +'<td><input type="checkbox" class="id-ck" title="اختار المعتمر ده لتحميل PSD"'+(IDSEL[r.p.id]?' checked':'')+'></td>'
       +'<td><input class="id-nm" value="'+esc(r.name)+'" dir="rtl" style="width:230px"></td>'
       +'<td class="ltr">'+esc(r.pno)+'</td>'
       +'<td class="ltr"><input class="id-vs" value="'+esc(r.visa)+'" dir="ltr" inputmode="numeric" style="width:120px" placeholder="رقم التأشيرة"></td>'
@@ -4669,6 +4675,7 @@ function idTable(){
 $('id-tb').addEventListener('change',function(e){
   var tr=e.target.closest('tr');if(!tr)return;
   var p=S.people.find(function(x){return String(x.id)===tr.dataset.pid});if(!p)return;
+  if(e.target.classList.contains('id-ck')){if(e.target.checked)IDSEL[p.id]=1;else delete IDSEL[p.id];idSelInfo();return}
   if(e.target.classList.contains('id-nm')){arSet(p,e.target.value,true);arSaveSoon(arGrp(p))}
   else if(e.target.classList.contains('id-vs')){
     var c=idc(),k=nk(p.pno),v=e.target.value.replace(/\D/g,'');
@@ -4933,6 +4940,7 @@ async function makePsd(all){
   var R=RAW.filter(hasV),skip=RAW.filter(function(x){return!hasV(x)});
   var pid=$('id-pv-sel').value,pk=RAW.find(function(x){return String(x.p.id)===pid})||RAW[0];
   if(!all&&!hasV(pk)){alert('تأشيرة '+(pk.name||pk.pno)+' لسه مطلعتش، مش هينفع يتحمل PSD ليه لحد ما تطلع.');return}
+  if(Object.keys(IDSEL).length){R=R.filter(function(x){return IDSEL[x.p.id]});if(all&&!R.length){alert('المعتمرين المحددين مالهومش تأشيرة لسه، مش هينفع يتحملوا.');return}}
   if(!R.length){alert('كل المعتمرين لسه مطلعتش تأشيراتهم.');return}
   if(all&&skip.length){alert('المعتمرين دول اتشالوا من الملف لأن تأشيرتهم لسه مطلعتش:\n'+skip.map(function(x){return x.name||x.pno}).join('\n')+'\n\nاختارهم لوحدهم بعد ما تطلع تأشيرتهم.')}
   var S=sc();
@@ -5061,6 +5069,8 @@ async function makeSheetPdf(all){
 $('id-shpdf').onclick=function(){makeSheetPdf(false)};$('id-shpdfall').onclick=function(){makeSheetPdf(true)};
 
 $('id-psd').onclick=async function(){await makePsd(false)};$('id-psdzip').onclick=async function(){await makePsd(true)};
+$('id-selall').onclick=function(){recs().forEach(function(r){IDSEL[r.p.id]=1});idTable();idSelInfo()};
+$('id-selnone').onclick=function(){IDSEL={};idTable();idSelInfo()};
 
 window.idRefresh=function(){idLoad();idTable();preview()};window.idc=idc;window.nk=nk;window.dl=dl;
 var _r0=window.render;
