@@ -4628,6 +4628,8 @@ function recs(){
 }
 /* المعتمرين المختارين لتحميل PSD (لو فاضي = الكل) */
 var IDSEL={};
+/* الكشوف اللي بتتحمل (PDF / JPG): المحددين، ولو مفيش تحديد الكل */
+function selRecs(){var R=recs();if(Object.keys(IDSEL).length)R=R.filter(function(x){return IDSEL[x.p.id]});return R}
 function idSelInfo(){var el=$('id-selinfo');if(!el)return;var n=recs().filter(function(r){return IDSEL[r.p.id]}).length;el.textContent=n?('المحدد: '+n+' معتمر'):'مفيش تحديد = هيتحمل الكل'}
 function idTable(){
   var tb=$('id-tb');if(!tb)return;
@@ -4783,7 +4785,7 @@ function seq(R,mode){
 
 /* ── PDF ── */
 async function makePdf(){
-  if(busy)return;var R=recs();if(!await precheck(R))return;busy=true;
+  if(busy)return;var R=selRecs();if(!R.length){alert('مفيش معتمرين متحددين.');return}if(!await precheck(R))return;busy=true;
   try{
     await assets();await needJsPdf();
     var mode=$('id-mode').value,lay=$('id-lay').value,Q=q(),J=window.jspdf.jsPDF,doc;
@@ -4826,7 +4828,7 @@ async function makePdf(){
 
 /* ── ZIP (JPG) ── */
 async function makeZip(){
-  if(busy)return;var R=recs();if(!await precheck(R))return;busy=true;
+  if(busy)return;var R=selRecs();if(!R.length){alert('مفيش معتمرين متحددين.');return}if(!await precheck(R))return;busy=true;
   try{
     await assets();await needZip();
     var S=sc(),mode=$('id-mode').value,Q=q(),z=new JSZip(),n=0,tot=(mode==='front'?1:R.length)+(mode==='back'?0:1);
