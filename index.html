@@ -4799,9 +4799,8 @@ async function preview(){
 async function precheck(R){
   if(!R.length){alert('المجموعة فاضية.');return false}
   var c=idc(),m=[];
-  var nov=R.filter(function(r){return!r.visa}).length,unc=R.filter(function(r){return!r.ok}).length;
+  var unc=R.filter(function(r){return!r.ok}).length;
   var emp=[['sup','اسم المشرف'],['ph','رقم الهاتف'],['med','فندق المدينة'],['mak','فندق مكة'],['agent','الوكيل السعودي']].filter(function(f){return!c[f[0]]}).map(function(f){return f[1]});
-  if(nov)m.push('• '+nov+' معتمر من غير رقم تأشيرة (الخانة هتطلع فاضية)');
   if(unc)m.push('• '+unc+' اسم عربي لسه ما اتأكدش');
   if(emp.length)m.push('• بيانات ثابتة فاضية: '+emp.join('، '));
   if(!m.length)return true;
@@ -4968,14 +4967,9 @@ function perN(S){var _n=+($('id-per')||{}).value||1,_W=Math.round(1181*S),_mx=Ma
 function psdBlob(r,k,front){return new Blob([agPsd.writePsd(psdDoc(r,k,front))],{type:'image/vnd.adobe.photoshop'})}
 async function makePsd(all){
   if(busy)return;var RAW=recs();if(!RAW.length){alert('المجموعة فاضية.');return}
-  /* المعتمر اللي تأشيرته لسه مطلعتش ما يدخلش ملفات PSD الكاملة، ويتعرض اسمه بس */
-  var hasV=function(x){return!!String(x.visa||'').trim()};
-  var R=RAW.filter(hasV),skip=RAW.filter(function(x){return!hasV(x)});
+  var R=RAW.slice(),skip=[];
   var pid=$('id-pv-sel').value,pk=RAW.find(function(x){return String(x.p.id)===pid})||RAW[0];
-  if(!all&&!hasV(pk)){alert('تأشيرة '+(pk.name||pk.pno)+' لسه مطلعتش، مش هينفع يتحمل PSD ليه لحد ما تطلع.');return}
-  if(Object.keys(IDSEL).length){R=R.filter(function(x){return IDSEL[x.p.id]});if(all&&!R.length){alert('المعتمرين المحددين مالهومش تأشيرة لسه، مش هينفع يتحملوا.');return}}
-  if(!R.length){alert('كل المعتمرين لسه مطلعتش تأشيراتهم.');return}
-  if(all&&skip.length){alert('المعتمرين دول اتشالوا من الملف لأن تأشيرتهم لسه مطلعتش:\n'+skip.map(function(x){return x.name||x.pno}).join('\n')+'\n\nاختارهم لوحدهم بعد ما تطلع تأشيرتهم.')}
+  if(Object.keys(IDSEL).length){R=R.filter(function(x){return IDSEL[x.p.id]});if(!R.length){alert('مفيش معتمرين محددين.');return}}
   var S=sc();
   if(all){
     if(!await precheck(R))return;
