@@ -4710,11 +4710,18 @@ async function assets(){
 function FONT(px){return'800 '+px+'px Tajawal,"IBM Plex Sans Arabic",Tahoma,Arial,sans-serif'}
 function hasAr(s){return/[\u0600-\u06FF]/.test(s)}
 function VR(){return RIGHT}
-function drawVal(ctx,txt,cy){
+function commonFs(vals){
+  var mc=document.createElement('canvas').getContext('2d'),m=62;
+  vals.forEach(function(v){v=String(v||'').trim();if(!v)return;mc.direction=hasAr(v)?'rtl':'ltr';var fs=62;
+    while(fs>20){mc.font=FONT(fs);if(mc.measureText(v).width<=BOXW)break;fs-=1}
+    if(fs<m)m=fs});
+  return m
+}
+function drawVal(ctx,txt,cy,F){
   txt=String(txt||'').trim();if(!txt)return;
   ctx.direction=hasAr(txt)?'rtl':'ltr';ctx.textAlign='center';ctx.textBaseline='middle';
-  var fs=62;
-  while(fs>20){ctx.font=FONT(fs);if(ctx.measureText(txt).width<=BOXW)break;fs-=1}
+  var fs=F||62;
+  if(!F)while(fs>20){ctx.font=FONT(fs);if(ctx.measureText(txt).width<=BOXW)break;fs-=1}
   ctx.font=FONT(fs);
   ctx.lineWidth=1.8;
   if(ctx.measureText(txt).width<=BOXW){ctx.fillText(txt,VR(),cy+2);ctx.strokeText(txt,VR(),cy+2);return}
@@ -4758,7 +4765,7 @@ function drawRowsFrame(x){
 }
 function drawBackVals(x,r){var c=idc();x.fillStyle='#020c24';x.strokeStyle='#020c24';
   if(isSup(r.p)){[supTxt(r.p),'',c.sup,supPhone(r.p)||c.ph,c.med,c.mak,c.agent].forEach(function(v,i){drawVal(x,v,ROWS[i])});return}
-  [r.name,r.pno,c.sup,c.ph,c.med,c.mak,c.agent].forEach(function(v,i){drawVal(x,v,ROWS[i])})}
+  var vv=[r.name,r.pno,c.sup,c.ph,c.med,c.mak,c.agent],F=commonFs(vv);vv.forEach(function(v,i){drawVal(x,v,ROWS[i],F)})}
 function mkRaw(k){k=k||1;var cv=document.createElement('canvas');cv.width=cv.height=Math.round(1181*k);var x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.scale(k,k);return cv}
 function mirrorInto(src,k){var cv=mkRaw(k);var x=cv.getContext('2d');if(flipOn()){x.translate(1181,0);x.scale(-1,1)}x.drawImage(src,0,0,1181,1181);return cv}
 function backTpl(k){var cv=mkRaw(k);var x=cv.getContext('2d');x.filter='none';x.drawImage(IMG.b,0,0,1181,1181);x.filter='none';return mirrorInto(cv,k)}
@@ -4874,10 +4881,10 @@ async function makeZip(){
 /* ── PSD (طبقات: قالب + طبقة لكل خانة) ── */
 var PSD_FONT='Tajawal-ExtraBold';
 /* نفس منطق drawVal بس بيرجّع الأسطر + العرض عشان نحط كل سطر كطبقة نص (ثابتة من الحافة اليمين) */
-function psdFit(txt){
+function psdFit(txt,F){
   txt=String(txt||'').trim();var cv=document.createElement('canvas').getContext('2d');
-  cv.direction=hasAr(txt)?'rtl':'ltr';var fs=56;
-  while(fs>20){cv.font=FONT(fs);if(cv.measureText(txt).width<=BOXW)break;fs-=1}
+  cv.direction=hasAr(txt)?'rtl':'ltr';var fs=F||56;
+  if(!F)while(fs>20){cv.font=FONT(fs);if(cv.measureText(txt).width<=BOXW)break;fs-=1}
   cv.font=FONT(fs);
   if(cv.measureText(txt).width<=BOXW)return{fs:fs,items:[{t:txt,dy:2,w:cv.measureText(txt).width}]};
   var w=txt.split(/\s+/),best=null;
@@ -4896,7 +4903,7 @@ function psdDoc(r,k,front,ox,nocomp,oy){
     var c=idc(),vals=[r.name,r.pno,c.sup,c.ph,c.med,c.mak,c.agent];
     vals.forEach(function(v,i){
       if(!String(v||'').trim())return;
-      var tf=psdFit(v);
+      var tf=psdFit(v,commonFs(vals));
       tf.items.forEach(function(it,j){
         /* الرسم (صورة الطبقة): نفس شكل drawVal بالظبط لسطر واحد */
         var x0=Math.max(0,Math.floor((RIGHT-BOXW/2-16)*k)),y0=Math.max(0,Math.floor((ROWS[i]+it.dy-34)*k));
