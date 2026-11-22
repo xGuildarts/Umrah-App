@@ -1019,6 +1019,7 @@ window.alert=function(m){window.uiAlert(m)};
 <div class="card" id="id-card" data-tab="id">
   <div class="sec-t">🆔 كارنيه المعتمر (ID) <small>(وش وضهر — الوش فيه بيانات كل معتمر وبيتملى تلقائي، والضهر ثابت)</small></div>
   <p class="hint">① اكتب البيانات الثابتة للمجموعة مرة واحدة &nbsp;② ارفع PDF التأشيرات (ملف فيه كل التأشيرات أو كذا ملف) وهيتقرأ رقم التأشيرة ويتربط بالمعتمر <b>برقم الجواز</b> &nbsp;③ راجع الجدول &nbsp;④ نزّل PDF أو JPG للطباعة. الاسم بالعربي والجواز بيتاخدوا من المعتمرين في الرحلة.</p>
+  <div id="id-groups" class="row" style="flex-wrap:wrap;gap:8px 12px;font-size:13px;margin:8px 0"></div>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;font-size:13px;margin-top:8px">
     <label style="display:flex;flex-direction:column;gap:3px">اسم المشرف<input id="id-sup" dir="rtl" autocomplete="off"></label>
     <label style="display:flex;flex-direction:column;gap:3px">رقم الهاتف<input id="id-ph" dir="ltr" autocomplete="off" placeholder="01012345678"></label>
@@ -4653,9 +4654,28 @@ async function readFiles(files){
 }
 
 /* ── الجدول ── */
+/* مجموعات الكارنيه المختارة (ممكن أكتر من مجموعة في ملف واحد، بالترتيب) */
+var IDG=[];
+function idList(){
+  if(!IDG.length)return list();
+  var out=[];S.groups.forEach(function(g){if(IDG.map(String).indexOf(String(g.id))>-1){S.people.forEach(function(p){if(p.g===g.id)out.push(p)})}});
+  return out;
+}
+function idGroupsUI(){
+  var box=$('id-groups');if(!box||!S.groups)return;
+  var on=IDG.length?IDG.map(String):[String(grp().id)];
+  box.innerHTML='<span style="color:var(--mut)">المجموعات اللي هتتحمل في نفس الملف (ترقيم الملفات بيكمل متصل):</span>'+S.groups.map(function(g){
+    var n=S.people.filter(function(p){return p.g===g.id}).length;
+    return'<label style="display:inline-flex;align-items:center;gap:4px"><input type="checkbox" class="id-gc" value="'+g.id+'"'+(on.indexOf(String(g.id))>-1?' checked':'')+'> '+esc(g.name)+' ('+n+')</label>';
+  }).join('');
+  box.onchange=function(e){if(!e.target||!e.target.classList||!e.target.classList.contains('id-gc'))return;
+    IDG=Array.prototype.map.call(box.querySelectorAll('.id-gc:checked'),function(c){return c.value});
+    idTable();idSelInfo();
+  };
+}
 function recs(){
   var c=idc();
-  return list().map(function(p){
+  return idList().map(function(p){
     var v=c.v[nk(p.pno)]||null;
     return{p:p,name:arText(p),pno:p.pno||'',visa:v?v.no:'',v:v,ok:arOk(p)};
   });
@@ -4666,7 +4686,8 @@ var IDSEL={};
 function selRecs(){var R=recs();if(Object.keys(IDSEL).length)R=R.filter(function(x){return IDSEL[x.p.id]});return R}
 function idSelInfo(){var el=$('id-selinfo');if(!el)return;var n=recs().filter(function(r){return IDSEL[r.p.id]}).length;el.textContent=n?('المحدد: '+n+' معتمر'):'مفيش تحديد = هيتحمل الكل'}
 function idTable(){
-  var tb=$('id-tb');if(!tb)return;
+  var tb=$('id-tb');
+  idGroupsUI();if(!tb)return;
   var c=idc(),R=recs(),miss=0,unc=0,used={};
   idSelInfo();
   tb.innerHTML=R.map(function(r,i){
