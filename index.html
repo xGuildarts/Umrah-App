@@ -494,6 +494,7 @@ dialog h4{font-size:18px;font-weight:700;margin:0 0 6px}
   .wrap,.toast,#undo-bar{display:none!important}
   #pa{display:none}
   #ticket-pages{display:block;color:#000;direction:ltr}
+  #pa:empty{display:none!important}
   .tk-page{page-break-after:always}
   .tk-page:last-child{page-break-after:avoid}
 }
@@ -2092,6 +2093,11 @@ var SV_CRAFT={dep:'Airbus A330',ret:'Airbus A321'};
 function svT(x,cy,fs,html,css){
   return'<div class="sv-a" style="left:'+(x-62)+'px;top:'+(cy-28-Math.round(fs*0.75))+'px;font-size:'+fs+'px;line-height:'+Math.round(fs*1.5)+'px;'+(css||'')+'">'+html+'</div>';
 }
+function svTime(x,dy,t,code){
+  return'<div class="sv-a" style="left:'+(x-62)+'px;top:'+(141+dy)+'px;display:flex;align-items:flex-start;gap:6px;color:#111">'
+    +'<div style="font-size:32px;line-height:48px;letter-spacing:-.5px;white-space:nowrap">'+t.h+':'+t.m+'</div>'
+    +'<div style="margin-top:13px;font-size:11.5px;line-height:11px;color:#333"><div>'+t.ap+'</div><div>'+code+'</div></div></div>';
+}
 function svLeg(L,dy,idxLeg,tk,pname,etk){
   var o='',wd='',mon='';
   var hd='';
@@ -2109,14 +2115,12 @@ function svLeg(L,dy,idxLeg,tk,pname,etk){
   o+='<img class="sv-a" style="left:420px;top:'+(144+dy)+'px;width:42px;height:40px" src="data:image/png;base64,'+TK_ASSETS.sv_plane+'">';
   var td=L.tDep?h12(L.tDep):null,ta=L.tArr?h12(L.tArr):null;
   o+=svT(528,172+dy,12,'DEPART','color:#444');
-  if(td){o+=svT(528,193+dy,32,td.h+':'+td.m,'color:#111;letter-spacing:-.5px');
-    o+=svT(611,188+dy,11.5,td.ap,'color:#333');o+=svT(611,199+dy,11.5,L.from,'color:#333');}
+  if(td)o+=svTime(528,dy,td,L.from);
   o+='<div class="sv-a" style="left:'+(631-62)+'px;width:56px;text-align:center;top:'+(172-28-9+dy)+'px;font-size:12px;line-height:12px;color:#444">NON<br>STOP</div>';
   o+='<svg class="sv-a" style="left:'+(641-62)+'px;top:'+(194-28+dy)+'px" width="38" height="10" viewBox="0 0 38 10"><line x1="0" y1="5" x2="30" y2="5" stroke="#000" stroke-width="2"/><path d="M29 0l8 5-8 5z" fill="#000"/></svg>';
   if(L.mins!=null)o+='<div class="sv-a" style="left:'+(631-62)+'px;width:56px;text-align:center;top:'+(217-28-9+dy)+'px;font-size:12px;line-height:18px;color:#333">'+Math.floor(L.mins/60)+'H '+(L.mins%60)+'M</div>';
   o+=svT(702,172+dy,12,'ARRIVE','color:#444');
-  if(ta){o+=svT(702,193+dy,32,ta.h+':'+ta.m,'color:#111;letter-spacing:-.5px');
-    o+=svT(769,188+dy,11.5,ta.ap,'color:#333');o+=svT(769,199+dy,11.5,L.to,'color:#333');}
+  if(ta)o+=svTime(702,dy,ta,L.to);
   o+=svT(101,231+dy,14,'<b>PASSENGERS</b>','color:#222');
   o+='<table class="sv-a" style="left:39px;top:'+(220+dy)+'px;width:996px;table-layout:fixed;border-collapse:collapse;font-size:13px;color:#111">'
     +'<colgroup><col style="width:540px"><col></colgroup>'
@@ -2225,9 +2229,19 @@ $('tk-print').onclick=function(){
   var l=list();
   if(!l.length){alert('المجموعة فاضية.');return}
   var g=grp(),pages=$('ticket-pages'),R=TK_RENDER[tkAirline()]||TK_RENDER.aircairo;
+  var pa=$('pa');if(pa)pa.innerHTML='';
   pages.innerHTML=l.map(function(p,i){return R(p,g,i)}).join('');
-  window.print();
-  pages.innerHTML='';
+  var imgs=[].slice.call(pages.querySelectorAll('img'));
+  var waits=imgs.map(function(im){
+    return(im.decode?im.decode():new Promise(function(r){if(im.complete)r();else{im.onload=im.onerror=r}})).catch(function(){});
+  });
+  if(document.fonts&&document.fonts.ready)waits.push(document.fonts.ready.catch(function(){}));
+  var _done=false;
+  function clean(){if(_done)return;_done=true;window.removeEventListener('afterprint',clean);pages.innerHTML=''}
+  window.addEventListener('afterprint',clean);
+  Promise.all(waits).then(function(){
+    return new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r)})});
+  }).then(function(){window.print()});
 };
 
 /* ══════════════════════════════════════════
